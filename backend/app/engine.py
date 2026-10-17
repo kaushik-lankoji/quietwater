@@ -19,7 +19,7 @@ DISPLAY = {
 URGENCY_RANK = {"routine": 0, "elevated": 1, "urgent": 2}
 LATCHING = ("threat", "evasive")
 LIVE_FIELDS = ("t", "clock", "position", "heading", "speed_kn", "checks", "ruled_out", "consequence",
-               "nearest_asset", "zone", "traffic", "confidence", "hail")
+               "nearest_asset", "zone", "traffic", "confidence", "hail", "trend", "closing_mps", "cpa")
 
 
 def display_label(label: str) -> str:
@@ -80,6 +80,15 @@ class Decision:
     max_looks: int
     traffic: list[str] = field(default_factory=list)
     drift: dict[str, Any] | None = None
+    scan_label: str = "unknown"
+    trend: str = "new"
+    closing_mps: float = 0.0
+    cpa: dict[str, Any] | None = None
+    consequence_basis: str = "distance"
+    ambiguous: bool = False
+    ai_raised_tier: int = 0
+    ai_reason: str | None = None
+    advisor: dict[str, Any] | None = None
 
     def key(self) -> tuple:
         return (tuple(self.rungs), tuple(self.path), self.outcome, self.label, self.look, self.urgency)
@@ -97,6 +106,7 @@ class _Ctx:
     def __init__(self, f: Facts, mem: Memory, rules: Rules, track: str, mode: str):
         self.f, self.mem, self.rules, self.track = f, mem, rules, track
         self.path: list[str] = []
+        self.text_mode = mode
         self.texts = rules.modes[mode]
 
     def name(self, rung: str) -> str:
@@ -151,7 +161,8 @@ def build_checks(f: Facts, rules: Rules) -> list[dict[str, Any]]:
     if f.registered and f.scheduled and f.zone_authorized:
         add("identity", ident, False, f"{f.registry_id}, {f.schedule_note}")
     elif not f.registered:
-        add("identity", ident, True, f"ID {f.transponder} not in registry" if f.transponder else "no transponder ID")
+        add("identity", ident, True, f"ID {f.transponder} not in {rules.registry_source}" if f.transponder
+            else f"no transponder ID ({rules.registry_source})")
     elif not f.scheduled:
         add("identity", ident, True, f"{f.registry_id} is off schedule ({f.schedule_note})")
     else:
@@ -187,17 +198,20 @@ def _finish(c: _Ctx, outcome: str, rungs: list[str], reason: str, higher: str, l
     top = rungs[-1]
     human = rules.requires_human(top)
     if human and c.track == "security":
+        c.text_mode = "security"
         c.texts = rules.modes["security"]
     if urgency is None:
         urgency = "elevated" if human else "routine"
+    windows = rules.windows
     if window_s is None:
         if window_key:
-            window_s = getattr(rules.windows_s, window_key)
+            window_s = getattr(windows, window_key)
         elif human:
-            window_s = rules.windows_s.urgent if urgency == "urgent" else rules.windows_s.default
+            window_s = windows.urgent if urgency == "urgent" else windows.default
     focus = _focus(f)
-    target = c.texts.handoff_target
+    target = rules.handoff_target(c.text_mode)
     fmt = {
+        "hail_channel": rules.hail_channel,
         "look": min(c.mem.second_looks + 1, rules.loop.max_second_looks) or 1,
         "max_looks": rules.loop.max_second_looks,
         "vessels": ", ".join(f.traffic) if f.traffic else "nearby traffic",
@@ -223,6 +237,8 @@ def _finish(c: _Ctx, outcome: str, rungs: list[str], reason: str, higher: str, l
         position=f.position, heading=round(f.heading), speed_kn=round(f.speed_mps * MPS_TO_KN, 1),
         size_m=f.size_m, zone=f.zone_name, registered=f.registered, registry_id=f.registry_id, hail=f.hail,
         look=c.mem.second_looks, max_looks=rules.loop.max_second_looks, traffic=list(f.traffic), drift=drift,
+        scan_label=f.scan_label, trend=f.trend, closing_mps=f.closing_mps, cpa=f.cpa,
+        consequence_basis=f.consequence_basis,
     )
 
 
@@ -379,11 +395,14 @@ def _unknown(c: _Ctx, note: str | None = None) -> Decision:
                            f"holding needs high consequence; it is {asset.distance_m:.0f} m out "
                            f"(high starts at {band.high_m:.0f} m).",
                            f"asking alone leaves {', '.join(f.traffic)} uninformed.")
+        inside = (f"its course passes {f.cpa['distance_m']} m from {asset.name} within {f.cpa['in_s']} s."
+                  if f.consequence_basis == "cpa" and f.cpa else
+                  f"it is inside the {band.medium_m:.0f} m medium band of {asset.name}.")
         return _finish(c, "unknown_medium_quiet", rules.ladder.unknown_medium_quiet,
                        f"{lead}, {_dist(f)}. No traffic nearby; asking for ID.",
                        f"no vessels within {rules.traffic_radius_m:.0f} m to advise, and holding needs "
                        f"high consequence (within {band.high_m:.0f} m).",
-                       f"it is inside the {band.medium_m:.0f} m medium band of {asset.name}.")
+                       inside)
     return _low_loop(c, lead, band)
 
 
@@ -502,3 +521,29 @@ def _recovery(c: _Ctx) -> Decision:
     return _finish(c, "rec_confirmed", rec.ladder.confirmed, found,
                    f"holding a lane only if it drifts into an operation; {_dist(f)}.",
                    "the owner needs the fix now, while it is still close.", urgency="routine", **common)
+
+
+def advise_decision(f: Facts, mem: Memory, rules: Rules, mode: str, d: Decision, raise_by: int,
+                    second_look: bool, note: str) -> Decision:
+    c = _Ctx(f, mem, rules, d.track, mode)
+    c.path = list(d.path) + ["AI"]
+    rungs, outcome = list(d.rungs), d.outcome
+    loop = rules.loop
+    if second_look and rung_index(d.rung) < rung_index("R1"):
+        if mem.second_looks >= loop.max_second_looks:
+            rungs, outcome = _shift(["R1"], loop.escalate_by), "advisor_look_escalated"
+        else:
+            if mem.next_look_t is None:
+                mem.next_look_t = f.t + loop.interval_s
+            elif f.t >= mem.next_look_t:
+                mem.second_looks += 1
+                mem.next_look_t = f.t + loop.interval_s
+            rungs, outcome = ["R1"], "advisor_second_look"
+    if raise_by > 0:
+        rungs = _shift(rungs, raise_by)
+        outcome = f"{d.outcome}_raised" if outcome == d.outcome else outcome
+    if rung_index(rungs[-1]) <= rung_index(d.rung) and outcome == d.outcome:
+        return d
+    return _finish(c, outcome, rungs, f"{d.reason} Advisor: {note}",
+                   "the advisor may raise a contact, but anything further needs a hard trigger or a person.",
+                   f"the advisor flagged it: {note}")
