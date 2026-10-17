@@ -78,7 +78,7 @@ flowchart TD
   S5 -- evades --> R5e[R5 Hand off · urgent]
   S5 -- "research / commercial" --> S3
   S5 -- "military-grade" --> R45m[R4 Hold + R5 Hand off · 30 min]
-  S5 -- "unknown · low" --> R1["R1 Watch+ second look<br/>max 2, then up one rung"]
+  S5 -- "unknown · low" --> R1["R1 Look again<br/>max 2, then up one rung"]
   S5 -- "unknown · medium" --> R23["R2 Ask, or R3 Slow if traffic"]
   S5 -- "unknown · high" --> R45[R4 Hold one operation + R5 Hand off]
 ```
@@ -86,7 +86,7 @@ flowchart TD
 | Rung | Name | Who acts | What happens |
 | --- | --- | --- | --- |
 | R0 | Watch | automatic | Logged. |
-| R1 | Watch+ | automatic | Second look on the next sonar pass. Capped at `loop.max_second_looks`, then up one rung. Never loops forever. |
+| R1 | Look again | automatic | Second look on the next sonar pass. Capped at `loop.max_second_looks`, then up one rung. Never loops forever. |
 | R2 | Ask | automatic | Hail on acoustic modem and VHF 16. |
 | R3 | Slow | automatic | Advisory to named nearby vessels. |
 | R4 | Hold | **person** | Recommend pausing *one* operation at the asset at risk. |
@@ -94,7 +94,7 @@ flowchart TD
 
 Rules the engine holds to:
 
-- **Confidence alone never escalates.** A 99%-sure unknown far from anything stays at Watch+. Confidence combined with consequence does escalate.
+- **Confidence alone never escalates.** A 99%-sure unknown far from anything stays at Look again. Confidence combined with consequence does escalate.
 - **The hail gets time.** While a hail is pending (`hail.timeout_s`), nothing above R2 is recommended unless S4 finds a real threat.
 - **Urgent hand-offs latch.** Once a contact earns an urgent R5, it doesn't flap back down because it turned around.
 - **Hold and Hand off always need a person.** `human_required_from` can be lowered (R3 in a twist), never raised above R4. The schema rejects it.

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import io
 import json
 import re
@@ -74,9 +75,23 @@ class Band(Strict):
         return self
 
 
+class CpaCfg(Strict):
+    horizon_s: float = Field(default=120, ge=0)
+    step_s: float = Field(default=5, gt=0)
+    raise_to: Literal["low", "medium", "high"] = "medium"
+
+
 class ConsequenceCfg(Strict):
     default: Band
     by_kind: dict[str, Band] = {}
+    cpa: CpaCfg = CpaCfg()
+
+
+class TrendCfg(Strict):
+    window_s: float = Field(default=30, gt=0)
+    closing_mps: float = Field(default=0.05, ge=0)
+    loiter_turn_deg: float = Field(default=75, gt=0)
+    loiter_speed_mps: float = Field(default=0.03, ge=0)
 
 
 class Approach(Strict):
@@ -207,6 +222,68 @@ class Recovery(Strict):
     ladder: RecoveryLadder
 
 
+class AdvisorWeights(Strict):
+    low_confidence: float = Field(default=0.3, ge=0)
+    silent: float = Field(default=0.2, ge=0)
+    closing: float = Field(default=0.3, ge=0)
+    loitering: float = Field(default=0.15, ge=0)
+    anomaly: float = Field(default=0.4, ge=0)
+    inconsistent: float = Field(default=0.3, ge=0)
+    medium_consequence: float = Field(default=0.1, ge=0)
+
+
+class AdvisorAnomaly(Strict):
+    non_vehicle_max_size_m: float = Field(default=2.5, gt=0)
+    non_vehicle_max_speed_mps: float = Field(default=1.5, gt=0)
+
+
+class LLMCfg(Strict):
+    provider: Literal["anthropic"] = "anthropic"
+    model: str = "claude-haiku-5-5"
+    endpoint: str = "https://api.anthropic.com/v1/messages"
+    api_key_env: str = "ANTHROPIC_API_KEY"
+    timeout_s: float = Field(default=2.5, gt=0, le=30)
+    max_tokens: int = Field(default=200, gt=0, le=2000)
+
+
+class AdvisorCfg(Strict):
+    enabled: bool = True
+    backend: Literal["rule", "llm"] = "rule"
+    max_raise: int = Field(default=1, ge=0, le=5)
+    raise_at: float = Field(default=0.6, ge=0, le=1)
+    second_look_at: float = Field(default=0.35, ge=0, le=1)
+    timeout_s: float = Field(default=3.0, gt=0, le=30)
+    weights: AdvisorWeights = AdvisorWeights()
+    anomaly: AdvisorAnomaly = AdvisorAnomaly()
+    llm: LLMCfg = LLMCfg()
+
+
+class NoticeText(Strict):
+    to: str = "TO"
+    sender: str = "FROM"
+    subject_unknown: str = "Unidentified underwater vehicle"
+    subject_found: str = "located"
+    contact: str = "contact"
+    why: str = "Why"
+    ruled_out: str = "Ruled out"
+    nothing_yet: str = "nothing yet"
+    steps: str = "Steps taken"
+    none: str = "none"
+    recommended: str = "Recommended"
+    closing: str = "No physical action has been taken. The next step is yours."
+
+
+class Jurisdiction(Strict):
+    name: str
+    registry_source: str
+    notice_recipient: str
+    hail_channel: str
+    language: str
+    windows_s: Windows | None = None
+    registry: list[RegistryEntry] | None = None
+    notice: NoticeText = NoticeText()
+
+
 class RungText(Strict):
     name: str
     action: str
@@ -236,6 +313,7 @@ class Rules(Strict):
     evasion: Evasion
     hail: HailCfg
     traffic_radius_m: float = Field(ge=0)
+    trend: TrendCfg = TrendCfg()
     consistency: Consistency
     class_profiles: dict[str, ClassProfile]
     loop: Loop
@@ -249,6 +327,9 @@ class Rules(Strict):
     registry: list[RegistryEntry]
     recovery: Recovery
     modes: dict[Literal["security", "recovery"], ModeCfg]
+    advisor: AdvisorCfg = AdvisorCfg()
+    jurisdiction: str | None = None
+    jurisdictions: dict[str, Jurisdiction] = {}
 
     @model_validator(mode="after")
     def cross_checks(self) -> Rules:
@@ -262,10 +343,19 @@ class Rules(Strict):
             dupes = {i for i in ids if ids.count(i) > 1}
             if dupes:
                 raise ValueError(f"duplicate {label} ids: {', '.join(sorted(dupes))}")
-        for entry in self.registry:
-            unknown = [z for z in entry.authorized_zones if z not in zone_ids]
-            if unknown:
-                raise ValueError(f"registry {entry.id} authorizes unknown zone(s): {', '.join(unknown)}")
+        if self.jurisdiction is not None and self.jurisdiction not in self.jurisdictions:
+            raise ValueError(f"jurisdiction '{self.jurisdiction}' is not defined in jurisdictions")
+        registries = [("registry", self.registry)] + [
+            (f"jurisdictions.{k}.registry", j.registry) for k, j in self.jurisdictions.items() if j.registry]
+        for where, entries in registries:
+            ids = [r.id for r in entries]
+            dupes = {i for i in ids if ids.count(i) > 1}
+            if dupes:
+                raise ValueError(f"duplicate {where} ids: {', '.join(sorted(dupes))}")
+            for entry in entries:
+                unknown = [z for z in entry.authorized_zones if z not in zone_ids]
+                if unknown:
+                    raise ValueError(f"{where} {entry.id} authorizes unknown zone(s): {', '.join(unknown)}")
         if self.recovery.lost_vehicle_id not in {r.id for r in self.registry}:
             raise ValueError("recovery.lost_vehicle_id must be in the registry")
         for mode in ("security", "recovery"):
@@ -276,10 +366,48 @@ class Rules(Strict):
     def band_for(self, kind: str) -> Band:
         return self.consequence.by_kind.get(kind, self.consequence.default)
 
+    @property
+    def profile(self) -> Jurisdiction | None:
+        return self.jurisdictions.get(self.jurisdiction) if self.jurisdiction else None
+
+    @property
+    def active_registry(self) -> list[RegistryEntry]:
+        p = self.profile
+        return p.registry if p and p.registry is not None else self.registry
+
+    @property
+    def registry_source(self) -> str:
+        return self.profile.registry_source if self.profile else "the registry"
+
+    @property
+    def windows(self) -> Windows:
+        p = self.profile
+        return p.windows_s if p and p.windows_s else self.windows_s
+
+    @property
+    def hail_channel(self) -> str:
+        return self.profile.hail_channel if self.profile else "acoustic modem and VHF 16"
+
+    @property
+    def notice(self) -> NoticeText:
+        return self.profile.notice if self.profile else NoticeText()
+
+    @property
+    def language(self) -> str:
+        return self.profile.language if self.profile else "en"
+
+    def handoff_target(self, mode: str) -> str:
+        if mode == "security" and self.profile:
+            return self.profile.notice_recipient
+        return self.modes[mode].handoff_target
+
+    def config_hash(self) -> str:
+        return hashlib.sha256(self.model_dump_json().encode()).hexdigest()[:12]
+
     def registry_entry(self, vehicle_id: str | None) -> RegistryEntry | None:
         if not vehicle_id:
             return None
-        return next((r for r in self.registry if r.id == vehicle_id), None)
+        return next((r for r in self.active_registry if r.id == vehicle_id), None)
 
     def requires_human(self, rung: str) -> bool:
         return rung_index(rung) >= rung_index(self.human_required_from)
