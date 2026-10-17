@@ -430,12 +430,14 @@ function Card({ item, rules, onAct, busy }: { item: HandoffItem; rules: RulesDat
     <>
       <div className="pane-scroll handoff-body">
         <article className={cls("handoff", d.urgency)} aria-label={`Contact ${d.contact_id}`}>
-          <div className="handoff-top">
-            <div className="handoff-tags">
-              <UrgencyTag urgency={d.urgency} />
-              {item.contact_lost && <span className="status-pill">lost on sonar</span>}
+          {(d.urgency === "urgent" || item.contact_lost) && (
+            <div className="handoff-top">
+              <div className="handoff-tags">
+                {d.urgency === "urgent" && <UrgencyTag urgency={d.urgency} />}
+                {item.contact_lost && <span className="status-pill">lost on sonar</span>}
+              </div>
             </div>
-          </div>
+          )}
           <p className="handoff-summary">{summary(d.reason)}</p>
           <StateBanner item={item} rules={rules} />
           {showPlan && <Plan item={item} />}
