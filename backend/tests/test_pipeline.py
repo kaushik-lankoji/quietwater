@@ -102,7 +102,7 @@ def test_r4_r5_are_never_automated_and_need_operator_approval(client):
     assert client.post(f"/api/handoff/{item.id}", json={"action": "send"}).status_code == 409
     assert client.post("/api/handoff/H-999", json={"action": "approve"}).status_code == 404
     ok = client.post(f"/api/handoff/{item.id}", json={"action": "approve", "operator": "Officer K"}).json()
-    assert ok["status"] == "approved" and ok["actor"] == "Officer K"
+    assert ok["status"] == "hold_requesting" and ok["actor"] == "Officer K"
     approvals = [e for e in hub.audit if e["kind"] == "operator" and e["detail"]["action"] == "approve"]
     assert [e["actor"] for e in approvals] == ["Officer K"]
 
@@ -112,7 +112,7 @@ def test_system_never_sends_an_alert_on_its_own(client, name):
     hub = client.hub
     client.post("/api/sim/scenario", json={"name": name})
     advance(hub, 300, dt=2.0)
-    assert hub.outbox == []
+    assert hub.outbox == [] and hub.hold_requests == []
     drafts = [i for i in hub.items.values() if i.draft]
     assert all(i.draft_status == "drafted" for i in drafts)
     assert not any("Sent alert" in e["reason"] for e in hub.audit)

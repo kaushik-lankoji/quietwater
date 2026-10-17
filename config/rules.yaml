@@ -92,7 +92,13 @@ windows_s:
 alert_budget:
   capacity: 6
   weights: {R0: 0, R1: 0, R2: 0, R3: 1, R4: 2, R5: 3}
-  keep_watching_snooze_s: 60
+  keep_watching_snooze_s: 120
+
+# What happens after the operator acts on a hand-off. The hold request is mocked.
+handoff:
+  hold_s: 1800
+  undo_s: 10
+  mock_hold_delay_s: 1.0
 
 zones:
   - id: fuel_dock_area

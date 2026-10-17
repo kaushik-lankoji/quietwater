@@ -40,18 +40,22 @@ def test_state_snapshot_has_budget_and_contacts(client):
 
 def test_handoff_approve_then_send_draft(client):
     hub = client.hub
+    hub.store.rules.handoff.mock_hold_delay_s = 0
     client.post("/api/sim/scenario", json={"name": "all_archetypes"})
     advance(hub, 30)
     items = [i for i in hub.items.values() if i.status == "pending"]
     assert items
-    r5 = next(i for i in items if "R5" in i.decision["rungs"])
+    r5 = next(i for i in items if "R5" in i.decision["rungs"] and "R4" in i.decision["rungs"])
     assert r5.draft and "TO:" in r5.draft["body"]
-    assert client.post(f"/api/handoff/{r5.id}", json={"action": "send"}).status_code == 409
+    assert client.post(f"/api/handoff/{r5.id}", json={"action": "send", "confirm": True}).status_code == 409
     approved = client.post(f"/api/handoff/{r5.id}", json={"action": "approve", "operator": "Test"}).json()
-    assert approved["status"] == "approved"
-    sent = client.post(f"/api/handoff/{r5.id}", json={"action": "send", "operator": "Test"}).json()
-    assert sent["draft_status"] == "sent"
-    assert client.post(f"/api/handoff/{r5.id}", json={"action": "reject"}).status_code == 409
+    assert approved["status"] == "hold_requesting"
+    hub.tick()
+    assert hub.items[r5.id].status == "hold_active"
+    client.post(f"/api/handoff/{r5.id}", json={"action": "review"})
+    sent = client.post(f"/api/handoff/{r5.id}", json={"action": "send", "operator": "Test", "confirm": True}).json()
+    assert sent["draft_status"] == "sent" and sent["status"] == "notice_sent"
+    assert client.post(f"/api/handoff/{r5.id}", json={"action": "dismiss"}).status_code == 409
 
 
 def test_keep_watching_snoozes_then_returns(client):

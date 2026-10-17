@@ -5,7 +5,9 @@ import csv
 import io
 import json
 import logging
+import os
 import threading
+import time
 from collections import Counter, deque
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
@@ -14,6 +16,7 @@ from typing import Any
 
 from ruamel.yaml import YAML
 
+from . import handoff as hs
 from .advisor import AdvisorCache
 from .engine import Decision
 from .geometry import format_latlon
@@ -23,7 +26,8 @@ from .twists import TwistHistory, preview
 
 log = logging.getLogger("quietwater")
 
-OPEN = ("pending", "watching")
+OPEN = hs.OPEN
+ACTIVE = hs.OPEN + hs.IN_PROGRESS
 DEFAULT_SCENARIO = {"security": "harbor_morning", "recovery": "lost_vehicle"}
 SPEEDS = (1, 2, 5)
 
@@ -51,12 +55,27 @@ class HandoffItem:
     note: str | None = None
     draft: dict[str, str] | None = None
     draft_status: str | None = None
+    draft_edited: bool = False
     steps: list[dict[str, Any]] = field(default_factory=list)
+    hold: dict[str, Any] | None = None
+    review_from: str | None = None
+    dismissed_wall: float | None = None
+    paged: bool = False
+    history: list[dict[str, Any]] = field(default_factory=list)
 
-    def to_dict(self, now: float) -> dict[str, Any]:
+    def to_dict(self, now: float, wall: float | None = None, undo_s: float = 0) -> dict[str, Any]:
         d = asdict(self)
         d["remaining_s"] = round(self.deadline_t - now, 1)
         d["window_s"] = self.decision.get("window_s")
+        d["plan"] = hs.plan(self.decision, self.draft)
+        watching = self.status == "watching" and self.snooze_until is not None
+        d["watch_left_s"] = round(self.snooze_until - now, 1) if watching else None
+        d["hold_left_s"] = round(self.hold["until_t"] - now, 1) if self.hold and self.hold.get("until_t") else None
+        undo = None
+        if self.status == "dismissed" and self.dismissed_wall is not None and wall is not None:
+            undo = round(max(0.0, undo_s - (wall - self.dismissed_wall)), 1)
+        d["undo_left_s"] = undo
+        d.pop("dismissed_wall")
         return d
 
 
@@ -82,6 +101,9 @@ class Hub:
         self.items: dict[str, HandoffItem] = {}
         self.load_trace: deque[float] = deque(maxlen=240)
         self.outbox: list[dict[str, Any]] = []
+        self.hold_requests: list[dict[str, Any]] = []
+        self.wall = time.monotonic
+        self.mock_hold_fail = os.environ.get("QUIETWATER_MOCK_HOLD_FAIL") == "1"
         self.subscribers: set[asyncio.Queue] = set()
         self.loop: asyncio.AbstractEventLoop | None = None
         self._new_receipts: list[dict[str, Any]] = []
@@ -118,6 +140,7 @@ class Hub:
             self.items.clear()
             self.load_trace.clear()
             self.outbox.clear()
+            self.hold_requests.clear()
             self.log_audit("scenario", actor, f"Loaded scenario '{scen.get('title', name)}' (seed {self.session.seed})",
                            detail={"scenario": name, "seed": self.session.seed, "mode": self.mode})
 
@@ -153,6 +176,7 @@ class Hub:
                 self._on_rules_changed(*changed, source="file", note="Edited rules.yaml on disk", title="File edit")
             if self.running:
                 self._advance(self.tick_s * self.speed)
+            self._settle_holds()
             snap = self.snapshot()
         self._broadcast("tick", snap)
 
@@ -185,7 +209,7 @@ class Hub:
     def _steps(self, contact_id: str) -> list[dict[str, Any]]:
         out, last = [], None
         for r in self.receipts:
-            if r["contact_id"] != contact_id:
+            if r["contact_id"] != contact_id or r.get("kind") == "handoff":
                 continue
             d = r["decision"]
             names = " + ".join(f"{x} {n}" for x, n in zip(d["rungs"], d["rung_names"], strict=False))
@@ -232,44 +256,82 @@ class Hub:
         subject = lines[2].removeprefix("SUBJECT: ")
         return {"to": target, "subject": subject, "language": rules.language, "body": "\n".join(lines)}
 
+    def _redraft(self, item: HandoffItem) -> None:
+        """Keep the drafted notice current until the operator opens, edits or sends it."""
+        if "R5" not in item.decision["rungs"] or item.draft_status == "sent" or item.draft_edited:
+            return
+        if item.status == "notice_review":
+            return
+        item.draft = self._draft(item.decision, item.steps)
+        item.draft_status = "drafted"
+
+    def _move(self, item: HandoffItem, action: str, actor: str, system: bool = False, note: str | None = None,
+              to: str | None = None, detail: dict[str, Any] | None = None) -> None:
+        """The only place an item changes state. Writes the audit entry and a decision receipt."""
+        before = item.status
+        dest = hs.target(action, before, system=system)
+        item.status = to or dest or before
+        s = self.session
+        if item.status in hs.FINAL:
+            item.resolved_t, item.resolved_clock = s.t, s.clock
+        if not system:
+            item.actor = actor
+            if note:
+                item.note = note
+        msg = hs.LABELS[action] + (f" - {note}" if note else "")
+        item.history.append({"action": action, "from": before, "to": item.status, "actor": actor,
+                             "clock": s.clock, "t": round(s.t, 1)})
+        info = {"item": item.id, "action": action, "from": before, "to": item.status, **(detail or {})}
+        entry = self.log_audit("handoff" if system else "operator", actor, msg, item.contact_id,
+                               item.decision.get("rung"), info)
+        receipt = {"id": f"D-{entry['seq']:05d}", "seq": entry["seq"], "kind": "handoff",
+                   "contact_id": item.contact_id, "t": round(s.t, 1), "clock": s.clock, "automated": False,
+                   "rules_version": self.store.version, "config_hash": self.session.advisor.config_hash,
+                   "mode": self.mode, "decision": item.decision,
+                   "transition": {"item": item.id, "action": action, "from": before, "to": item.status,
+                                  "actor": actor, "label": msg}}
+        self.receipts.append(receipt)
+        self._new_receipts.append(receipt)
+
     def _update_items(self) -> None:
         s = self.session
         t = s.t
         for cid, d in s.current.items():
             item = self._latest_item(cid)
             if d.requires_human:
-                if item is None or (item.status not in OPEN and d.severity() > tuple(item.severity)):
+                if item is None or (item.status in hs.FINAL and d.severity() > tuple(item.severity)):
                     self._create_item(d)
                     continue
-                if item.status not in OPEN:
+                if item.status not in ACTIVE:
                     continue
-                if d.severity() > tuple(item.severity):
+                if item.status in OPEN and d.severity() > tuple(item.severity):
                     item.severity = d.severity()
                     item.deadline_t = min(item.deadline_t, t + (d.window_s or 0))
-                    item.status = "pending"
                     item.overdue = False
-                    self.log_audit("handoff", "system", f"Escalated: {d.reason}", cid, d.rung, {"item": item.id})
+                    item.decision = d.to_dict()
+                    self._move(item, "escalate", "system", system=True, note=d.reason)
                 if item.status == "watching" and item.snooze_until is not None and t >= item.snooze_until:
-                    item.status = "pending"
-                    self.log_audit("handoff", "system", "Keep-watching window ended; back in your queue",
-                                   cid, d.rung, {"item": item.id})
+                    self._move(item, "recheck", "system", system=True)
                 item.decision = d.to_dict()
                 item.steps = self._steps(cid)
-                if item.draft_status != "sent":
-                    item.draft = self._draft(item.decision, item.steps)
+                self._redraft(item)
             elif item and item.status in OPEN:
-                item.status = "stood_down"
-                item.resolved_t, item.resolved_clock, item.actor = t, s.clock, "system"
-                item.note = d.reason
                 item.decision = d.to_dict()
-                self.log_audit("handoff", "system", f"Stood down: {d.reason}", cid, d.rung, {"item": item.id})
+                item.note = d.reason
+                item.actor = "system"
+                self._move(item, "stand_down", "system", system=True, note=d.reason)
         for item in self.items.values():
-            if item.status in OPEN and item.contact_id in s.departed and not item.contact_lost:
+            if item.status in ACTIVE and item.contact_id in s.departed and not item.contact_lost:
                 item.contact_lost = True
                 self.log_audit("handoff", "system", "Contact lost from sonar; item kept open", item.contact_id)
-            if item.status == "pending" and not item.overdue and t > item.deadline_t:
+            if item.status == "pending" and t > item.deadline_t:
                 item.overdue = True
-                self.log_audit("handoff", "system", "Response window expired; still waiting on a person",
+                item.paged = True
+                self._move(item, "expire", "system", system=True)
+            hold = item.hold
+            if hold and hold.get("status") == "active" and not hold.get("time_up") and t >= hold["until_t"]:
+                hold["time_up"] = True
+                self.log_audit("handoff", "system", "Hold timer ended; the hold stays until you lift it",
                                item.contact_id, item.decision.get("rung"), {"item": item.id})
 
     def _create_item(self, d: Decision) -> None:
@@ -278,64 +340,131 @@ class Hub:
             id=f"H-{len(self.items) + 1:03d}", contact_id=d.contact_id, created_t=s.t, created_clock=s.clock,
             deadline_t=s.t + (d.window_s or self.store.rules.windows.default), decision=d.to_dict(),
             severity=d.severity(), steps=self._steps(d.contact_id))
-        if "R5" in d.rungs:
-            item.draft = self._draft(item.decision, item.steps)
-            item.draft_status = "drafted"
+        self._redraft(item)
+        item.history.append({"action": "create", "from": None, "to": "pending", "actor": "system",
+                             "clock": s.clock, "t": round(s.t, 1)})
         self.items[item.id] = item
         self.log_audit("handoff", "system", f"Needs you: {d.recommendation}", d.contact_id, d.rung,
                        {"item": item.id, "urgency": d.urgency, "window_s": d.window_s})
 
-    def act(self, item_id: str, action: str, operator: str, note: str | None = None) -> HandoffItem:
+    def _settle_holds(self) -> None:
+        """Answer mock hold requests after `mock_hold_delay_s` of wall time."""
+        delay = self.store.rules.handoff.mock_hold_delay_s
+        now = self.wall()
+        for item in self.items.values():
+            hold = item.hold
+            if item.status != "hold_requesting" or not hold or now - hold["requested_wall"] < delay:
+                continue
+            req = next(r for r in self.hold_requests if r["id"] == hold["request_id"])
+            if self.mock_hold_fail:
+                hold["status"] = "failed"
+                req["result"] = "failed"
+                self._move(item, "hold_failed", "system", system=True,
+                           detail={"request": req["id"], "error": "terminal operations did not confirm (mock)"})
+            else:
+                hold["status"] = "active"
+                hold["until_t"] = round(self.session.t + self.store.rules.handoff.hold_s, 1)
+                hold["confirmed_clock"] = self.session.clock
+                req["result"] = "confirmed"
+                self._move(item, "hold_confirmed", "system", system=True, detail={"request": req["id"]})
+
+    def _request_hold(self, item: HandoffItem, operator: str) -> dict[str, Any]:
+        step = hs.hold_step(item.decision)
+        if step is None:
+            raise hs.IllegalMove("this item has no hold to approve; review the notice instead")
+        req = {"id": f"HR-{len(self.hold_requests) + 1:03d}", "item": item.id, "contact_id": item.contact_id,
+               "asset": step["asset"], "operation": step["operation"], "requested_by": operator,
+               "clock": self.session.clock, "at": now_iso(), "mock": True, "result": "pending"}
+        self.hold_requests.append(req)
+        item.hold = {"status": "requesting", "request_id": req["id"], "asset": step["asset"],
+                     "operation": step["operation"], "title": step["title"], "requested_clock": self.session.clock,
+                     "requested_wall": self.wall(), "until_t": None}
+        return req
+
+    def act(self, item_id: str, action: str, operator: str, note: str | None = None,
+            body: str | None = None, confirm: bool = False) -> HandoffItem:
         with self.lock:
             item = self.items.get(item_id)
             if item is None:
                 raise KeyError(f"no handoff item {item_id}")
-            s = self.session
-            if action == "send":
-                if item.status != "approved" or not item.draft:
-                    raise ValueError("approve the hand-off before sending the alert")
+            cfg = self.store.rules.handoff
+            hs.target(action, item.status)
+            detail: dict[str, Any] = {}
+            to = None
+            if action in ("approve", "retry"):
+                if action == "retry":
+                    item.hold = None
+                detail["request"] = self._request_hold(item, operator)["id"]
+            elif action == "review":
+                if not item.draft or item.draft_status == "sent":
+                    raise hs.IllegalMove("there is no unsent notice to review")
+                item.review_from = item.status
+            elif action == "edit":
+                if not body or not body.strip():
+                    raise hs.IllegalMove("the notice can't be empty")
+                item.draft = {**item.draft, "body": body}
+                item.draft_edited = True
+            elif action == "cancel":
+                to = item.review_from or "pending"
+                item.review_from = None
+            elif action == "send":
+                if not confirm:
+                    raise hs.IllegalMove(f"confirm before sending to {item.draft['to']}")
                 item.draft_status = "sent"
-                self.outbox.append({"at": now_iso(), "clock": s.clock, "item": item.id, **item.draft})
-                self.log_audit("operator", operator,
-                               f"Sent alert to {item.draft['to']} (mock outbox, not transmitted)",
-                               item.contact_id, item.decision.get("rung"),
-                               {"item": item.id, "subject": item.draft["subject"]})
-                return item
-            if item.status not in OPEN:
-                raise ValueError(f"item {item_id} is already {item.status}")
-            rec = item.decision.get("recommendation", "")
-            if action == "approve":
-                item.status = "approved"
-                msg = f"Approved: {rec}"
-            elif action == "reject":
-                item.status = "rejected"
-                msg = f"Rejected: {rec}"
+                item.review_from = None
+                self.outbox.append({"at": now_iso(), "clock": self.session.clock, "item": item.id, "by": operator,
+                                    **item.draft})
+                detail["to"] = item.draft["to"]
+                note = note or f"to {item.draft['to']} (mock outbox, not transmitted)"
+            elif action == "dismiss":
+                item.dismissed_wall = self.wall()
+            elif action == "undo":
+                if item.dismissed_wall is None or self.wall() - item.dismissed_wall > cfg.undo_s:
+                    raise hs.IllegalMove("the undo window has closed")
+                item.dismissed_wall = None
+                item.resolved_t = item.resolved_clock = None
             elif action == "watch":
-                item.status = "watching"
-                item.snooze_until = s.t + self.store.rules.alert_budget.keep_watching_snooze_s
-                msg = f"Keep watching for {self.store.rules.alert_budget.keep_watching_snooze_s:.0f} s"
-            else:
-                raise ValueError(f"unknown action '{action}'")
-            if action != "watch":
-                item.resolved_t, item.resolved_clock = s.t, s.clock
-            item.actor, item.note = operator, note
-            self.log_audit("operator", operator, msg + (f" - {note}" if note else ""), item.contact_id,
-                           item.decision.get("rung"), {"item": item.id, "action": action})
-            return item
+                item.snooze_until = self.session.t + self.store.rules.alert_budget.keep_watching_snooze_s
+            elif action == "escalate":
+                item.snooze_until = None
+            elif action in ("lift", "resolve", "extend"):
+                hold = item.hold
+                active = bool(hold and hold["status"] == "active")
+                if action == "resolve" and active:
+                    raise hs.IllegalMove("lift the hold before marking this resolved")
+                if action != "resolve" and not active:
+                    raise hs.IllegalMove("there is no active hold")
+                if action == "lift":
+                    hold["status"] = "lifted"
+                    hold["lifted_clock"] = self.session.clock
+                elif action == "extend":
+                    hold["until_t"] = round(max(hold["until_t"], self.session.t) + cfg.hold_s, 1)
+                    hold["time_up"] = False
+            self._move(item, action, operator, note=note, to=to, detail=detail)
+            snap = self.snapshot()
+        self._broadcast("tick", snap)
+        return item
 
     def budget(self) -> dict[str, Any]:
         s = self.session
         cfg = self.store.rules.alert_budget
-        pending = [i for i in self.items.values() if i.status == "pending"]
+        items = list(self.items.values())
+        pending = [i for i in items if i.status in hs.WAITING]
         load = sum(cfg.weights.get(i.decision.get("rung"), 0) for i in pending)
         human = set(s.first_human_t)
         counts = Counter(d.rung for d in s.current.values())
         auto = sum(1 for r in self.receipts if r["automated"] and r["decision"]["rung"] != "R0")
+        states = Counter(i.status for i in items)
         return {
             "seen": len(s.seen), "total": len(s.seen), "needed_operator": len(human),
             "active": len(s.current), "quiet": len(s.seen) - len(human),
-            "need_you": len(pending), "watching": sum(1 for i in self.items.values() if i.status == "watching"),
-            "resolved": sum(1 for i in self.items.values() if i.status not in OPEN),
+            "need_you": len(pending), "watching": states["watching"],
+            "holds": sum(1 for i in items if i.hold and i.hold["status"] == "active"),
+            "in_progress": sum(states[k] for k in hs.IN_PROGRESS),
+            "notices_sent": sum(1 for i in items if i.draft_status == "sent"),
+            "dismissed": states["dismissed"], "expired": states["expired"],
+            "resolved": sum(states[k] for k in hs.FINAL),
+            "states": dict(states),
             "load": load, "capacity": cfg.capacity, "over": load > cfg.capacity,
             "bang": len(s.seen), "rung_counts": {r: counts.get(r, 0) for r in ("R0", "R1", "R2", "R3", "R4", "R5")},
             "automated_actions": auto, "trace": list(self.load_trace)[-120:],
@@ -362,9 +491,12 @@ class Hub:
         s = self.session
         new, self._new_receipts = self._new_receipts, []
         order = {"urgent": 0, "elevated": 1, "routine": 2}
+        stage = {"pending": 0, "expired": 0, "notice_review": 1, "hold_failed": 1, "hold_requesting": 2,
+                 "hold_active": 2, "notice_sent": 2, "watching": 3}
         items = sorted(self.items.values(), key=lambda i: (
-            i.status not in OPEN, i.status == "watching", order.get(i.decision.get("urgency"), 3),
-            i.deadline_t if i.status in OPEN else -(i.resolved_t or 0)))
+            stage.get(i.status, 9), order.get(i.decision.get("urgency"), 3),
+            i.deadline_t if i.status in ACTIVE else -(i.resolved_t or 0)))
+        wall, undo_s = self.wall(), self.store.rules.handoff.undo_s
         return {
             "run": self.run_id, "t": round(s.t, 1), "clock": s.clock, "running": self.running, "speed": self.speed,
             "scenario": {"id": s.scenario_name, "title": s.scenario.get("title", s.scenario_name),
@@ -372,7 +504,7 @@ class Hub:
             "mode": self.mode,
             "rules": {"version": self.store.version, "error": self.store.error},
             "contacts": self.contacts_payload(),
-            "items": [i.to_dict(s.t) for i in items[:40]],
+            "items": [i.to_dict(s.t, wall, undo_s) for i in items[:40]],
             "budget": self.budget(),
             "receipts": new,
         }
@@ -483,7 +615,8 @@ class Hub:
         with self.lock:
             rows = list(self.audit)
         if fmt == "json":
-            return json.dumps({"exported_at": now_iso(), "entries": rows, "outbox": self.outbox}, indent=1), \
+            return json.dumps({"exported_at": now_iso(), "entries": rows, "outbox": self.outbox,
+                               "hold_requests": self.hold_requests}, indent=1), \
                 "application/json"
         buf = io.StringIO()
         w = csv.writer(buf)

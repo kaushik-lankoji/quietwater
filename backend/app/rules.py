@@ -158,6 +158,12 @@ class AlertBudget(Strict):
     keep_watching_snooze_s: float = Field(gt=0)
 
 
+class HandoffCfg(Strict):
+    hold_s: float = Field(default=1800, gt=0)
+    undo_s: float = Field(default=10, ge=0)
+    mock_hold_delay_s: float = Field(default=1.0, ge=0)
+
+
 class Zone(Strict):
     id: str
     name: str
@@ -321,6 +327,7 @@ class Rules(Strict):
     human_required_from: Rung
     windows_s: Windows
     alert_budget: AlertBudget
+    handoff: HandoffCfg = HandoffCfg()
     zones: list[Zone]
     assets: list[Asset]
     traffic: list[Vessel]
