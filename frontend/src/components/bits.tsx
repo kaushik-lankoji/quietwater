@@ -1,24 +1,39 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { cls } from "../format";
+import { TIER_LABEL, tierOf, type Tier } from "../radar/geometry";
 import type { Check, Rung, Urgency } from "../types";
 import { Icon } from "./Icon";
 
-export function RungChip({ rung, name, size, solid }: { rung: Rung; name?: string; size?: "lg"; solid?: boolean }) {
+export function RiskDot({ tier }: { tier: Tier }) {
+  return <span className={cls("risk-dot", tier)} aria-hidden />;
+}
+
+export function RiskPill({ tier }: { tier: Tier }) {
   return (
-    <span className={cls("rung", rung, size, solid && "solid")}>
-      <b>{rung}</b>
-      {name}
+    <span className="risk-pill">
+      <RiskDot tier={tier} />
+      {TIER_LABEL[tier]}
     </span>
   );
 }
 
-export function Rungs({ rungs, names, size, solid }: { rungs: Rung[]; names?: string[]; size?: "lg"; solid?: boolean }) {
+export function RungChip({ rung, name, size }: { rung: Rung; name?: string; size?: "lg" }) {
+  return (
+    <span className={cls("rung", size)}>
+      <RiskDot tier={tierOf(rung)} />
+      <b>{rung}</b>
+      {name && <span>{name}</span>}
+    </span>
+  );
+}
+
+export function Rungs({ rungs, names, size }: { rungs: Rung[]; names?: string[]; size?: "lg" }) {
   return (
     <span className="rungs">
       {rungs.map((r, i) => (
         <span key={r} className="rungs">
           {i > 0 && <span className="plus">+</span>}
-          <RungChip rung={r} name={names?.[i]} size={size} solid={solid} />
+          <RungChip rung={r} name={names?.[i]} size={size} />
         </span>
       ))}
     </span>
@@ -26,12 +41,7 @@ export function Rungs({ rungs, names, size, solid }: { rungs: Rung[]; names?: st
 }
 
 export function UrgencyTag({ urgency }: { urgency: Urgency }) {
-  return (
-    <span className={cls("urgency", urgency)}>
-      {urgency === "urgent" && <Icon name="alert" size={14} />}
-      {urgency}
-    </span>
-  );
+  return <span className={cls("urgency", urgency)}>{urgency}</span>;
 }
 
 export function Checklist({ checks }: { checks: Check[] }) {
@@ -65,6 +75,25 @@ export function Path({ path }: { path: string[] }) {
         <span key={`${p}-${i}`}>{p}</span>
       ))}
     </span>
+  );
+}
+
+export function Counterfactuals({ higher, lower }: { higher: string; lower: string }) {
+  return (
+    <div className="counterfactuals">
+      <div className="counterfactual">
+        <span className="arrow" aria-label="One rung higher">
+          <Icon name="up" size={14} />
+        </span>
+        <span>{higher}</span>
+      </div>
+      <div className="counterfactual">
+        <span className="arrow" aria-label="One rung lower">
+          <Icon name="down" size={14} />
+        </span>
+        <span>{lower}</span>
+      </div>
+    </div>
   );
 }
 
