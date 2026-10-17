@@ -4,7 +4,7 @@ import { Toasts, useToasts } from "./components/bits";
 import { BudgetCard } from "./components/BudgetCard";
 import { ControlDock } from "./components/ControlDock";
 import { DualUseToggle } from "./components/DualUseToggle";
-import { HandoffSheetBody, holdStep, isWaiting, needsAttention, QueueNav, type ActExtra } from "./components/HandoffSheet";
+import { HandoffSheetBody, isWaiting, needsAttention, QueueNav, type ActExtra } from "./components/HandoffSheet";
 import { Icon } from "./components/Icon";
 import { Radar } from "./components/Radar";
 import { ReceiptsSheetBody } from "./components/ReceiptsSheet";
@@ -172,7 +172,6 @@ export default function App() {
       if (key === "r") return replay();
       if (key === "f") return flood();
       if (key === "t") return toggleSheet("twist");
-      if (key === "a" && sheet === "handoff" && active && !busy && isWaiting(active) && holdStep(active)) setManaging(active.id);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);

@@ -294,7 +294,6 @@ function Actions({
           {hold ? (
             <button type="button" className="btn primary large wrap" disabled={busy} onClick={onManage}>
               <Icon name="hold" size={20} /> Manage activity
-              <kbd>A</kbd>
             </button>
           ) : null}
           {review(!hold)}

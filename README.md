@@ -14,7 +14,7 @@ Built for the Dual-Use Hackathon (InnovateLA at USC, Marine track with NULL Syst
 | --- | --- |
 | **Sonar radar** | The whole screen. The drone sits at the centre; a green pulse sweeps out every 4 s and contacts appear as it passes them. Grey is low risk, yellow medium, red high (red ripples). Hover a contact for its label, confidence, distance, bearing, speed, heading, rung and reason. Click it to open its hand-off (R4/R5) or its decision receipt. |
 | **Alert Budget** (top left) | How many contacts need you and how many were handled quietly, plus the scenario picker and harbor clock. Click it to open the hand-off sheet. |
-| **Needs you** (hand-off sheet) | The contact is the title, with a one-line summary and a plain "If you approve" list. **Manage activity** (A) asks what should pause: *this operation only* (described in plain words) or *this entire area* (every active operation within `handoff.area_radius_m` of the contact). We recommend one and say why; the operator chooses. Placing the hold sends only a hold request. **Review notice** opens the USCG draft with Send (confirm, no Undo), Edit and Cancel. **Dismiss** (10 s Undo; still tracked, re-alerts if worse) and **Keep watching** (re-checks in 2:00) never send anything. Opens on its own for urgent items. |
+| **Needs you** (hand-off sheet) | The contact is the title, with a one-line summary and a plain "If you approve" list. **Manage activity** asks what should pause: *this operation only* (described in plain words) or *this entire area* (every active operation within `handoff.area_radius_m` of the contact). We recommend one and say why; the operator chooses. Placing the hold sends only a hold request. **Review notice** opens the USCG draft with Send (confirm, no Undo), Edit and Cancel. **Dismiss** (10 s Undo; still tracked, re-alerts if worse) and **Keep watching** (re-checks in 2:00) never send anything. Opens on its own for urgent items. |
 | **Watching** (bottom left) | Appears when the operator chooses Keep watching: a collapsible list of watched contacts, soonest re-check first. Click a row to reopen its card. |
 | **Graying** | A red contact turns a muted gray-red once its hand-off is dismissed, stood down or acted on, and goes bright red again if it gets worse. |
 | **Decision receipts** | Every decision with its one-line reason. Toggle **Why not one rung higher or lower?** for the counterfactual, the S-path, and the full checklist. Export the audit log as JSON or CSV. |
@@ -182,7 +182,7 @@ Every R4/R5 decision becomes a hand-off item. Engine decisions never change here
 ```mermaid
 stateDiagram-v2
   [*] --> pending
-  pending --> hold_requesting: approve (A)
+  pending --> hold_requesting: place hold
   hold_requesting --> hold_active: terminal confirms (mock, ~1 s)
   hold_requesting --> hold_failed: terminal refuses (dev flag)
   hold_failed --> hold_requesting: retry
