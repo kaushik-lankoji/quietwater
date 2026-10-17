@@ -1,0 +1,504 @@
+from __future__ import annotations
+
+import asyncio
+import csv
+import io
+import json
+import logging
+import threading
+from collections import Counter, deque
+from dataclasses import asdict, dataclass, field
+from datetime import UTC, datetime
+from pathlib import Path
+from typing import Any
+
+from ruamel.yaml import YAML
+
+from .engine import Decision
+from .geometry import format_latlon
+from .rules import RulesStore, apply_ops, field_diff, load_yaml_text, parse_rules, plain
+from .session import Session, World
+from .twists import TwistHistory, preview
+
+log = logging.getLogger("quietwater")
+
+OPEN = ("pending", "watching")
+DEFAULT_SCENARIO = {"security": "harbor_morning", "recovery": "lost_vehicle"}
+SPEEDS = (0.5, 1, 2, 5, 10)
+
+
+def now_iso() -> str:
+    return datetime.now(UTC).isoformat(timespec="seconds")
+
+
+@dataclass
+class HandoffItem:
+    id: str
+    contact_id: str
+    created_t: float
+    created_clock: str
+    deadline_t: float
+    decision: dict[str, Any]
+    severity: tuple[int, int]
+    status: str = "pending"
+    overdue: bool = False
+    contact_lost: bool = False
+    snooze_until: float | None = None
+    resolved_t: float | None = None
+    resolved_clock: str | None = None
+    actor: str | None = None
+    note: str | None = None
+    draft: dict[str, str] | None = None
+    draft_status: str | None = None
+    steps: list[dict[str, Any]] = field(default_factory=list)
+
+    def to_dict(self, now: float) -> dict[str, Any]:
+        d = asdict(self)
+        d["remaining_s"] = round(self.deadline_t - now, 1)
+        d["window_s"] = self.decision.get("window_s")
+        return d
+
+
+class Hub:
+    def __init__(self, root: Path, autostart_scenario: str = "harbor_morning"):
+        self.root = root
+        self.config_dir = root / "config"
+        self.data_dir = root / "data"
+        self.data_dir.mkdir(exist_ok=True)
+        self.store = RulesStore(self.config_dir / "rules.yaml")
+        self.world = World.load(self.config_dir)
+        self.history = TwistHistory(self.data_dir / "twist_history.json")
+        self.lock = threading.RLock()
+        self.mode = "security"
+        self.speed = 1.0
+        self.running = True
+        self.tick_s = 0.5
+        self.seq = 0
+        self.run_id = 0
+        self.receipts: deque[dict[str, Any]] = deque(maxlen=5000)
+        self.audit: deque[dict[str, Any]] = deque(maxlen=50000)
+        self.items: dict[str, HandoffItem] = {}
+        self.load_trace: deque[float] = deque(maxlen=240)
+        self.outbox: list[dict[str, Any]] = []
+        self.subscribers: set[asyncio.Queue] = set()
+        self.loop: asyncio.AbstractEventLoop | None = None
+        self._new_receipts: list[dict[str, Any]] = []
+        self.session: Session
+        self.load_scenario(autostart_scenario, actor="system")
+
+    def _next(self) -> int:
+        self.seq += 1
+        return self.seq
+
+    def log_audit(self, kind: str, actor: str, reason: str, contact_id: str | None = None,
+                  rung: str | None = None, detail: Any = None) -> dict[str, Any]:
+        entry = {"seq": self._next(), "wall": now_iso(), "t": round(self.session.t, 1),
+                 "clock": self.session.clock, "kind": kind, "actor": actor,
+                 "contact_id": contact_id, "rung": rung, "reason": reason, "detail": detail,
+                 "mode": self.mode}
+        self.audit.append(entry)
+        return entry
+
+    def load_scenario(self, name: str, seed: int | None = None, actor: str = "operator",
+                      mode: str | None = None) -> None:
+        with self.lock:
+            try:
+                self.world = World.load(self.config_dir)
+            except Exception:
+                log.exception("scenario/preset files are invalid; keeping the last good copy")
+            scen = self.world.scenario(name)
+            self.mode = mode or scen.get("mode", self.mode)
+            self.session = Session(self.store.rules, self.world, name, self.mode, seed)
+            self.run_id += 1
+            self._new_receipts = []
+            self.receipts.clear()
+            self.items.clear()
+            self.load_trace.clear()
+            self.outbox.clear()
+            self.log_audit("scenario", actor, f"Loaded scenario '{scen.get('title', name)}' (seed {self.session.seed})",
+                           detail={"scenario": name, "seed": self.session.seed, "mode": self.mode})
+
+    def set_mode(self, mode: str, load: bool = True, actor: str = "operator") -> None:
+        with self.lock:
+            if load:
+                self.load_scenario(DEFAULT_SCENARIO[mode], actor=actor, mode=mode)
+            else:
+                self.mode = mode
+                self.session.mode = mode
+            title = self.store.rules.modes[mode].title
+            self.log_audit("mode", actor, f"Mode set to {title}", detail={"mode": mode})
+
+    def control(self, action: str, speed: float | None = None, actor: str = "operator") -> None:
+        with self.lock:
+            if action == "play":
+                self.running = True
+            elif action == "pause":
+                self.running = False
+            elif action == "step":
+                self.running = False
+                self._advance(self.tick_s * max(self.speed, 1))
+            elif action == "restart":
+                self.load_scenario(self.session.scenario_name, self.session.seed, actor=actor, mode=self.mode)
+                self.running = True
+            elif action == "speed" and speed is not None:
+                self.speed = min(SPEEDS, key=lambda s: abs(s - speed))
+            else:
+                raise ValueError(f"unknown control action '{action}'")
+            self.log_audit("sim", actor, f"Simulator {action}" + (f" {self.speed}x" if action == "speed" else ""))
+
+    def tick(self) -> None:
+        with self.lock:
+            changed = self.store.check_reload()
+            if changed:
+                self._on_rules_changed(*changed, source="file", note="Edited rules.yaml on disk", title="File edit")
+            if self.running:
+                self._advance(self.tick_s * self.speed)
+            snap = self.snapshot()
+        self._broadcast("tick", snap)
+
+    def _advance(self, dt: float) -> None:
+        changed = self.session.step(dt)
+        for d in changed:
+            self._record(d)
+        self._update_items()
+        self.load_trace.append(self.budget()["load"])
+
+    def _record(self, d: Decision) -> None:
+        receipt = {"id": f"D-{self.seq + 1:05d}", "contact_id": d.contact_id, "t": d.t, "clock": d.clock,
+                   "automated": not d.requires_human, "rules_version": self.store.version, "mode": self.mode,
+                   "decision": d.to_dict()}
+        entry = self.log_audit("decision", "system", d.reason, d.contact_id, d.rung,
+                               {"rungs": d.rungs, "path": d.path, "outcome": d.outcome,
+                                "ruled_out": d.ruled_out, "automated": not d.requires_human})
+        receipt["seq"] = entry["seq"]
+        self.receipts.append(receipt)
+        self._new_receipts.append(receipt)
+
+    def _latest_item(self, contact_id: str) -> HandoffItem | None:
+        found = [i for i in self.items.values() if i.contact_id == contact_id]
+        return found[-1] if found else None
+
+    def _steps(self, contact_id: str) -> list[dict[str, Any]]:
+        out, last = [], None
+        for r in self.receipts:
+            if r["contact_id"] != contact_id:
+                continue
+            d = r["decision"]
+            names = " + ".join(f"{x} {n}" for x, n in zip(d["rungs"], d["rung_names"], strict=False))
+            if names != last:
+                out.append({"clock": r["clock"], "rungs": names, "reason": d["reason"], "automated": r["automated"]})
+                last = names
+        return out
+
+    def _draft(self, d: dict[str, Any], steps: list[dict[str, Any]]) -> dict[str, str]:
+        rules = self.store.rules
+        recovery = d["track"] == "recovery"
+        texts = rules.modes["recovery" if recovery else "security"]
+        pos = format_latlon(tuple(d["position"]), rules.harbor.origin)
+        asset = d.get("focus_asset")
+        near = f", {asset['distance_m']} m from {asset['name']}" if asset else ""
+        done = [s for s in steps if s["automated"]]
+        lines = [
+            f"TO: {texts.handoff_target}",
+            f"FROM: Harbor watch officer, {rules.harbor.name}",
+        ]
+        if recovery:
+            drift = d.get("drift") or {}
+            eta = drift.get("eta_critical")
+            lines.append(f"SUBJECT: {rules.recovery.lost_vehicle_id} located - contact {d['contact_id']}")
+            lines += ["", f"At {d['clock']} sonar holds contact {d['contact_id']}, {d['label_text']} "
+                          f"({round(d['confidence'] * 100)}%), at {pos}{near}.",
+                      f"Drift: {drift.get('speed_kn')} kn toward {drift.get('heading')}°"
+                      + (f"; reaches {eta['zone']} in about {eta['seconds'] // 60} min." if eta else "."),
+                      f"Modem: {d['hail'].replace('_', ' ')}."]
+        else:
+            lines.append(f"SUBJECT: Unidentified underwater vehicle{near} - contact {d['contact_id']}")
+            lines += ["", f"At {d['clock']} sonar contact {d['contact_id']}: {d['label_text']} "
+                          f"({round(d['confidence'] * 100)}%), {d['size_m']:.1f} m, {d['speed_kn']} kn, "
+                          f"heading {d['heading']}°, at {pos}{near}."]
+        lines += [
+            f"Why: {d['reason']}",
+            f"Ruled out: {', '.join(d['ruled_out']).lower() or 'nothing yet'}.",
+            "Steps taken: " + ("; ".join(f"{s['clock']} {s['rungs']}" for s in done) or "none") + ".",
+            f"Recommended: {d['recommendation']}",
+            "",
+            "No physical action has been taken. The next step is yours.",
+        ]
+        subject = lines[2].removeprefix("SUBJECT: ")
+        return {"to": texts.handoff_target, "subject": subject, "body": "\n".join(lines)}
+
+    def _update_items(self) -> None:
+        s = self.session
+        t = s.t
+        for cid, d in s.current.items():
+            item = self._latest_item(cid)
+            if d.requires_human:
+                if item is None or (item.status not in OPEN and d.severity() > tuple(item.severity)):
+                    self._create_item(d)
+                    continue
+                if item.status not in OPEN:
+                    continue
+                if d.severity() > tuple(item.severity):
+                    item.severity = d.severity()
+                    item.deadline_t = min(item.deadline_t, t + (d.window_s or 0))
+                    item.status = "pending"
+                    item.overdue = False
+                    self.log_audit("handoff", "system", f"Escalated: {d.reason}", cid, d.rung, {"item": item.id})
+                if item.status == "watching" and item.snooze_until is not None and t >= item.snooze_until:
+                    item.status = "pending"
+                    self.log_audit("handoff", "system", "Keep-watching window ended; back in your queue",
+                                   cid, d.rung, {"item": item.id})
+                item.decision = d.to_dict()
+                item.steps = self._steps(cid)
+                if item.draft_status != "sent":
+                    item.draft = self._draft(item.decision, item.steps)
+            elif item and item.status in OPEN:
+                item.status = "stood_down"
+                item.resolved_t, item.resolved_clock, item.actor = t, s.clock, "system"
+                item.note = d.reason
+                item.decision = d.to_dict()
+                self.log_audit("handoff", "system", f"Stood down: {d.reason}", cid, d.rung, {"item": item.id})
+        for item in self.items.values():
+            if item.status in OPEN and item.contact_id in s.departed and not item.contact_lost:
+                item.contact_lost = True
+                self.log_audit("handoff", "system", "Contact lost from sonar; item kept open", item.contact_id)
+            if item.status == "pending" and not item.overdue and t > item.deadline_t:
+                item.overdue = True
+                self.log_audit("handoff", "system", "Response window expired; still waiting on a person",
+                               item.contact_id, item.decision.get("rung"), {"item": item.id})
+
+    def _create_item(self, d: Decision) -> None:
+        s = self.session
+        item = HandoffItem(
+            id=f"H-{len(self.items) + 1:03d}", contact_id=d.contact_id, created_t=s.t, created_clock=s.clock,
+            deadline_t=s.t + (d.window_s or self.store.rules.windows_s.default), decision=d.to_dict(),
+            severity=d.severity(), steps=self._steps(d.contact_id))
+        if "R5" in d.rungs:
+            item.draft = self._draft(item.decision, item.steps)
+            item.draft_status = "drafted"
+        self.items[item.id] = item
+        self.log_audit("handoff", "system", f"Needs you: {d.recommendation}", d.contact_id, d.rung,
+                       {"item": item.id, "urgency": d.urgency, "window_s": d.window_s})
+
+    def act(self, item_id: str, action: str, operator: str, note: str | None = None) -> HandoffItem:
+        with self.lock:
+            item = self.items.get(item_id)
+            if item is None:
+                raise KeyError(f"no handoff item {item_id}")
+            s = self.session
+            if action == "send":
+                if item.status != "approved" or not item.draft:
+                    raise ValueError("approve the hand-off before sending the alert")
+                item.draft_status = "sent"
+                self.outbox.append({"at": now_iso(), "clock": s.clock, "item": item.id, **item.draft})
+                self.log_audit("operator", operator,
+                               f"Sent alert to {item.draft['to']} (mock outbox, not transmitted)",
+                               item.contact_id, item.decision.get("rung"),
+                               {"item": item.id, "subject": item.draft["subject"]})
+                return item
+            if item.status not in OPEN:
+                raise ValueError(f"item {item_id} is already {item.status}")
+            rec = item.decision.get("recommendation", "")
+            if action == "approve":
+                item.status = "approved"
+                msg = f"Approved: {rec}"
+            elif action == "reject":
+                item.status = "rejected"
+                msg = f"Rejected: {rec}"
+            elif action == "watch":
+                item.status = "watching"
+                item.snooze_until = s.t + self.store.rules.alert_budget.keep_watching_snooze_s
+                msg = f"Keep watching for {self.store.rules.alert_budget.keep_watching_snooze_s:.0f} s"
+            else:
+                raise ValueError(f"unknown action '{action}'")
+            if action != "watch":
+                item.resolved_t, item.resolved_clock = s.t, s.clock
+            item.actor, item.note = operator, note
+            self.log_audit("operator", operator, msg + (f" - {note}" if note else ""), item.contact_id,
+                           item.decision.get("rung"), {"item": item.id, "action": action})
+            return item
+
+    def budget(self) -> dict[str, Any]:
+        s = self.session
+        cfg = self.store.rules.alert_budget
+        pending = [i for i in self.items.values() if i.status == "pending"]
+        load = sum(cfg.weights.get(i.decision.get("rung"), 0) for i in pending)
+        human = set(s.first_human_t)
+        counts = Counter(d.rung for d in s.current.values())
+        auto = sum(1 for r in self.receipts if r["automated"] and r["decision"]["rung"] != "R0")
+        return {
+            "seen": len(s.seen), "active": len(s.current), "quiet": len(s.seen) - len(human),
+            "need_you": len(pending), "watching": sum(1 for i in self.items.values() if i.status == "watching"),
+            "resolved": sum(1 for i in self.items.values() if i.status not in OPEN),
+            "load": load, "capacity": cfg.capacity, "over": load > cfg.capacity,
+            "bang": len(s.seen), "rung_counts": {r: counts.get(r, 0) for r in ("R0", "R1", "R2", "R3", "R4", "R5")},
+            "automated_actions": auto, "trace": list(self.load_trace)[-120:],
+        }
+
+    def contacts_payload(self) -> list[dict[str, Any]]:
+        out = []
+        for cid, c in self.session.sim.active.items():
+            d = self.session.current.get(cid)
+            if d is None:
+                continue
+            trail = list(c.trail)[::-3][:14][::-1]
+            out.append({
+                "id": cid, "x": round(c.x, 1), "y": round(c.y, 1), "heading": round(c.heading),
+                "speed_kn": d.speed_kn, "size_m": c.size_m, "label": d.label, "label_text": d.label_text,
+                "confidence": d.confidence, "rung": d.rung, "rungs": d.rungs, "rung_names": d.rung_names,
+                "urgency": d.urgency, "requires_human": d.requires_human, "outcome": d.outcome,
+                "zone": d.zone, "registry_id": d.registry_id, "track": d.track, "reason": d.reason,
+                "trail": [[round(p[1]), round(p[2])] for p in trail],
+            })
+        return out
+
+    def snapshot(self) -> dict[str, Any]:
+        s = self.session
+        new, self._new_receipts = self._new_receipts, []
+        order = {"urgent": 0, "elevated": 1, "routine": 2}
+        items = sorted(self.items.values(), key=lambda i: (
+            i.status not in OPEN, i.status == "watching", order.get(i.decision.get("urgency"), 3),
+            i.deadline_t if i.status in OPEN else -(i.resolved_t or 0)))
+        return {
+            "run": self.run_id, "t": round(s.t, 1), "clock": s.clock, "running": self.running, "speed": self.speed,
+            "scenario": {"id": s.scenario_name, "title": s.scenario.get("title", s.scenario_name),
+                         "description": s.scenario.get("description", ""), "duration_s": s.duration_s, "seed": s.seed},
+            "mode": self.mode,
+            "rules": {"version": self.store.version, "error": self.store.error},
+            "contacts": self.contacts_payload(),
+            "items": [i.to_dict(s.t) for i in items[:40]],
+            "budget": self.budget(),
+            "receipts": new,
+        }
+
+    def hello(self) -> dict[str, Any]:
+        with self.lock:
+            snap = self.snapshot()
+            snap["receipts"] = list(self.receipts)[-400:]
+            snap["history"] = self.history.public()
+            return snap
+
+    def _broadcast(self, event: str, payload: dict[str, Any]) -> None:
+        if self.loop is None:
+            return
+        msg = f"event: {event}\ndata: {json.dumps(payload, separators=(',', ':'))}\n\n"
+        try:
+            same = asyncio.get_running_loop() is self.loop
+        except RuntimeError:
+            same = False
+        if same:
+            self._fanout(msg)
+        else:
+            self.loop.call_soon_threadsafe(self._fanout, msg)
+
+    def _fanout(self, msg: str) -> None:
+        for q in list(self.subscribers):
+            if q.full():
+                try:
+                    q.get_nowait()
+                except asyncio.QueueEmpty:
+                    pass
+            q.put_nowait(msg)
+
+    def config_payload(self) -> dict[str, Any]:
+        return {"harbor": self.world.harbor, "rules": self.store.data, "version": self.store.version,
+                "error": self.store.error, "scenarios": self.world.scenario_list(), "presets": self.world.presets}
+
+    def candidate(self, body: dict[str, Any]) -> tuple[dict[str, Any], str | None]:
+        if body.get("yaml") is not None:
+            data = plain(load_yaml_text(body["yaml"]))
+            parse_rules(data)
+            return data, body["yaml"]
+        if body.get("rules") is not None:
+            parse_rules(body["rules"])
+            return body["rules"], None
+        if body.get("ops"):
+            data = apply_ops(self.store.data, body["ops"])
+            parse_rules(data)
+            return data, None
+        raise ValueError("send one of: yaml, rules, ops")
+
+    def preview(self, data: dict[str, Any], scenario: str | None = None, seed: int | None = None) -> dict[str, Any]:
+        with self.lock:
+            before = self.store.rules
+            before_data = self.store.data
+            scen = scenario or self.session.scenario_name
+            seed = seed if seed is not None else (self.session.seed if scen == self.session.scenario_name else None)
+            mode = self.mode
+        impact = preview(before, parse_rules(data), self.world, scen, mode, seed)
+        return {"changes": field_diff(before_data, data), "impact": impact}
+
+    def apply(self, data: dict[str, Any], text: str | None, note: str, title: str, source: str,
+              impact: dict[str, Any] | None) -> dict[str, Any]:
+        with self.lock:
+            before_text = self.store.text
+            before, after = self.store.write_text(text) if text is not None else self.store.write_data(data)
+            return self._on_rules_changed(before, after, source=source, note=note, title=title, impact=impact,
+                                          before_text=before_text)
+
+    def revert(self, entry_id: str, operator: str) -> dict[str, Any]:
+        entry = self.history.get(entry_id)
+        if entry is None or not entry.get("before_text"):
+            raise KeyError(f"no twist {entry_id} to revert")
+        data, _ = self.store.validate_text(entry["before_text"])
+        impact = self.preview(data)["impact"]
+        return self.apply(data, entry["before_text"], note=f"Reverted {entry_id} ({entry.get('title', '')})",
+                          title=f"Revert {entry_id}", source="revert", impact=impact)
+
+    def _on_rules_changed(self, before: dict[str, Any], after: dict[str, Any], source: str, note: str, title: str,
+                          impact: dict[str, Any] | None = None, before_text: str | None = None) -> dict[str, Any]:
+        self.session.set_rules(self.store.rules)
+        changes = field_diff(before, after)
+        if before_text is None:
+            buf = io.StringIO()
+            YAML().dump(before, buf)
+            before_text = buf.getvalue()
+        entry = self.history.add(source=source, title=title, note=note, rules_version=self.store.version,
+                                 clock=self.session.clock, scenario=self.session.scenario_name, changes=changes,
+                                 impact=_impact_summary(impact), before_text=before_text)
+        self.log_audit("rules", "operator" if source != "file" else "file",
+                       f"Rules v{self.store.version}: {title}" + (f" - {note}" if note else ""),
+                       detail={"twist": entry["id"], "changes": changes})
+        if impact is None:
+            threading.Thread(target=self._impact_later, args=(entry["id"], before, after), daemon=True).start()
+        self._broadcast("history", {"history": self.history.public()})
+        return entry
+
+    def _impact_later(self, entry_id: str, before: dict[str, Any], after: dict[str, Any]) -> None:
+        try:
+            impact = preview(parse_rules(before), parse_rules(after), self.world, self.session.scenario_name,
+                             self.mode, self.session.seed)
+            self.history.update(entry_id, impact=_impact_summary(impact))
+            self._broadcast("history", {"history": self.history.public()})
+        except Exception:
+            log.exception("impact preview failed")
+
+    def export(self, fmt: str) -> tuple[str, str]:
+        with self.lock:
+            rows = list(self.audit)
+        if fmt == "json":
+            return json.dumps({"exported_at": now_iso(), "entries": rows, "outbox": self.outbox}, indent=1), \
+                "application/json"
+        buf = io.StringIO()
+        w = csv.writer(buf)
+        w.writerow(["seq", "wall_time", "sim_clock", "mode", "kind", "actor", "contact_id", "rung", "reason", "detail"])
+        for r in rows:
+            w.writerow([r["seq"], r["wall"], r["clock"], r["mode"], r["kind"], r["actor"], r["contact_id"] or "",
+                        r["rung"] or "", r["reason"], json.dumps(r["detail"]) if r["detail"] is not None else ""])
+        return buf.getvalue(), "text/csv"
+
+    async def run(self) -> None:
+        self.loop = asyncio.get_running_loop()
+        while True:
+            await asyncio.sleep(self.tick_s)
+            try:
+                self.tick()
+            except Exception:
+                log.exception("tick failed")
+
+
+def _impact_summary(impact: dict[str, Any] | None) -> dict[str, Any] | None:
+    if impact is None:
+        return None
+    return {k: v for k, v in impact.items() if k != "rows"} | {
+        "rows": [r for r in impact["rows"] if r["changed"]][:50]}
