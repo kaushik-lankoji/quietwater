@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "./api";
 import { Toasts, useToasts } from "./components/bits";
 import { BudgetCard } from "./components/BudgetCard";
-import { ControlDock } from "./components/ControlDock";
 import { DualUseToggle } from "./components/DualUseToggle";
 import { HandoffSheetBody, isWaiting, needsAttention, QueueNav, type ActExtra } from "./components/HandoffSheet";
 import { Icon } from "./components/Icon";
@@ -145,11 +144,6 @@ export default function App() {
     if (snap) loadScenario(RANDOM[snap.mode]);
   }, [snap, loadScenario]);
 
-  const openReceipts = useCallback(() => {
-    setReceiptFocus(null);
-    toggleSheet("receipts");
-  }, [toggleSheet]);
-
   const onSelect = useCallback(
     (c: Contact | null) => {
       setSelected(c?.id ?? null);
@@ -250,16 +244,6 @@ export default function App() {
       <Sheet open={sheet === "twist"} title="Twist Console" onClose={() => setSheet(null)}>
         <TwistConsole config={config} snap={snap} history={history} toast={push} />
       </Sheet>
-
-      <ControlDock
-        running={snap.running}
-        flood={snap.scenario.id === FLOOD}
-        sheet={sheet}
-        onToggleRun={togglePause}
-        onReplay={replay}
-        onFlood={flood}
-        onReceipts={openReceipts}
-      />
 
       <ScenarioButton onClick={randomize} />
       <Toasts toasts={toasts} />

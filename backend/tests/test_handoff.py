@@ -211,7 +211,7 @@ def test_plan_explains_each_step_in_plain_words(client):
     item = hold_item(hub)
     plan = item.to_dict(hub.session.t)["plan"]
     assert [p["kind"] for p in plan] == ["hold", "notice"]
-    assert plan[0]["title"] == "Manage activity" in plan[0]["detail"]
+    assert plan[0]["title"] == "Manage activity" and "You choose" in plan[0]["detail"]
     assert plan[0]["on"] == "approve"
     assert plan[1]["title"] == f"Notice to {item.draft['to']}" and plan[1]["on"] == "separate"
     assert "separately" in plan[1]["detail"]
