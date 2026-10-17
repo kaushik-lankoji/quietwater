@@ -34,6 +34,8 @@ The backend is built so the demo is reliable and so twists are config changes. I
 - **Preview vs live drift:** previews step at 1 s (2 s for >60 contacts), while live steps at `0.5 s × speed`. Motion and evasion sampling differ slightly, so a preview is a faithful replay of the scenario but not frame-identical to what is on screen.
 - **Hand-off windows run on sim time.** At 10× a 5-minute window lasts 30 real seconds. Correct for replay, wrong for production; use wall time there.
 - **A hand-off item re-opens only if severity increases.** An approved item stays closed while the contact keeps the same rung.
+- **Random scenarios** (`random_harbor`, `random_recovery`) are built by `app/randomizer.py` from the `randomizer:` block in `config/scenarios.yaml`. No new endpoint: the UI calls the existing `POST /api/sim/scenario` with `{name, seed}`, and Replay reuses the session seed. Generation reads only the seed and the static scenario config, never `rules.yaml`, so a seed gives the same contacts before and after a twist and the preview diff compares like with like. Each scenario always has one low, one mid and one high contact: the `required` slot groups are placed in regions chosen so default rules land them in those tiers (tests check 25 seeds per mode; 200 per mode were checked by hand). A twist that moves bands or assets can legitimately change that.
+- **The tier guarantee depends on placement regions** (`ship_medium`, `fuel_dock`, `ship_close`, …) drawn for the current harbor and asset layout. Moving an asset in `rules.yaml` does not move the regions. TODO: derive regions from asset geometry and consequence bands at generation time, using the defaults rather than live rules to keep determinism.
 - Only the mock classifier exists. Add a real model by implementing the `Classifier` protocol and registering it in `build_classifier`.
 
 ## Security and ops
@@ -46,5 +48,5 @@ The backend is built so the demo is reliable and so twists are config changes. I
 
 ## Tests
 
-- 69 backend tests (engine branches, loop cap, sim determinism, API flows). No load test and no frontend tests yet.
+- 79 backend tests (engine branches, loop cap, sim determinism, random-scenario tiers and replay, API flows). No load test and no frontend tests yet.
 - TODO: a property test that `confidence alone never escalates` holds for random facts; a soak test of the flood at 5× for 30 minutes; Playwright smoke tests for approve → send and preset → apply.

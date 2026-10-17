@@ -45,7 +45,7 @@ The demo starts on its own with seeded data ("Morning watch"). If port 5173 is t
 ```mermaid
 flowchart LR
   subgraph SIM["Simulator (mock sonar)"]
-    SC["Scripted scenarios<br/>200-contact flood"]
+    SC["Scripted scenarios<br/>200-contact flood<br/>seeded random scenarios"]
   end
   SC --> CL["Classifier interface<br/>MockClassifier"]
   CL --> FA["Facts<br/>identity · schedule · zone · hail<br/>consequence · approach · evasion · traffic"]
@@ -117,6 +117,8 @@ Edit `config/rules.yaml` and save. The server picks it up within half a second, 
 
 Scenarios, archetypes and the mock classifier's behaviour live in `config/scenarios.yaml`. The harbor drawing is `config/harbor.yaml`.
 
+**Random scenarios.** The **+** button (bottom right) loads a fresh seeded scenario: 8–15 contacts mixing debris, marine life, a known research vehicle, unknowns far out, near a ship and near the fuel dock, and sometimes an evasive contact. Position, speed, heading, size, confidence, hail response, registration and harbor clock (and so schedule status) are all randomized. In dual-use mode it generates a lost-vehicle search instead: the lost REMUS-02, drifting equipment, and look-alikes. Every scenario has at least one low, one medium and one high-risk contact. The seed shows under the Alert Budget, and Replay (R) reproduces that exact run, so Twist Console diffs stay like for like. The mix, regions and ranges are the `randomizer:` block in `config/scenarios.yaml`.
+
 ## Second customer
 
 **USC Wrigley Marine Lab, on a quiet Tuesday.** At 07:31 their REMUS-02 loses comms during a sediment survey. The lab calls the harbor office. The watch officer flips the **Dual-use** switch. The same sonar feed, classifier, consequence model and ladder now answer a different question: *is this ours, and where is it drifting?*
@@ -157,7 +159,7 @@ make test
 | GET | `/api/stream` | SSE: `hello` (full state), `tick` (2 Hz), `history` |
 | GET | `/api/state` · `/api/config` · `/api/rules` | Snapshot, map + rules + scenarios + presets, raw YAML |
 | POST | `/api/sim/control` | `{action: play|pause|restart|speed, speed?}` |
-| POST | `/api/sim/scenario` · `/api/mode` | Load a scenario · switch security / recovery |
+| POST | `/api/sim/scenario` · `/api/mode` | Load a scenario (`{name, seed?}`; random scenarios use the seed) · switch security / recovery |
 | POST | `/api/handoff/{id}` | `{action: approve|reject|watch|send, operator, note?}` |
 | POST | `/api/twist/preview` · `/api/twist/apply` | `{ops | rules | yaml, scenario?, title, note}` |
 | GET / POST | `/api/twist/history` · `/api/twist/revert/{id}` | Persisted twist log · revert |
