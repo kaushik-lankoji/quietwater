@@ -8,7 +8,19 @@ const WIDTH = 280;
 const GAP = 18;
 const EDGE = 16;
 
-export function ContactPopup({ contact, x, y, radius }: { contact: Contact; x: number; y: number; radius: number }) {
+export function ContactPopup({
+  contact,
+  handled,
+  x,
+  y,
+  radius,
+}: {
+  contact: Contact;
+  handled?: boolean;
+  x: number;
+  y: number;
+  radius: number;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
 
@@ -38,7 +50,7 @@ export function ContactPopup({ contact, x, y, radius }: { contact: Contact; x: n
     >
       <div className="popup-head">
         <span className="popup-title">{contact.label_text}</span>
-        <RiskPill tier={tier} />
+        <RiskPill tier={tier} handled={handled && tier === "high"} />
       </div>
       <dl className="popup-grid">
         <div>

@@ -75,6 +75,13 @@ function withAlpha(color: string, alpha: number): string {
   return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
 }
 
+function blend(a: string, b: string, t: number): string {
+  const x = parseInt(a.replace("#", ""), 16);
+  const y = parseInt(b.replace("#", ""), 16);
+  const mix = (s: number) => Math.round(((x >> s) & 255) * (1 - t) + ((y >> s) & 255) * t);
+  return `#${((mix(16) << 16) | (mix(8) << 8) | mix(0)).toString(16).padStart(6, "0")}`;
+}
+
 export class RadarEngine {
   private ctx: CanvasRenderingContext2D;
   private palette: Palette;
@@ -92,6 +99,10 @@ export class RadarEngine {
   private reduced: boolean;
   hovered: string | null = null;
   selected: string | null = null;
+  /** Contacts whose hand-off the operator has dealt with: drawn as a grayed-out red. */
+  handled: ReadonlySet<string> = new Set();
+  /** Active area holds: a translucent blocked-off region around the contact. */
+  holds: readonly { id: string; radiusM: number }[] = [];
   onChange: (() => void) | null = null;
 
   constructor(private canvas: HTMLCanvasElement) {
@@ -296,16 +307,36 @@ export class RadarEngine {
       });
     }
 
+    for (const h of this.holds) {
+      const l = this.live.get(h.id);
+      if (!l) continue;
+      const hx = this.width / 2 + l.dx * this.scale;
+      const hy = this.height / 2 + l.dy * this.scale;
+      const hr = h.radiusM * this.scale;
+      const tint = blend(p.high, p.low, 0.45);
+      ctx.fillStyle = withAlpha(tint, 0.1);
+      ctx.beginPath();
+      ctx.arc(hx, hy, hr, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.save();
+      ctx.setLineDash([6, 6]);
+      ctx.strokeStyle = withAlpha(tint, 0.55);
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.restore();
+    }
+
     const list = [...this.echoes.values()].sort((a, b) => TIER_ORDER[a.tier] - TIER_ORDER[b.tier]);
     for (const e of list) {
       const a = this.alpha(e, now);
       if (a <= 0.01) continue;
       const { x, y } = this.position(e);
-      const color = p[e.tier];
+      const done = e.tier === "high" && this.handled.has(e.id);
+      const color = done ? blend(p.high, p.low, 0.62) : p[e.tier];
       const hover = e.id === this.hovered;
       const r = e.radius * (hover ? HOVER_SCALE : 1);
 
-      if (e.tier === "high" && !this.reduced) {
+      if (e.tier === "high" && !done && !this.reduced) {
         const phase = ((now - e.pingedAt) % RIPPLE_PERIOD_MS) / RIPPLE_PERIOD_MS;
         ctx.strokeStyle = withAlpha(color, 0.45 * (1 - phase) * a);
         ctx.lineWidth = 1.5;

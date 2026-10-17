@@ -7,6 +7,7 @@ export function Sheet({
   title,
   meta,
   flush,
+  actions,
   onClose,
   children,
 }: {
@@ -14,6 +15,7 @@ export function Sheet({
   title: string;
   meta?: ReactNode;
   flush?: boolean;
+  actions?: ReactNode;
   onClose: () => void;
   children: ReactNode;
 }) {
@@ -28,6 +30,7 @@ export function Sheet({
           <h2 className="sheet-title">{title}</h2>
           {meta && <div className="sheet-meta">{meta}</div>}
         </div>
+        {actions}
         <button type="button" className="icon-button" onClick={onClose} aria-label={`Close ${title}`}>
           <Icon name="close" size={20} />
         </button>

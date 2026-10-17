@@ -15,9 +15,13 @@ export const Radar = memo(function Radar({
   contacts,
   run,
   selected,
+  handled,
+  holds,
   onSelect,
 }: {
   contacts: Contact[];
+  handled: ReadonlySet<string>;
+  holds: readonly { id: string; radiusM: number }[];
   run: number;
   selected: string | null;
   onSelect: (contact: Contact | null) => void;
@@ -67,6 +71,14 @@ export const Radar = memo(function Radar({
   }, [contacts]);
 
   useEffect(() => {
+    if (engine.current) engine.current.handled = handled;
+  }, [handled]);
+
+  useEffect(() => {
+    if (engine.current) engine.current.holds = holds;
+  }, [holds]);
+
+  useEffect(() => {
     engine.current?.reset();
   }, [run]);
 
@@ -111,7 +123,7 @@ export const Radar = memo(function Radar({
         }}
       />
       <Drone />
-      {hover && live && <ContactPopup key={hover.id} contact={live} x={hover.x} y={hover.y} radius={hover.radius} />}
+      {hover && live && <ContactPopup key={hover.id} contact={live} handled={handled.has(live.id)} x={hover.x} y={hover.y} radius={hover.radius} />}
     </div>
   );
 });

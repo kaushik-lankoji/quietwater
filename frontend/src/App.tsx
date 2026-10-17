@@ -2,21 +2,22 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "./api";
 import { Toasts, useToasts } from "./components/bits";
 import { BudgetCard } from "./components/BudgetCard";
-import { ControlDock } from "./components/ControlDock";
 import { DualUseToggle } from "./components/DualUseToggle";
-import { HandoffSheetBody, needsAttention, type Action } from "./components/HandoffSheet";
+import { HandoffSheetBody, isWaiting, needsAttention, QueueNav, type ActExtra } from "./components/HandoffSheet";
 import { Icon } from "./components/Icon";
 import { Radar } from "./components/Radar";
 import { ReceiptsSheetBody } from "./components/ReceiptsSheet";
 import { ScenarioButton } from "./components/ScenarioButton";
 import { Sheet } from "./components/Sheet";
+import { WatchPanel } from "./components/WatchPanel";
 import { TwistConsole } from "./components/TwistConsole";
-import type { Config, Contact, HandoffItem } from "./types";
+import type { Config, Contact, HandoffAction, HandoffItem, ItemStatus } from "./types";
 import { useLive } from "./useLive";
 
 type SheetName = "handoff" | "receipts" | "twist";
 
 const OPERATOR = "Watch officer";
+const HANDLED: ItemStatus[] = ["hold_requesting", "hold_active", "notice_sent", "dismissed", "resolved", "lifted", "stood_down"];
 const FLOOD = "flood";
 const RANDOM = { security: "random_harbor", recovery: "random_recovery" } as const;
 
@@ -28,6 +29,7 @@ export default function App() {
   const [sheet, setSheet] = useState<SheetName | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [activeItem, setActiveItem] = useState<string | null>(null);
+  const [managing, setManaging] = useState<string | null>(null);
   const [receiptFocus, setReceiptFocus] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const { toasts, push } = useToasts();
@@ -62,12 +64,34 @@ export default function App() {
     [push],
   );
 
+  // A red contact turns gray once its latest hand-off is dismissed, stood down, or acted on.
+  const handledKey = useMemo(() => {
+    const latest = new Map<string, HandoffItem>();
+    for (const i of snap?.items ?? []) {
+      const prev = latest.get(i.contact_id);
+      if (!prev || i.created_t > prev.created_t || (i.created_t === prev.created_t && i.id > prev.id)) latest.set(i.contact_id, i);
+    }
+    return [...latest.values()].filter((i) => HANDLED.includes(i.status)).map((i) => i.contact_id).sort().join(",");
+  }, [snap?.items]);
+  const handled = useMemo<ReadonlySet<string>>(() => new Set(handledKey ? handledKey.split(",") : []), [handledKey]);
+
+  // An active area hold blocks off a region around its contact, not just the contact's dot.
+  const holdsKey = (snap?.items ?? [])
+    .filter((i) => i.hold?.scope === "area" && i.hold.status === "active")
+    .map((i) => `${i.contact_id}:${i.hold?.radius_m ?? config?.rules.handoff?.area_radius_m ?? 400}`)
+    .join(",");
+  const holds = useMemo(
+    () => (holdsKey ? holdsKey.split(",").map((k) => ({ id: k.split(":")[0], radiusM: Number(k.split(":")[1]) })) : []),
+    [holdsKey],
+  );
+
   const queue = useMemo(() => (snap ? snap.items.filter(needsAttention) : []), [snap]);
-  const active = (snap?.items.find((i) => i.id === activeItem) ?? queue[0]) as HandoffItem | undefined;
+  // Stay on the chosen item while it is still in the queue; once it is finished, move to the next one.
+  const active = queue.find((i) => i.id === activeItem) ?? queue[0];
 
   useEffect(() => {
     if (!snap) return;
-    const pending = snap.items.filter((i) => i.status === "pending");
+    const pending = snap.items.filter(isWaiting);
     const seen = seenPending.current;
     seenPending.current = new Set(pending.map((i) => i.id));
     if (!seen) return;
@@ -79,11 +103,24 @@ export default function App() {
   }, [snap, sheet]);
 
   const act = useCallback(
-    (item: HandoffItem, action: Action) =>
+    (item: HandoffItem, action: HandoffAction, extra?: ActExtra) =>
       run(async () => {
-        await api.act(item.id, action, OPERATOR);
-        const verb = { approve: "Approved", reject: "Rejected", watch: "Watching", send: "Alert sent" }[action];
-        push(`${verb} · ${item.contact_id}`, "ok");
+        setActiveItem(item.id);
+        await api.act(item.id, action, OPERATOR, extra);
+        const verb: Partial<Record<HandoffAction, string>> = {
+          approve: "Hold requested",
+          retry: "Hold requested again",
+          send: `Notice sent to ${item.draft?.to ?? "agency"}`,
+          dismiss: "Dismissed",
+          undo: "Back in your queue",
+          watch: "Watching",
+          escalate: "Escalated",
+          lift: "Hold lifted",
+          resolve: "Resolved",
+          extend: "Hold extended",
+          edit: "Notice updated",
+        };
+        if (verb[action]) push(`${verb[action]} · ${item.contact_id}`, "ok");
       }),
     [run, push],
   );
@@ -107,18 +144,13 @@ export default function App() {
     if (snap) loadScenario(RANDOM[snap.mode]);
   }, [snap, loadScenario]);
 
-  const openReceipts = useCallback(() => {
-    setReceiptFocus(null);
-    toggleSheet("receipts");
-  }, [toggleSheet]);
-
   const onSelect = useCallback(
     (c: Contact | null) => {
       setSelected(c?.id ?? null);
       if (!c || !snap) return;
       const human = c.requires_human || c.rung === "R4" || c.rung === "R5";
       const items = snap.items.filter((i) => i.contact_id === c.id);
-      const item = items.find(needsAttention) ?? items[0];
+      const item = items.find(needsAttention);
       if (human && item) {
         setActiveItem(item.id);
         setSheet("handoff");
@@ -144,7 +176,6 @@ export default function App() {
       if (key === "r") return replay();
       if (key === "f") return flood();
       if (key === "t") return toggleSheet("twist");
-      if (key === "a" && sheet === "handoff" && active && !busy && (active.status === "pending" || active.status === "watching")) act(active, "approve");
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -160,12 +191,10 @@ export default function App() {
   }
 
   const recovery = snap.mode === "recovery";
-  const pending = queue.filter((i) => i.status === "pending").length;
-  const automated = receipts.filter((r) => r.automated).length;
 
   return (
     <div className="app">
-      <Radar contacts={snap.contacts} run={snap.run} selected={selected} onSelect={onSelect} />
+      <Radar contacts={snap.contacts} run={snap.run} selected={selected} handled={handled} holds={holds} onSelect={onSelect} />
 
       <BudgetCard
         budget={snap.budget}
@@ -176,6 +205,15 @@ export default function App() {
         link={link}
         onScenario={loadScenario}
         onOpen={() => toggleSheet("handoff")}
+      />
+
+      <WatchPanel
+        items={snap.items}
+        active={sheet === "handoff" ? (active?.id ?? null) : null}
+        onOpen={(id) => {
+          setActiveItem(id);
+          setSheet("handoff");
+        }}
       />
 
       <DualUseToggle on={recovery} onChange={(on) => run(() => api.mode(on ? "recovery" : "security"))} />
@@ -189,35 +227,23 @@ export default function App() {
         </div>
       )}
 
-      <Sheet open={sheet === "handoff"} flush title="Needs you" meta={`${pending} waiting · ${snap.budget.quiet} handled quietly`} onClose={() => setSheet(null)}>
-        <HandoffSheetBody
-          items={snap.items}
-          rules={config.rules}
-          activeId={active?.id ?? null}
-          onActive={setActiveItem}
-          onAct={act}
-          busy={busy}
-          quiet={snap.budget.quiet}
-        />
+      <Sheet
+        open={sheet === "handoff"}
+        flush
+        title={active ? `Contact ${active.contact_id}` : "All clear"}
+        actions={<QueueNav queue={queue} active={active} onActive={setActiveItem} />}
+        onClose={() => setSheet(null)}
+      >
+        <HandoffSheetBody active={active} rules={config.rules} onAct={act} busy={busy} quiet={snap.budget.quiet} managing={managing} onManage={setManaging} />
       </Sheet>
 
-      <Sheet open={sheet === "receipts"} flush title="Decision receipts" meta={`${receipts.length} logged · ${automated} automated`} onClose={() => setSheet(null)}>
+      <Sheet open={sheet === "receipts"} flush title="Decision receipts" onClose={() => setSheet(null)}>
         <ReceiptsSheetBody receipts={receipts} focus={receiptFocus} onFocus={setReceiptFocus} />
       </Sheet>
 
-      <Sheet open={sheet === "twist"} title="Twist Console" meta={`Live rules v${config.version} · no code, no restart`} onClose={() => setSheet(null)}>
+      <Sheet open={sheet === "twist"} title="Twist Console" onClose={() => setSheet(null)}>
         <TwistConsole config={config} snap={snap} history={history} toast={push} />
       </Sheet>
-
-      <ControlDock
-        running={snap.running}
-        flood={snap.scenario.id === FLOOD}
-        sheet={sheet}
-        onToggleRun={togglePause}
-        onReplay={replay}
-        onFlood={flood}
-        onReceipts={openReceipts}
-      />
 
       <ScenarioButton onClick={randomize} />
       <Toasts toasts={toasts} />

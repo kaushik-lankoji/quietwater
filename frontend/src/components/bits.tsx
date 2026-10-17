@@ -8,11 +8,12 @@ export function RiskDot({ tier }: { tier: Tier }) {
   return <span className={cls("risk-dot", tier)} aria-hidden />;
 }
 
-export function RiskPill({ tier }: { tier: Tier }) {
+export function RiskPill({ tier, handled }: { tier: Tier; handled?: boolean }) {
   return (
-    <span className="risk-pill">
+    <span className={cls("risk-pill", handled && "handled")}>
       <RiskDot tier={tier} />
       {TIER_LABEL[tier]}
+      {handled && " · handled"}
     </span>
   );
 }

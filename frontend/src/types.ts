@@ -123,6 +123,8 @@ export interface Receipt {
   config_hash?: string;
   mode: Mode;
   decision: Decision;
+  kind?: "handoff";
+  transition?: { item: string; action: string; from: ItemStatus; to: ItemStatus; actor: string; label: string };
 }
 
 export interface Step {
@@ -132,7 +134,93 @@ export interface Step {
   automated: boolean;
 }
 
-export type ItemStatus = "pending" | "watching" | "approved" | "rejected" | "stood_down";
+export type ItemStatus =
+  | "pending"
+  | "watching"
+  | "expired"
+  | "hold_requesting"
+  | "hold_active"
+  | "hold_failed"
+  | "notice_review"
+  | "notice_sent"
+  | "dismissed"
+  | "resolved"
+  | "lifted"
+  | "stood_down";
+
+export type HandoffAction =
+  | "approve"
+  | "retry"
+  | "review"
+  | "edit"
+  | "cancel"
+  | "send"
+  | "dismiss"
+  | "undo"
+  | "watch"
+  | "escalate"
+  | "lift"
+  | "resolve"
+  | "extend";
+
+export interface PlanStep {
+  kind: "hold" | "notice";
+  rung: Rung;
+  title: string;
+  detail: string;
+  asset?: string;
+  operation?: string;
+  on: "approve" | "separate";
+}
+
+export type HoldScope = "operation" | "area";
+
+export interface HoldTarget {
+  asset: string;
+  operation: string;
+}
+
+export interface HoldOption {
+  scope: HoldScope;
+  title: string;
+  action: string;
+  summary: string;
+  detail: string;
+  targets: HoldTarget[];
+}
+
+export interface HoldOptions {
+  options: HoldOption[];
+  recommended: HoldScope;
+  reason: string;
+  radius_m: number;
+}
+
+export interface Hold {
+  scope: HoldScope;
+  targets: HoldTarget[];
+  recommended: HoldScope;
+  radius_m?: number;
+  status: "requesting" | "active" | "failed" | "lifted";
+  request_id: string;
+  asset: string;
+  operation: string;
+  title: string;
+  requested_clock: string;
+  confirmed_clock?: string;
+  lifted_clock?: string;
+  until_t: number | null;
+  time_up?: boolean;
+}
+
+export interface ItemEvent {
+  action: string;
+  from: ItemStatus | null;
+  to: ItemStatus;
+  actor: string;
+  clock: string;
+  t: number;
+}
 
 export interface HandoffItem {
   id: string;
@@ -151,9 +239,19 @@ export interface HandoffItem {
   note: string | null;
   draft: { to: string; subject: string; body: string; language?: string } | null;
   draft_status: "drafted" | "sent" | null;
+  draft_edited: boolean;
   steps: Step[];
   remaining_s: number;
   window_s: number | null;
+  plan: PlanStep[];
+  hold: Hold | null;
+  hold_options: HoldOptions | null;
+  review_from: ItemStatus | null;
+  paged: boolean;
+  history: ItemEvent[];
+  watch_left_s: number | null;
+  hold_left_s: number | null;
+  undo_left_s: number | null;
 }
 
 export interface Budget {
@@ -164,6 +262,11 @@ export interface Budget {
   quiet: number;
   need_you: number;
   watching: number;
+  holds?: number;
+  in_progress?: number;
+  notices_sent?: number;
+  dismissed?: number;
+  expired?: number;
   resolved: number;
   load: number;
   capacity: number;
@@ -323,6 +426,7 @@ export interface RulesData {
   human_required_from: Rung;
   windows_s: { urgent: number; hold_handoff: number; default: number };
   alert_budget: { capacity: number; weights: Record<Rung, number>; keep_watching_snooze_s: number };
+  handoff?: { hold_s: number; undo_s: number; mock_hold_delay_s: number; area_radius_m: number };
   zones: Zone[];
   assets: Asset[];
   traffic: Vessel[];

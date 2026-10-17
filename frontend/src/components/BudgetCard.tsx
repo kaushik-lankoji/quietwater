@@ -29,7 +29,8 @@ export function BudgetCard({
       <button type="button" className={cls("budget-main", hot && "hot")} onClick={onOpen} aria-label={`${budget.need_you} need you. Open hand-off`}>
         <span className="budget-need">
           <span className="budget-n">{budget.need_you}</span>
-          <span className="budget-l">need you{budget.watching > 0 ? ` · ${budget.watching} watching` : ""}</span>
+          <span className="budget-l">need you{budget.watching > 0 ? ` · ${budget.watching} watching` : ""}
+            {(budget.holds ?? 0) > 0 ? ` · ${budget.holds} on hold` : ""}</span>
         </span>
         <span className="budget-quiet">
           <span className="budget-quiet-n">{budget.quiet}</span> handled quietly

@@ -14,6 +14,7 @@ from fastapi.responses import FileResponse, JSONResponse, Response, StreamingRes
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
+from . import handoff as hs
 from .hub import Hub
 from .rules import format_error
 
@@ -37,9 +38,17 @@ class ModeBody(BaseModel):
 
 
 class ActionBody(BaseModel):
-    action: Literal["approve", "reject", "watch", "send"]
+    action: Literal["approve", "retry", "review", "edit", "cancel", "send", "dismiss", "undo", "watch",
+                    "escalate", "lift", "resolve", "extend"]
     operator: str = "Watch officer"
     note: str | None = None
+    body: str | None = None
+    confirm: bool = False
+    scope: Literal["operation", "area"] | None = None
+
+
+class MockHoldBody(BaseModel):
+    fail: bool
 
 
 class TwistBody(BaseModel):
@@ -136,12 +145,25 @@ def create_app(root: Path = ROOT, run_loop: bool = True) -> FastAPI:
     @app.post("/api/handoff/{item_id}")
     def handoff(item_id: str, body: ActionBody) -> dict[str, Any]:
         try:
-            item = hub.act(item_id, body.action, body.operator, body.note)
+            item = hub.act(item_id, body.action, body.operator, body.note, body.body, body.confirm, body.scope)
         except KeyError as exc:
             raise HTTPException(404, str(exc)) from exc
         except ValueError as exc:
             raise HTTPException(409, str(exc)) from exc
-        return item.to_dict(hub.session.t)
+        return item.to_dict(hub.session.t, hub.wall(), hub.store.rules.handoff.undo_s)
+
+    @app.get("/api/handoff/states")
+    def handoff_states() -> dict[str, Any]:
+        return {"states": list(hs.STATES), "waiting": list(hs.WAITING), "final": list(hs.FINAL),
+                "operator": {k: {"from": list(v[0]), "to": v[1]} for k, v in hs.OPERATOR_MOVES.items()},
+                "system": {k: {"from": list(v[0]), "to": v[1]} for k, v in hs.SYSTEM_MOVES.items()}}
+
+    if os.environ.get("QUIETWATER_DEV") == "1":
+        @app.post("/api/dev/mock-hold")
+        def mock_hold(body: MockHoldBody) -> dict[str, Any]:
+            """Dev only: make the mock terminal refuse hold requests, to show the failure state."""
+            hub.mock_hold_fail = body.fail
+            return {"fail": hub.mock_hold_fail}
 
     @app.get("/api/receipts")
     def receipts(limit: int = 500, contact_id: str | None = None) -> list[dict[str, Any]]:

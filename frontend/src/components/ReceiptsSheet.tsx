@@ -18,6 +18,27 @@ const Row = memo(function Row({ r, initiallyOpen, onFocus }: { r: Receipt; initi
   const [open, setOpen] = useState(initiallyOpen);
   const d = r.decision;
   const name = d.rung_names[d.rung_names.length - 1] ?? "";
+  const tr = r.transition;
+  if (tr)
+    return (
+      <div className="receipt transition">
+        <div className="receipt-row">
+          <span className="transition-dot" aria-hidden />
+          <div className="receipt-main">
+            <div className="receipt-line">
+              <button type="button" className="cid link" onClick={() => onFocus(r.contact_id)}>
+                {r.contact_id}
+              </button>
+              <span className="receipt-rung">{tr.label}</span>
+              <span className="num muted receipt-time">{r.clock}</span>
+            </div>
+            <p className="receipt-reason">
+              {tr.from.replace("_", " ")} → {tr.to.replace("_", " ")} · {tr.actor} · {tr.item}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
   return (
     <div className={cls("receipt", open && "open")}>
       <div className="receipt-row">
