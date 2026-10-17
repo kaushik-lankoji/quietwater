@@ -435,12 +435,6 @@ function HoldChooser({ item, scope, onScope }: { item: HandoffItem; scope: HoldS
   const opts = item.hold_options!;
   return (
     <section className="manage" aria-label="Manage activity">
-      <div className="manage-head">
-        <span className="eyebrow">What should pause?</span>
-        <p className="manage-reason">
-          We recommend <strong>{opts.recommended === "area" ? "holding the area" : "holding this operation"}</strong>. {opts.reason} It&rsquo;s your call.
-        </p>
-      </div>
       <div className="scope-list" role="radiogroup" aria-label="Hold scope">
         {opts.options.map((o) => (
           <button
