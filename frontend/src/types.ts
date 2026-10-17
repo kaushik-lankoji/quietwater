@@ -200,6 +200,7 @@ export interface Hold {
   scope: HoldScope;
   targets: HoldTarget[];
   recommended: HoldScope;
+  radius_m?: number;
   status: "requesting" | "active" | "failed" | "lifted";
   request_id: string;
   asset: string;
@@ -425,7 +426,7 @@ export interface RulesData {
   human_required_from: Rung;
   windows_s: { urgent: number; hold_handoff: number; default: number };
   alert_budget: { capacity: number; weights: Record<Rung, number>; keep_watching_snooze_s: number };
-  handoff?: { hold_s: number; undo_s: number; mock_hold_delay_s: number };
+  handoff?: { hold_s: number; undo_s: number; mock_hold_delay_s: number; area_radius_m: number };
   zones: Zone[];
   assets: Asset[];
   traffic: Vessel[];

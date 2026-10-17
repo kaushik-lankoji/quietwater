@@ -76,6 +76,16 @@ export default function App() {
   }, [snap?.items]);
   const handled = useMemo<ReadonlySet<string>>(() => new Set(handledKey ? handledKey.split(",") : []), [handledKey]);
 
+  // An active area hold blocks off a region around its contact, not just the contact's dot.
+  const holdsKey = (snap?.items ?? [])
+    .filter((i) => i.hold?.scope === "area" && i.hold.status === "active")
+    .map((i) => `${i.contact_id}:${i.hold?.radius_m ?? config?.rules.handoff?.area_radius_m ?? 400}`)
+    .join(",");
+  const holds = useMemo(
+    () => (holdsKey ? holdsKey.split(",").map((k) => ({ id: k.split(":")[0], radiusM: Number(k.split(":")[1]) })) : []),
+    [holdsKey],
+  );
+
   const queue = useMemo(() => (snap ? snap.items.filter(needsAttention) : []), [snap]);
   // Stay on the chosen item while it is still in the queue; once it is finished, move to the next one.
   const active = queue.find((i) => i.id === activeItem) ?? queue[0];
@@ -190,7 +200,7 @@ export default function App() {
 
   return (
     <div className="app">
-      <Radar contacts={snap.contacts} run={snap.run} selected={selected} handled={handled} onSelect={onSelect} />
+      <Radar contacts={snap.contacts} run={snap.run} selected={selected} handled={handled} holds={holds} onSelect={onSelect} />
 
       <BudgetCard
         budget={snap.budget}

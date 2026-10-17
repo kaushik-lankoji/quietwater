@@ -259,6 +259,7 @@ function Actions({
   setText: (t: string) => void;
 }) {
   const [confirming, setConfirming] = useState(false);
+  const [confirmLift, setConfirmLift] = useState(false);
   const to = agency(item, rules);
   const short = shortAgency(to);
   const hold = holdStep(item);
@@ -275,7 +276,7 @@ function Actions({
   const holdControls = (primary: boolean) =>
     item.hold?.status === "active" && (
       <div className={cls(item.hold.time_up && "pair")}>
-        <button type="button" className={cls("btn", primary && "primary large")} disabled={busy} onClick={() => go("lift")}>
+        <button type="button" className={cls("btn", primary && "primary large")} disabled={busy} onClick={() => setConfirmLift(true)}>
           <Icon name="play" size={16} /> Lift hold
         </button>
         {item.hold.time_up && (
@@ -283,6 +284,30 @@ function Actions({
             Extend {holdMins}
           </button>
         )}
+      </div>
+    );
+
+  if (confirmLift && item.hold?.status === "active")
+    return (
+      <div className="actions confirm" role="alertdialog" aria-label="Lift this hold?">
+        <div className="confirm-text">
+          <span className="confirm-title">Are you sure you wish to lift this hold?</span>
+          <span className="choice-help">{holdWhat(item.hold)} will resume.</span>
+        </div>
+        <button
+          type="button"
+          className="btn primary large"
+          disabled={busy}
+          onClick={() => {
+            go("lift");
+            setConfirmLift(false);
+          }}
+        >
+          <Icon name="play" size={18} /> Yes, lift hold
+        </button>
+        <button type="button" className="btn" disabled={busy} onClick={() => setConfirmLift(false)}>
+          Keep hold
+        </button>
       </div>
     );
 

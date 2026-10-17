@@ -388,7 +388,7 @@ class Hub:
         title = choice["action"] + (f" at {targets[0]['asset']}" if scope == "operation" else "")
         item.hold = {"status": "requesting", "request_id": req["id"], "scope": scope, "targets": targets,
                      "asset": targets[0]["asset"], "operation": targets[0]["operation"], "title": title,
-                     "recommended": opts["recommended"], "requested_clock": self.session.clock,
+                     "recommended": opts["recommended"], "radius_m": opts["radius_m"], "requested_clock": self.session.clock,
                      "requested_wall": self.wall(), "until_t": None}
         return req
 
