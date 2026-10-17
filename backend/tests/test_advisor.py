@@ -272,3 +272,19 @@ def test_all_rungs_reachable_by_advisor_stay_within_ladder(rules):
     for raise_by in range(0, 6):
         d, out = reviewed(rules, f, layer(rules, Fixed(Advice(raise_by, False, "x", 1.0)), max_raise=5))
         assert out.rung in RUNGS
+
+
+def test_llm_request_matches_what_the_api_accepts(rules):
+    sent = []
+
+    def transport(cfg, key, body):
+        sent.append(body)
+        return '{"suggested_tier_raise": 0, "reason": "ok", "confidence": 0.5}'
+
+    d = decide(ambiguous_facts(rules), Memory(), rules)
+    LLMAdvisor(rules.advisor.llm, transport=transport).advise(build_input(ambiguous_facts(rules), d, rules))
+    body = sent[0]
+    assert "temperature" not in body
+    assert body["thinking"] == {"type": "disabled"}
+    assert body["model"] == rules.advisor.llm.model and body["max_tokens"] == rules.advisor.llm.max_tokens
+    assert body["messages"][0]["role"] == "user"

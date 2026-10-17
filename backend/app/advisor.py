@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import threading
+import urllib.error
 import urllib.request
 from collections import OrderedDict
 from collections.abc import Callable
@@ -180,8 +181,12 @@ def anthropic_transport(cfg: LLMCfg, api_key: str, body: dict[str, Any]) -> str:
     req = urllib.request.Request(
         cfg.endpoint, data=json.dumps(body).encode(), method="POST",
         headers={"content-type": "application/json", "x-api-key": api_key, "anthropic-version": "2023-06-01"})
-    with urllib.request.urlopen(req, timeout=cfg.timeout_s) as resp:
-        data = json.loads(resp.read().decode())
+    try:
+        with urllib.request.urlopen(req, timeout=cfg.timeout_s) as resp:
+            data = json.loads(resp.read().decode())
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode(errors="replace")[:300].replace("\n", " ")
+        raise AdvisorError(f"HTTP {exc.code}: {detail}") from exc
     parts = [b.get("text", "") for b in data.get("content", []) if b.get("type") == "text"]
     if not parts:
         raise AdvisorError("model returned no text")
@@ -199,7 +204,7 @@ class LLMAdvisor:
         key = os.environ.get(self.cfg.api_key_env, "")
         if not key and self.transport is anthropic_transport:
             raise AdvisorError(f"${self.cfg.api_key_env} is not set")
-        body = {"model": self.cfg.model, "max_tokens": self.cfg.max_tokens, "temperature": 0,
+        body = {"model": self.cfg.model, "max_tokens": self.cfg.max_tokens, "thinking": {"type": "disabled"},
                 "system": SYSTEM_PROMPT,
                 "messages": [{"role": "user", "content": json.dumps(asdict(x), sort_keys=True)}]}
         return parse_advice(self.transport(self.cfg, key, body))
