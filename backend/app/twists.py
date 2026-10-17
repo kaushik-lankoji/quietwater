@@ -6,6 +6,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from .advisor import AdvisorCache
 from .engine import Decision
 from .rules import Rules
 from .session import Session, World
@@ -16,7 +17,7 @@ def _compact(d: Decision | None) -> dict[str, Any] | None:
         return None
     return {"rungs": d.rungs, "rung": d.rung, "rung_names": d.rung_names, "outcome": d.outcome,
             "reason": d.reason, "requires_human": d.requires_human, "urgency": d.urgency, "path": d.path,
-            "label_text": d.label_text}
+            "label_text": d.label_text, "ai_raised_tier": d.ai_raised_tier, "ai_reason": d.ai_reason}
 
 
 def _direction(pa: Decision | None, pb: Decision | None, sa: tuple, sb: tuple) -> str:
@@ -25,8 +26,9 @@ def _direction(pa: Decision | None, pb: Decision | None, sa: tuple, sb: tuple) -
     return "up" if sb > sa else "down" if sb < sa else "same"
 
 
-def run_scenario(rules: Rules, world: World, scenario: str, mode: str, seed: int | None) -> Session:
-    s = Session(rules, world, scenario, mode, seed)
+def run_scenario(rules: Rules, world: World, scenario: str, mode: str, seed: int | None,
+                 advisor_cache: AdvisorCache | None = None) -> Session:
+    s = Session(rules, world, scenario, mode, seed, advisor_cache=advisor_cache)
     size = len(s.sim.pending)
     s.run(dt=1.0 if size <= 60 else 2.0)
     return s
@@ -38,9 +40,9 @@ def _totals(s: Session) -> dict[str, int]:
 
 
 def preview(before: Rules, after: Rules, world: World, scenario: str, mode: str,
-            seed: int | None) -> dict[str, Any]:
-    a = run_scenario(before, world, scenario, mode, seed)
-    b = run_scenario(after, world, scenario, mode, seed)
+            seed: int | None, advisor_cache: AdvisorCache | None = None) -> dict[str, Any]:
+    a = run_scenario(before, world, scenario, mode, seed, advisor_cache)
+    b = run_scenario(after, world, scenario, mode, seed, advisor_cache)
     rows = []
     for cid in dict.fromkeys(a.seen + b.seen):
         pa, pb = a.peak.get(cid), b.peak.get(cid)

@@ -6,6 +6,7 @@ from typing import Any
 
 from ruamel.yaml import YAML
 
+from .advisor import AdvisorCache, AdvisorLayer, review
 from .classifier import Classifier, Observation, build_classifier
 from .engine import Decision, Memory, decide
 from .facts import clock_at, derive_facts
@@ -52,8 +53,12 @@ class World:
 
 class Session:
     def __init__(self, rules: Rules, world: World, scenario: str, mode: str = "security",
-                 seed: int | None = None, classifier: Classifier | None = None):
+                 seed: int | None = None, classifier: Classifier | None = None,
+                 advisor_cache: AdvisorCache | None = None, advisor: AdvisorLayer | None = None):
         self.rules = rules
+        self.advisor_cache = advisor_cache or AdvisorCache()
+        self.advisor = advisor or AdvisorLayer.from_rules(rules, self.advisor_cache)
+        self._fixed_advisor = advisor is not None
         self.world = world
         self.scenario_name = scenario
         self.scenario = world.build(scenario, seed)
@@ -83,6 +88,8 @@ class Session:
 
     def set_rules(self, rules: Rules) -> None:
         self.rules = rules
+        if not self._fixed_advisor:
+            self.advisor = AdvisorLayer.from_rules(rules, self.advisor_cache)
 
     def evaluate(self, c: SimContact) -> Decision:
         rules = self.rules
@@ -97,7 +104,7 @@ class Session:
             classification=self.classifier.classify(obs), hail=c.hail_status(t, rules.hail.timeout_s),
             hailed_t=c.hailed_t, hostile=c.hostile, scripted_evasive=c.evasive_flag, trail=c.trail,
             rules=rules)
-        d = decide(facts, mem, rules, self.mode)
+        d = review(facts, mem, rules, self.mode, decide(facts, mem, rules, self.mode), self.advisor)
         if mem.hailed_t is not None and c.hailed_t is None:
             c.hailed_t = mem.hailed_t
         return d
