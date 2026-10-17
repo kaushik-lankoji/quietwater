@@ -44,6 +44,7 @@ class ActionBody(BaseModel):
     note: str | None = None
     body: str | None = None
     confirm: bool = False
+    scope: Literal["operation", "area"] | None = None
 
 
 class MockHoldBody(BaseModel):
@@ -144,7 +145,7 @@ def create_app(root: Path = ROOT, run_loop: bool = True) -> FastAPI:
     @app.post("/api/handoff/{item_id}")
     def handoff(item_id: str, body: ActionBody) -> dict[str, Any]:
         try:
-            item = hub.act(item_id, body.action, body.operator, body.note, body.body, body.confirm)
+            item = hub.act(item_id, body.action, body.operator, body.note, body.body, body.confirm, body.scope)
         except KeyError as exc:
             raise HTTPException(404, str(exc)) from exc
         except ValueError as exc:

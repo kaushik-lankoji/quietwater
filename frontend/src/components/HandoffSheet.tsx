@@ -1,10 +1,10 @@
 import { useState, type ReactNode } from "react";
 import { cls, latlon, mmss, pct } from "../format";
-import type { HandoffAction, HandoffItem, ItemStatus, RulesData } from "../types";
+import type { Hold, HandoffAction, HandoffItem, HoldScope, ItemStatus, RulesData } from "../types";
 import { Checklist, UrgencyTag } from "./bits";
 import { Icon, type IconName } from "./Icon";
 
-export type ActExtra = { body?: string; confirm?: boolean };
+export type ActExtra = { body?: string; confirm?: boolean; scope?: HoldScope };
 export type OnAct = (item: HandoffItem, action: HandoffAction, extra?: ActExtra) => void;
 
 const ACTIVE: ItemStatus[] = ["pending", "expired", "watching", "hold_requesting", "hold_active", "hold_failed", "notice_review", "notice_sent"];
@@ -17,6 +17,17 @@ export function needsAttention(i: HandoffItem) {
 
 export const isWaiting = (i: HandoffItem) => WAITING.includes(i.status);
 export const holdStep = (i: HandoffItem) => i.plan.find((p) => p.kind === "hold");
+
+function holdWhat(hold?: Hold | null) {
+  if (!hold) return "";
+  if (hold.scope === "area") return `${hold.targets.length} operation${hold.targets.length === 1 ? "" : "s"} paused around the contact`;
+  return `${capital(hold.operation)} paused at ${hold.asset}`;
+}
+
+function holdTo(hold?: Hold | null) {
+  if (!hold) return "";
+  return hold.scope === "area" ? `${hold.targets.length} operation${hold.targets.length === 1 ? "" : "s"}` : `${hold.asset} operations`;
+}
 
 function agency(item: HandoffItem, rules: RulesData) {
   return item.draft?.to ?? rules.modes[item.decision.track].handoff_target;
@@ -72,12 +83,12 @@ function StateBanner({ item, rules }: { item: HandoffItem; rules: RulesData }) {
     case "watching":
       return <Banner icon="eye" tone="info" title={`Keep watching · re-checks in ${mmss(item.watch_left_s ?? 0)}`} sub={`Since ${at}. Nothing is sent.`} />;
     case "hold_requesting":
-      return <Banner icon="sync" tone="busy" title="Sending hold request" sub={`To ${hold?.asset} operations · ${at}`} />;
+      return <Banner icon="sync" tone="busy" title="Sending hold request" sub={`To ${holdTo(hold)} · ${at}`} />;
     case "hold_failed":
-      return <Banner icon="alert" tone="bad" title="Hold request failed" sub={`${hold?.asset} operations didn't confirm. Nothing is paused. ${at}`} />;
+      return <Banner icon="alert" tone="bad" title="Hold request failed" sub={`${holdTo(hold)} didn't confirm. Nothing is paused. ${at}`} />;
     case "hold_active":
       return (
-        <Banner icon="hold" tone="ok" title="Hold active" sub={`${capital(hold?.operation)} paused at ${hold?.asset} · since ${hold?.confirmed_clock ?? at}`}>
+        <Banner icon="hold" tone="ok" title={hold?.scope === "area" ? "Area hold active" : "Hold active"} sub={`${holdWhat(hold)} · since ${hold?.confirmed_clock ?? at}`}>
           <HoldTimer item={item} />
         </Banner>
       );
@@ -94,7 +105,7 @@ function StateBanner({ item, rules }: { item: HandoffItem; rules: RulesData }) {
     case "resolved":
       return <Banner icon="check" tone="ok" title="Resolved" sub={`${at} by ${item.actor}`} />;
     case "lifted":
-      return <Banner icon="check" tone="ok" title="Hold lifted" sub={`${capital(hold?.operation)} can resume at ${hold?.asset} · ${at} by ${item.actor}`} />;
+      return <Banner icon="check" tone="ok" title="Hold lifted" sub={`${hold?.scope === "area" ? "Operations around the contact" : capital(hold?.operation)} can resume · ${at} by ${item.actor}`} />;
     case "stood_down":
       return <Banner icon="check" tone="ok" title="Stood down" sub={`No longer needs a person. ${at}`} />;
     default:
@@ -235,11 +246,13 @@ function Actions({
   setEditing,
   text,
   setText,
+  onManage,
 }: {
   item: HandoffItem;
   rules: RulesData;
   onAct: OnAct;
   busy: boolean;
+  onManage: () => void;
   editing: boolean;
   setEditing: (e: boolean) => void;
   text: string;
@@ -279,8 +292,8 @@ function Actions({
       return (
         <div className="actions">
           {hold ? (
-            <button type="button" className="btn primary large wrap" disabled={busy} onClick={() => go("approve")}>
-              <Icon name="check" size={20} /> Pause {hold.operation}
+            <button type="button" className="btn primary large wrap" disabled={busy} onClick={onManage}>
+              <Icon name="hold" size={20} /> Manage activity
               <kbd>A</kbd>
             </button>
           ) : null}
@@ -304,7 +317,7 @@ function Actions({
       return (
         <div className="actions">
           <button type="button" className="btn primary large" disabled>
-            <span className="spinner small" /> Waiting for {item.hold?.asset}
+            <span className="spinner small" /> Waiting for {holdTo(item.hold)}
           </button>
         </div>
       );
@@ -419,8 +432,70 @@ function Actions({
   }
 }
 
-function Card({ item, rules, onAct, busy }: { item: HandoffItem; rules: RulesData; onAct: OnAct; busy: boolean }) {
+function HoldChooser({ item, scope, onScope }: { item: HandoffItem; scope: HoldScope; onScope: (s: HoldScope) => void }) {
+  const opts = item.hold_options!;
+  return (
+    <section className="manage" aria-label="Manage activity">
+      <div className="manage-head">
+        <span className="eyebrow">What should pause?</span>
+        <p className="manage-reason">
+          We recommend <strong>{opts.recommended === "area" ? "holding the area" : "holding this operation"}</strong>. {opts.reason} It&rsquo;s your call.
+        </p>
+      </div>
+      <div className="scope-list" role="radiogroup" aria-label="Hold scope">
+        {opts.options.map((o) => (
+          <button
+            type="button"
+            key={o.scope}
+            role="radio"
+            aria-checked={scope === o.scope}
+            className={cls("scope", scope === o.scope && "on")}
+            onClick={() => onScope(o.scope)}
+          >
+            <span className="scope-radio" aria-hidden />
+            <span className="scope-text">
+              <span className="scope-title">
+                {o.title}
+                {opts.recommended === o.scope && <span className="rec-tag">Recommended</span>}
+              </span>
+              <span className="scope-summary">{o.summary}</span>
+              {o.scope === "area" && (
+                <ul className="scope-targets">
+                  {o.targets.map((t) => (
+                    <li key={t.asset}>
+                      {capital(t.operation)} · {t.asset}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <span className="scope-detail">{o.detail}</span>
+            </span>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function Card({
+  item,
+  rules,
+  onAct,
+  busy,
+  managing,
+  onManage,
+}: {
+  item: HandoffItem;
+  rules: RulesData;
+  onAct: OnAct;
+  busy: boolean;
+  managing: boolean;
+  onManage: (on: boolean) => void;
+}) {
   const d = item.decision;
+  const [scope, setScope] = useState<HoldScope | null>(null);
+  const chosen: HoldScope = scope ?? item.hold_options?.recommended ?? "operation";
+  const choosing = managing && isWaiting(item) && Boolean(item.hold_options);
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState("");
   const review = item.status === "notice_review" && item.draft;
@@ -440,13 +515,43 @@ function Card({ item, rules, onAct, busy }: { item: HandoffItem; rules: RulesDat
           )}
           <p className="handoff-summary">{summary(d.reason)}</p>
           <StateBanner item={item} rules={rules} />
-          {showPlan && <Plan item={item} />}
+          {choosing && <HoldChooser item={item} scope={chosen} onScope={setScope} />}
+          {showPlan && !choosing && <Plan item={item} />}
           {review && <NoticeDraft item={item} editing={editing} text={text} onText={setText} />}
-          <Evidence item={item} rules={rules} />
+          {!choosing && <Evidence item={item} rules={rules} />}
         </article>
       </div>
       <div className="pane-foot">
-        <Actions item={item} rules={rules} onAct={onAct} busy={busy} editing={editing} setEditing={setEditing} text={text} setText={setText} />
+        {choosing ? (
+          <div className="actions">
+            <button
+              type="button"
+              className="btn primary large wrap"
+              disabled={busy}
+              onClick={() => {
+                onAct(item, "approve", { scope: chosen });
+                onManage(false);
+              }}
+            >
+              <Icon name="check" size={20} /> {chosen === "area" ? "Hold this entire area" : "Hold this operation only"}
+            </button>
+            <button type="button" className="btn" disabled={busy} onClick={() => onManage(false)}>
+              Back
+            </button>
+          </div>
+        ) : (
+          <Actions
+            item={item}
+            rules={rules}
+            onAct={onAct}
+            busy={busy}
+            onManage={() => onManage(true)}
+            editing={editing}
+            setEditing={setEditing}
+            text={text}
+            setText={setText}
+          />
+        )}
         <p className="handoff-footnote">If no one responds, the backup officer is paged. Nothing goes out automatically.</p>
       </div>
     </>
@@ -478,17 +583,29 @@ export function HandoffSheetBody({
   onAct,
   busy,
   quiet,
+  managing,
+  onManage,
 }: {
   active?: HandoffItem;
   rules: RulesData;
   onAct: OnAct;
   busy: boolean;
   quiet: number;
+  managing: string | null;
+  onManage: (id: string | null) => void;
 }) {
   return (
     <div className="pane">
       {active ? (
-        <Card key={active.id} item={active} rules={rules} onAct={onAct} busy={busy} />
+        <Card
+          key={active.id}
+          item={active}
+          rules={rules}
+          onAct={onAct}
+          busy={busy}
+          managing={managing === active.id}
+          onManage={(on) => onManage(on ? active.id : null)}
+        />
       ) : (
         <div className="pane-scroll handoff-body">
           <div className="empty">

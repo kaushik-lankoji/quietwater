@@ -99,6 +99,7 @@ handoff:
   hold_s: 1800
   undo_s: 10
   mock_hold_delay_s: 1.0
+  area_radius_m: 400   # "hold this area" covers every active operation within this distance of the contact
 
 zones:
   - id: fuel_dock_area
@@ -135,18 +136,21 @@ assets:
     name: Fuel Dock A
     kind: fuel_dock
     operation: fuel transfer
+    description: Fuel is being pumped between a tanker or truck and the dock.
     active: true
     shape: {type: rect, x: 1600, y: 190, w: 140, h: 55}
   - id: mt-sea-venture
     name: MT Sea Venture (tanker)
     kind: ship
     operation: bunkering
+    description: Fuel is being loaded onto the ship from a bunker barge or tanker.
     active: true
     shape: {type: rect, x: 1610, y: 252, w: 210, h: 40}
   - id: mv-pacific-star
     name: MV Pacific Star (container)
     kind: ship
     operation: container loading
+    description: Cranes are moving containers on and off the ship.
     active: true
     shape: {type: rect, x: 1048, y: 220, w: 50, h: 270}
   - id: fuel-dock-b
@@ -159,12 +163,14 @@ assets:
     name: Pier 100 hull-inspection dive
     kind: dive_area
     operation: diver operations
+    description: Divers are in the water inspecting the hull and pier.
     active: true
     shape: {type: circle, x: 600, y: 420, r: 70}
   - id: ti-cable
     name: Terminal Island power cable
     kind: cable
     operation: anchoring in the cable corridor
+    description: Ships are allowed to anchor over the harbor's main power cable.
     active: true
     shape: {type: line, points: [[260, 820], [900, 760], [1500, 880], [1890, 860]], width: 20}
 

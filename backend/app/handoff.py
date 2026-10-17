@@ -9,6 +9,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from .geometry import distance_to
+
 # Waiting on a person: counted as "need you" in the Alert Budget.
 WAITING = ("pending", "expired")
 # The engine may still re-escalate, stand down or redraft these.
@@ -48,7 +50,7 @@ SYSTEM_MOVES: dict[str, tuple[tuple[str, ...], str]] = {
 }
 
 LABELS = {
-    "approve": "Approved hold", "retry": "Retried hold request", "review": "Opened notice for review",
+    "approve": "Placed hold", "retry": "Retried hold request", "review": "Opened notice for review",
     "edit": "Edited notice", "cancel": "Closed notice without sending", "send": "Sent notice",
     "dismiss": "Dismissed", "undo": "Undid dismiss", "watch": "Keep watching", "escalate": "Escalated now",
     "lift": "Lifted hold", "resolve": "Marked resolved", "extend": "Extended hold",
@@ -73,28 +75,73 @@ def target(action: str, status: str, system: bool = False) -> str | None:
     return to
 
 
-def hold_step(decision: dict[str, Any]) -> dict[str, Any] | None:
-    """The one local action Approve authorises: R4 hold at the focus asset."""
+SCOPES = ("operation", "area")
+
+
+def _cap(text: str) -> str:
+    return text[:1].upper() + text[1:]
+
+
+def hold_options(decision: dict[str, Any], rules: Any) -> dict[str, Any] | None:
+    """What the operator can hold, and which choice we recommend. Always the operator's call.
+
+    "operation" holds the one activity the contact threatens. "area" holds every active
+    operation within `handoff.area_radius_m` of the contact.
+    """
     if "R4" not in decision.get("rungs", []):
         return None
-    asset = decision.get("focus_asset") or {}
-    name = asset.get("name") or "the nearest berth"
-    operation = asset.get("operation") or "operations"
+    focus = decision.get("focus_asset") or {}
+    pos = tuple(decision["position"])
+    radius = rules.handoff.area_radius_m
+    near = []
+    for a in rules.assets:
+        if a.active and distance_to(pos, a.shape) <= radius:
+            near.append(a)
+    if focus and not any(a.id == focus.get("id") for a in near):
+        near += [a for a in rules.assets if a.id == focus.get("id")]
+    near.sort(key=lambda a: distance_to(pos, a.shape))
+    name = focus.get("name") or "the nearest berth"
+    op = focus.get("operation") or "operations"
+    what = next((a.description for a in rules.assets if a.id == focus.get("id") and a.description), None)
     recovery = decision.get("track") == "recovery"
-    return {
-        "kind": "hold", "rung": "R4", "asset": name, "operation": operation,
-        "title": f"Pause {operation} at {name}",
+    zone = decision.get("zone") or "this part of the harbor"
+    operation = {
+        "scope": "operation", "title": "This operation only",
+        "action": f"Pause {op}",
+        "summary": f"{_cap(op)} at {name}. " + (what + " " if what else "")
+                   + "Only this activity stops; everything else keeps running.",
+        "targets": [{"asset": name, "operation": op}],
         "detail": f"Sends a hold request to {name} operations"
                   + (" until the vehicle is recovered." if recovery else "."),
     }
+    targets = [{"asset": a.name, "operation": a.operation} for a in near]
+    area = {
+        "scope": "area", "title": "This entire area",
+        "action": "Hold the area",
+        "summary": f"Every active operation within {radius:.0f} m of the contact, around {zone}: "
+                   + ", ".join(f"{t['operation']} at {t['asset']}" for t in targets) + ". "
+                   "A wider pause that costs more, and removes more risk.",
+        "targets": targets,
+        "detail": f"Sends a hold request to {len(targets)} operation{'s' if len(targets) != 1 else ''}"
+                  + (" until the vehicle is recovered." if recovery else "."),
+    }
+    if len(targets) >= 2:
+        pick, why = "area", f"{len(targets)} operations are within {radius:.0f} m of the contact."
+    elif decision.get("urgency") == "urgent":
+        pick, why = "area", "The contact is flagged urgent."
+    elif decision.get("trend") == "closing" and decision.get("consequence") == "high":
+        pick, why = "area", "The contact is closing on a high-consequence asset."
+    else:
+        pick, why = "operation", "Only one operation is within range of the contact."
+    return {"options": [operation, area], "recommended": pick, "reason": why, "radius_m": radius}
 
 
-def plan(decision: dict[str, Any], draft: dict[str, Any] | None) -> list[dict[str, Any]]:
-    """Plain-language list of what happens if the operator approves, in order."""
+def plan(draft: dict[str, Any] | None, options: dict[str, Any] | None) -> list[dict[str, Any]]:
+    """Plain-language list of what the operator can do, in order."""
     steps = []
-    hold = hold_step(decision)
-    if hold:
-        steps.append({**hold, "on": "approve"})
+    if options:
+        steps.append({"kind": "hold", "rung": "R4", "title": "Manage activity",
+                      "detail": "Hold this operation only, or the whole area. You choose.", "on": "approve"})
     if draft:
         steps.append({"kind": "notice", "rung": "R5", "title": f"Notice to {draft['to']}",
                       "detail": "Already drafted. You review and send it separately.", "on": "separate"})

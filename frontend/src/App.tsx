@@ -10,6 +10,7 @@ import { Radar } from "./components/Radar";
 import { ReceiptsSheetBody } from "./components/ReceiptsSheet";
 import { ScenarioButton } from "./components/ScenarioButton";
 import { Sheet } from "./components/Sheet";
+import { WatchPanel } from "./components/WatchPanel";
 import { TwistConsole } from "./components/TwistConsole";
 import type { Config, Contact, HandoffAction, HandoffItem, ItemStatus } from "./types";
 import { useLive } from "./useLive";
@@ -29,6 +30,7 @@ export default function App() {
   const [sheet, setSheet] = useState<SheetName | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [activeItem, setActiveItem] = useState<string | null>(null);
+  const [managing, setManaging] = useState<string | null>(null);
   const [receiptFocus, setReceiptFocus] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const { toasts, push } = useToasts();
@@ -170,7 +172,7 @@ export default function App() {
       if (key === "r") return replay();
       if (key === "f") return flood();
       if (key === "t") return toggleSheet("twist");
-      if (key === "a" && sheet === "handoff" && active && !busy && isWaiting(active) && holdStep(active)) act(active, "approve");
+      if (key === "a" && sheet === "handoff" && active && !busy && isWaiting(active) && holdStep(active)) setManaging(active.id);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -202,6 +204,15 @@ export default function App() {
         onOpen={() => toggleSheet("handoff")}
       />
 
+      <WatchPanel
+        items={snap.items}
+        active={sheet === "handoff" ? (active?.id ?? null) : null}
+        onOpen={(id) => {
+          setActiveItem(id);
+          setSheet("handoff");
+        }}
+      />
+
       <DualUseToggle on={recovery} onChange={(on) => run(() => api.mode(on ? "recovery" : "security"))} />
 
       {snap.rules.error && (
@@ -220,7 +231,7 @@ export default function App() {
         actions={<QueueNav queue={queue} active={active} onActive={setActiveItem} />}
         onClose={() => setSheet(null)}
       >
-        <HandoffSheetBody active={active} rules={config.rules} onAct={act} busy={busy} quiet={snap.budget.quiet} />
+        <HandoffSheetBody active={active} rules={config.rules} onAct={act} busy={busy} quiet={snap.budget.quiet} managing={managing} onManage={setManaging} />
       </Sheet>
 
       <Sheet open={sheet === "receipts"} flush title="Decision receipts" onClose={() => setSheet(null)}>

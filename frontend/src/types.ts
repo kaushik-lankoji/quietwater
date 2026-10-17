@@ -173,7 +173,33 @@ export interface PlanStep {
   on: "approve" | "separate";
 }
 
+export type HoldScope = "operation" | "area";
+
+export interface HoldTarget {
+  asset: string;
+  operation: string;
+}
+
+export interface HoldOption {
+  scope: HoldScope;
+  title: string;
+  action: string;
+  summary: string;
+  detail: string;
+  targets: HoldTarget[];
+}
+
+export interface HoldOptions {
+  options: HoldOption[];
+  recommended: HoldScope;
+  reason: string;
+  radius_m: number;
+}
+
 export interface Hold {
+  scope: HoldScope;
+  targets: HoldTarget[];
+  recommended: HoldScope;
   status: "requesting" | "active" | "failed" | "lifted";
   request_id: string;
   asset: string;
@@ -218,6 +244,7 @@ export interface HandoffItem {
   window_s: number | null;
   plan: PlanStep[];
   hold: Hold | null;
+  hold_options: HoldOptions | null;
   review_from: ItemStatus | null;
   paged: boolean;
   history: ItemEvent[];

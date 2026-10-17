@@ -48,7 +48,8 @@ def test_handoff_approve_then_send_draft(client):
     r5 = next(i for i in items if "R5" in i.decision["rungs"] and "R4" in i.decision["rungs"])
     assert r5.draft and "TO:" in r5.draft["body"]
     assert client.post(f"/api/handoff/{r5.id}", json={"action": "send", "confirm": True}).status_code == 409
-    approved = client.post(f"/api/handoff/{r5.id}", json={"action": "approve", "operator": "Test"}).json()
+    body = {"action": "approve", "operator": "Test", "scope": "operation"}
+    approved = client.post(f"/api/handoff/{r5.id}", json=body).json()
     assert approved["status"] == "hold_requesting"
     hub.tick()
     assert hub.items[r5.id].status == "hold_active"

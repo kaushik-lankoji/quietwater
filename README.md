@@ -14,7 +14,9 @@ Built for the Dual-Use Hackathon (InnovateLA at USC, Marine track with NULL Syst
 | --- | --- |
 | **Sonar radar** | The whole screen. The drone sits at the centre; a green pulse sweeps out every 4 s and contacts appear as it passes them. Grey is low risk, yellow medium, red high (red ripples). Hover a contact for its label, confidence, distance, bearing, speed, heading, rung and reason. Click it to open its hand-off (R4/R5) or its decision receipt. |
 | **Alert Budget** (top left) | How many contacts need you and how many were handled quietly, plus the scenario picker and harbor clock. Click it to open the hand-off sheet. |
-| **Needs you** (hand-off sheet) | "Contact C-108", urgency, response countdown and a one-line summary. **If you approve** lists, in plain words, exactly what happens: e.g. *1. Pause bunkering at MT Sea Venture* (sends a hold request to terminal operations) and *2. Notice to USCG* (already drafted; you review and send it separately). **Approve** (A) authorises only the hold. **Review notice** opens the draft with Send (confirm, no Undo), Edit and Cancel. **Dismiss** (10 s Undo; still tracked, re-alerts if worse) and **Keep watching** (re-checks in 2:00) never send anything. After a final action it moves to the next item, or shows "All clear". Opens on its own for urgent items. |
+| **Needs you** (hand-off sheet) | The contact is the title, with a one-line summary and a plain "If you approve" list. **Manage activity** (A) asks what should pause: *this operation only* (described in plain words) or *this entire area* (every active operation within `handoff.area_radius_m` of the contact). We recommend one and say why; the operator chooses. Placing the hold sends only a hold request. **Review notice** opens the USCG draft with Send (confirm, no Undo), Edit and Cancel. **Dismiss** (10 s Undo; still tracked, re-alerts if worse) and **Keep watching** (re-checks in 2:00) never send anything. Opens on its own for urgent items. |
+| **Watching** (bottom left) | Appears when the operator chooses Keep watching: a collapsible list of watched contacts, soonest re-check first. Click a row to reopen its card. |
+| **Graying** | A red contact turns a muted gray-red once its hand-off is dismissed, stood down or acted on, and goes bright red again if it gets worse. |
 | **Decision receipts** | Every decision with its one-line reason. Toggle **Why not one rung higher or lower?** for the counterfactual, the S-path, and the full checklist. Export the audit log as JSON or CSV. |
 | **Twist Console** | Presets and form editors for thresholds, rungs, zones and schedules, a before/after replay diff, apply live, and a revertible history. |
 | **Control dock** | Pause/resume (Space), Replay (R), Flood (F), and Receipts. The Twist Console opens with T. |
@@ -198,7 +200,7 @@ stateDiagram-v2
   pending --> expired: response window ends
 ```
 
-- **Approve** sends only a hold request (mocked, logged in `hold_requests`). It never sends the external notice.
+- **Place hold** (the `approve` action) needs `scope: "operation" | "area"` and sends only a hold request (mocked, logged in `hold_requests` with scope, targets and the recommended scope). It never sends the external notice. The recommendation is area when 2+ operations are in range, or the contact is urgent, or closing on a high-consequence asset; otherwise operation. The operator can always choose either.
 - **Send** needs `confirm: true` and only works from `notice_review`. It writes to the mock outbox; nothing is transmitted.
 - An active hold ends only by **Lift hold**. When its 30:00 runs out it stays in place and offers **Extend**.
 - **Expired** pages the backup officer on screen only. A late operator can still act on it.

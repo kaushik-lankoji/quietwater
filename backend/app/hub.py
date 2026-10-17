@@ -58,6 +58,7 @@ class HandoffItem:
     draft_edited: bool = False
     steps: list[dict[str, Any]] = field(default_factory=list)
     hold: dict[str, Any] | None = None
+    hold_options: dict[str, Any] | None = None
     review_from: str | None = None
     dismissed_wall: float | None = None
     paged: bool = False
@@ -67,7 +68,7 @@ class HandoffItem:
         d = asdict(self)
         d["remaining_s"] = round(self.deadline_t - now, 1)
         d["window_s"] = self.decision.get("window_s")
-        d["plan"] = hs.plan(self.decision, self.draft)
+        d["plan"] = hs.plan(self.draft, self.hold_options)
         watching = self.status == "watching" and self.snooze_until is not None
         d["watch_left_s"] = round(self.snooze_until - now, 1) if watching else None
         d["hold_left_s"] = round(self.hold["until_t"] - now, 1) if self.hold and self.hold.get("until_t") else None
@@ -315,6 +316,8 @@ class Hub:
                 item.decision = d.to_dict()
                 item.steps = self._steps(cid)
                 self._redraft(item)
+                if item.status in OPEN:
+                    item.hold_options = hs.hold_options(item.decision, self.store.rules)
             elif item and item.status in OPEN:
                 item.decision = d.to_dict()
                 item.note = d.reason
@@ -341,6 +344,7 @@ class Hub:
             deadline_t=s.t + (d.window_s or self.store.rules.windows.default), decision=d.to_dict(),
             severity=d.severity(), steps=self._steps(d.contact_id))
         self._redraft(item)
+        item.hold_options = hs.hold_options(item.decision, self.store.rules)
         item.history.append({"action": "create", "from": None, "to": "pending", "actor": "system",
                              "clock": s.clock, "t": round(s.t, 1)})
         self.items[item.id] = item
@@ -368,21 +372,28 @@ class Hub:
                 req["result"] = "confirmed"
                 self._move(item, "hold_confirmed", "system", system=True, detail={"request": req["id"]})
 
-    def _request_hold(self, item: HandoffItem, operator: str) -> dict[str, Any]:
-        step = hs.hold_step(item.decision)
-        if step is None:
-            raise hs.IllegalMove("this item has no hold to approve; review the notice instead")
+    def _request_hold(self, item: HandoffItem, operator: str, scope: str | None) -> dict[str, Any]:
+        opts = item.hold_options
+        if opts is None:
+            raise hs.IllegalMove("this item has no hold to place; review the notice instead")
+        if scope not in hs.SCOPES:
+            raise hs.IllegalMove("choose what to hold: this operation only, or the whole area")
+        choice = next(o for o in opts["options"] if o["scope"] == scope)
+        targets = choice["targets"]
         req = {"id": f"HR-{len(self.hold_requests) + 1:03d}", "item": item.id, "contact_id": item.contact_id,
-               "asset": step["asset"], "operation": step["operation"], "requested_by": operator,
+               "scope": scope, "targets": targets, "asset": targets[0]["asset"], "operation": targets[0]["operation"],
+               "recommended": opts["recommended"], "requested_by": operator,
                "clock": self.session.clock, "at": now_iso(), "mock": True, "result": "pending"}
         self.hold_requests.append(req)
-        item.hold = {"status": "requesting", "request_id": req["id"], "asset": step["asset"],
-                     "operation": step["operation"], "title": step["title"], "requested_clock": self.session.clock,
+        title = choice["action"] + (f" at {targets[0]['asset']}" if scope == "operation" else "")
+        item.hold = {"status": "requesting", "request_id": req["id"], "scope": scope, "targets": targets,
+                     "asset": targets[0]["asset"], "operation": targets[0]["operation"], "title": title,
+                     "recommended": opts["recommended"], "requested_clock": self.session.clock,
                      "requested_wall": self.wall(), "until_t": None}
         return req
 
     def act(self, item_id: str, action: str, operator: str, note: str | None = None,
-            body: str | None = None, confirm: bool = False) -> HandoffItem:
+            body: str | None = None, confirm: bool = False, scope: str | None = None) -> HandoffItem:
         with self.lock:
             item = self.items.get(item_id)
             if item is None:
@@ -393,8 +404,13 @@ class Hub:
             to = None
             if action in ("approve", "retry"):
                 if action == "retry":
+                    scope = scope or (item.hold or {}).get("scope")
                     item.hold = None
-                detail["request"] = self._request_hold(item, operator)["id"]
+                req = self._request_hold(item, operator, scope)
+                detail |= {"request": req["id"], "scope": req["scope"], "targets": req["targets"],
+                           "recommended": req["recommended"]}
+                note = note or ("operator chose the recommended scope" if scope == req["recommended"]
+                                else "operator chose a different scope than recommended")
             elif action == "review":
                 if not item.draft or item.draft_status == "sent":
                     raise hs.IllegalMove("there is no unsent notice to review")

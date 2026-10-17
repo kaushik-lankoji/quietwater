@@ -43,6 +43,8 @@ def notice_only_item(hub):
 
 
 def act(client, item, action, **body):
+    if action in ("approve", "retry") and "scope" not in body:
+        body["scope"] = "operation"
     return client.post(f"/api/handoff/{item.id}", json={"action": action, "operator": "Officer K", **body})
 
 
@@ -209,7 +211,7 @@ def test_plan_explains_each_step_in_plain_words(client):
     item = hold_item(hub)
     plan = item.to_dict(hub.session.t)["plan"]
     assert [p["kind"] for p in plan] == ["hold", "notice"]
-    assert plan[0]["title"].startswith("Pause ") and "hold request" in plan[0]["detail"]
+    assert plan[0]["title"] == "Manage activity" and "You choose" in plan[0]["detail"]
     assert plan[0]["on"] == "approve"
     assert plan[1]["title"] == f"Notice to {item.draft['to']}" and plan[1]["on"] == "separate"
     assert "separately" in plan[1]["detail"]
@@ -363,3 +365,92 @@ def test_states_endpoint_matches_the_table(client):
     assert set(body["states"]) == set(hs.STATES)
     assert body["operator"]["approve"] == {"from": ["pending", "expired"], "to": "hold_requesting"}
     assert body["operator"]["send"]["from"] == ["notice_review"]
+
+
+# --- hold scope: this operation only, or the whole area -----------------------------------------------------------
+
+
+def test_options_describe_the_operation_and_the_area(client):
+    hub = client.hub
+    item = hold_item(hub)
+    opts = item.to_dict(hub.session.t)["hold_options"]
+    op, area = opts["options"]
+    assert (op["scope"], area["scope"]) == ("operation", "area")
+    focus = item.decision["focus_asset"]
+    assert focus["name"] in op["summary"] and "Only this activity stops" in op["summary"]
+    assert [t["asset"] for t in op["targets"]] == [focus["name"]]
+    assert focus["name"] in [t["asset"] for t in area["targets"]]
+    assert opts["recommended"] in ("operation", "area") and opts["reason"]
+    assert opts["radius_m"] == hub.store.rules.handoff.area_radius_m
+
+
+def test_area_covers_every_active_operation_in_range_and_nothing_inactive(client):
+    hub = client.hub
+    rules = hub.store.rules
+    item = hold_item(hub)
+    area = item.hold_options["options"][1]
+    inactive = {a.name for a in rules.assets if not a.active}
+    assert not inactive & {t["asset"] for t in area["targets"]}
+    assert len(area["targets"]) >= 1
+
+
+def test_recommend_area_when_several_operations_are_in_range_else_operation(client):
+    hub = client.hub
+    rules = hub.store.rules
+    d = dict(hold_item(hub).decision)
+    rules.handoff.area_radius_m = 5000
+    wide = hs.hold_options(d, rules)
+    assert len(wide["options"][1]["targets"]) >= 2 and wide["recommended"] == "area"
+    rules.handoff.area_radius_m = 1
+    d2 = {**d, "urgency": "elevated", "trend": "steady"}
+    tight = hs.hold_options(d2, rules)
+    assert tight["recommended"] == "operation"
+    assert hs.hold_options({**d2, "urgency": "urgent"}, rules)["recommended"] == "area"
+    assert hs.hold_options({**d2, "trend": "closing", "consequence": "high"}, rules)["recommended"] == "area"
+    assert hs.hold_options({**d, "rungs": ["R5"]}, rules) is None
+
+
+def test_approve_needs_an_explicit_scope(client):
+    hub = client.hub
+    item = hold_item(hub)
+    r = client.post(f"/api/handoff/{item.id}", json={"action": "approve"})
+    assert r.status_code == 409 and "choose what to hold" in r.json()["detail"]
+    assert client.post(f"/api/handoff/{item.id}", json={"action": "approve", "scope": "region"}).status_code == 422
+    assert item.status == "pending" and hub.hold_requests == []
+
+
+@pytest.mark.parametrize("scope", ["operation", "area"])
+def test_hold_request_records_scope_and_targets(client, scope):
+    hub = client.hub
+    item = hold_item(hub)
+    opts = item.hold_options
+    chosen = next(o for o in opts["options"] if o["scope"] == scope)
+    out = ok(client, item, "approve", scope=scope)
+    req = hub.hold_requests[0]
+    assert out["hold"]["scope"] == scope and req["scope"] == scope and req["targets"] == chosen["targets"]
+    assert req["recommended"] == opts["recommended"]
+    settle(client)
+    assert item.status == "hold_active" and item.hold["targets"] == chosen["targets"]
+    entry = next(e for e in hub.audit if e["kind"] == "operator" and e["detail"].get("action") == "approve")
+    assert entry["detail"]["scope"] == scope and entry["detail"]["recommended"] == opts["recommended"]
+    assert hub.outbox == []
+
+
+def test_operator_can_override_the_recommendation_and_it_is_logged(client):
+    hub = client.hub
+    item = hold_item(hub)
+    other = "operation" if item.hold_options["recommended"] == "area" else "area"
+    ok(client, item, "approve", scope=other)
+    entry = next(e for e in hub.audit if e["kind"] == "operator" and e["detail"].get("action") == "approve")
+    assert "different scope than recommended" in entry["reason"]
+
+
+def test_retry_keeps_the_scope_the_operator_chose(client):
+    hub = client.hub
+    hub.mock_hold_fail = True
+    item = hold_item(hub)
+    ok(client, item, "approve", scope="area")
+    settle(client)
+    hub.mock_hold_fail = False
+    r = client.post(f"/api/handoff/{item.id}", json={"action": "retry", "operator": "Officer K"})
+    assert r.status_code == 200 and r.json()["hold"]["scope"] == "area"

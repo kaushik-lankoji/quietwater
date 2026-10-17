@@ -162,6 +162,7 @@ class HandoffCfg(Strict):
     hold_s: float = Field(default=1800, gt=0)
     undo_s: float = Field(default=10, ge=0)
     mock_hold_delay_s: float = Field(default=1.0, ge=0)
+    area_radius_m: float = Field(default=400, gt=0)
 
 
 class Zone(Strict):
@@ -176,6 +177,7 @@ class Asset(Strict):
     name: str
     kind: str
     operation: str
+    description: str | None = None
     active: bool = True
     shape: Shape
 
