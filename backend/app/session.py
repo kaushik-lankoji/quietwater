@@ -9,6 +9,7 @@ from ruamel.yaml import YAML
 from .classifier import Classifier, Observation, build_classifier
 from .engine import Decision, Memory, decide
 from .facts import clock_at, derive_facts
+from .randomizer import randomize
 from .rules import Rules
 from .simulator import SimContact, Simulator
 
@@ -34,10 +35,18 @@ class World:
         except KeyError:
             raise KeyError(f"unknown scenario '{name}'") from None
 
+    def build(self, name: str, seed: int | None = None) -> dict[str, Any]:
+        template = self.scenario(name)
+        if not template.get("randomize"):
+            return template
+        return randomize(template, template.get("seed", 0) if seed is None else seed, self.catalog, self.harbor)
+
     def scenario_list(self) -> list[dict[str, Any]]:
         return [{"id": k, "title": v.get("title", k), "description": v.get("description", ""),
                  "mode": v.get("mode", "security"), "duration_s": v.get("duration_s", 300),
-                 "contacts": len(v.get("contacts", [])) + int(v.get("generator", {}).get("count", 0))}
+                 "contacts": len(v.get("contacts", [])) + int(v.get("generator", {}).get("count", 0))
+                 + int(v.get("randomize", {}).get("count", [0, 0])[-1]),
+                 "random": bool(v.get("randomize"))}
                 for k, v in self.catalog["scenarios"].items()]
 
 
@@ -47,7 +56,7 @@ class Session:
         self.rules = rules
         self.world = world
         self.scenario_name = scenario
-        self.scenario = world.scenario(scenario)
+        self.scenario = world.build(scenario, seed)
         self.mode = mode
         self.sim = Simulator(self.scenario, world.catalog, world.harbor, seed)
         self.seed = self.sim.seed
