@@ -17,7 +17,7 @@ Built for the Dual-Use Hackathon (InnovateLA at USC, Marine track with NULL Syst
 | **Needs you** (hand-off sheet) | In two seconds: *What is it?* (label, confidence, size, speed, heading, lat/lon, distance to asset). *What's been ruled out?* (a checklist). *What am I asked to do?* (one recommendation and big **Approve / Reject / Keep watching** buttons, A to approve). Urgency tag, response-window countdown, one-line reason, and a drafted alert you send yourself. Opens on its own for urgent items. |
 | **Decision receipts** | Every decision with its one-line reason. Toggle **Why not one rung higher or lower?** for the counterfactual, the S-path, and the full checklist. Export the audit log as JSON or CSV. |
 | **Twist Console** | Presets and form editors for thresholds, rungs, zones and schedules, a before/after replay diff, apply live, and a revertible history. |
-| **Control dock** | Pause/resume (Space), Replay (R), Flood (F), Twist (T), and Receipts. |
+| **Control dock** | Pause/resume (Space), Replay (R), Flood (F), and Receipts. The Twist Console opens with T. |
 | **Dual-use** (top right) | One switch turns the same engine into lost-research-vehicle recovery for the second customer. |
 
 ## Run it

@@ -201,7 +201,6 @@ export default function App() {
         onToggleRun={togglePause}
         onReplay={replay}
         onFlood={flood}
-        onTwist={() => toggleSheet("twist")}
         onReceipts={openReceipts}
       />
 

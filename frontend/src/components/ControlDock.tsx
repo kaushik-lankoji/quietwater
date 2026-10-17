@@ -39,7 +39,6 @@ export function ControlDock({
   onToggleRun,
   onReplay,
   onFlood,
-  onTwist,
   onReceipts,
 }: {
   running: boolean;
@@ -48,7 +47,6 @@ export function ControlDock({
   onToggleRun: () => void;
   onReplay: () => void;
   onFlood: () => void;
-  onTwist: () => void;
   onReceipts: () => void;
 }) {
   return (
@@ -56,7 +54,6 @@ export function ControlDock({
       <Tile icon={running ? "pause" : "play"} label={running ? "Pause" : "Resume"} onClick={onToggleRun} active={!running} shortcut="Space" />
       <Tile icon="replay" label="Replay" onClick={onReplay} shortcut="R" />
       <Tile icon="flood" label="Flood" onClick={onFlood} active={flood} shortcut="F" />
-      <Tile icon="sliders" label="Twist" onClick={onTwist} active={sheet === "twist"} shortcut="T" />
       <Tile icon="receipt" label="Receipts" onClick={onReceipts} active={sheet === "receipts"} />
     </nav>
   );
