@@ -280,7 +280,7 @@ function Actions({
         <div className="actions">
           {hold ? (
             <button type="button" className="btn primary large wrap" disabled={busy} onClick={() => go("approve")}>
-              <Icon name="check" size={20} /> Approve: {hold.title}
+              <Icon name="check" size={20} /> Pause {hold.operation}
               <kbd>A</kbd>
             </button>
           ) : null}

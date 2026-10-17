@@ -168,6 +168,8 @@ export interface PlanStep {
   rung: Rung;
   title: string;
   detail: string;
+  asset?: string;
+  operation?: string;
   on: "approve" | "separate";
 }
 
