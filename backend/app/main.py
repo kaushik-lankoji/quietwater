@@ -75,7 +75,10 @@ def create_app(root: Path = ROOT, run_loop: bool = True) -> FastAPI:
 
     @app.get("/api/health")
     def health() -> dict[str, Any]:
-        return {"ok": True, "rules_version": hub.store.version, "rules_error": hub.store.error}
+        rules = hub.store.rules
+        return {"ok": True, "rules_version": hub.store.version, "rules_error": hub.store.error,
+                "config_hash": rules.config_hash(), "jurisdiction": rules.jurisdiction,
+                "advisor": {"enabled": rules.advisor.enabled, "backend": rules.advisor.backend}}
 
     @app.get("/api/config")
     def config() -> dict[str, Any]:

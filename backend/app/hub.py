@@ -14,6 +14,7 @@ from typing import Any
 
 from ruamel.yaml import YAML
 
+from .advisor import AdvisorCache
 from .engine import Decision
 from .geometry import format_latlon
 from .rules import RulesStore, apply_ops, field_diff, load_yaml_text, parse_rules, plain
@@ -68,6 +69,7 @@ class Hub:
         self.store = RulesStore(self.config_dir / "rules.yaml")
         self.world = World.load(self.config_dir)
         self.history = TwistHistory(self.data_dir / "twist_history.json")
+        self.advisor_cache = AdvisorCache(self.data_dir / "advisor_cache.json")
         self.lock = threading.RLock()
         self.mode = "security"
         self.speed = 1.0
@@ -108,7 +110,8 @@ class Hub:
                 log.exception("scenario/preset files are invalid; keeping the last good copy")
             scen = self.world.scenario(name)
             self.mode = mode or scen.get("mode", self.mode)
-            self.session = Session(self.store.rules, self.world, name, self.mode, seed)
+            self.session = Session(self.store.rules, self.world, name, self.mode, seed,
+                                   advisor_cache=self.advisor_cache)
             self.run_id += 1
             self._new_receipts = []
             self.receipts.clear()
@@ -162,11 +165,15 @@ class Hub:
 
     def _record(self, d: Decision) -> None:
         receipt = {"id": f"D-{self.seq + 1:05d}", "contact_id": d.contact_id, "t": d.t, "clock": d.clock,
-                   "automated": not d.requires_human, "rules_version": self.store.version, "mode": self.mode,
-                   "decision": d.to_dict()}
+                   "automated": not d.requires_human, "rules_version": self.store.version,
+                   "config_hash": self.session.advisor.config_hash, "mode": self.mode, "decision": d.to_dict()}
+        advisor = None
+        if d.advisor:
+            advisor = {k: d.advisor[k] for k in ("source", "applied", "raised_rungs", "clamped", "error", "reason")}
         entry = self.log_audit("decision", "system", d.reason, d.contact_id, d.rung,
                                {"rungs": d.rungs, "path": d.path, "outcome": d.outcome,
-                                "ruled_out": d.ruled_out, "automated": not d.requires_human})
+                                "ruled_out": d.ruled_out, "automated": not d.requires_human,
+                                "config_hash": receipt["config_hash"], "advisor": advisor})
         receipt["seq"] = entry["seq"]
         self.receipts.append(receipt)
         self._new_receipts.append(receipt)
@@ -190,39 +197,40 @@ class Hub:
     def _draft(self, d: dict[str, Any], steps: list[dict[str, Any]]) -> dict[str, str]:
         rules = self.store.rules
         recovery = d["track"] == "recovery"
-        texts = rules.modes["recovery" if recovery else "security"]
+        target = rules.handoff_target("recovery" if recovery else "security")
+        n = rules.notice
         pos = format_latlon(tuple(d["position"]), rules.harbor.origin)
         asset = d.get("focus_asset")
         near = f", {asset['distance_m']} m from {asset['name']}" if asset else ""
         done = [s for s in steps if s["automated"]]
         lines = [
-            f"TO: {texts.handoff_target}",
-            f"FROM: Harbor watch officer, {rules.harbor.name}",
+            f"{n.to}: {target}",
+            f"{n.sender}: Harbor watch officer, {rules.harbor.name}",
         ]
         if recovery:
             drift = d.get("drift") or {}
             eta = drift.get("eta_critical")
-            lines.append(f"SUBJECT: {rules.recovery.lost_vehicle_id} located - contact {d['contact_id']}")
+            lines.append(f"SUBJECT: {rules.recovery.lost_vehicle_id} {n.subject_found} - {n.contact} {d['contact_id']}")
             lines += ["", f"At {d['clock']} sonar holds contact {d['contact_id']}, {d['label_text']} "
                           f"({round(d['confidence'] * 100)}%), at {pos}{near}.",
                       f"Drift: {drift.get('speed_kn')} kn toward {drift.get('heading')}°"
                       + (f"; reaches {eta['zone']} in about {eta['seconds'] // 60} min." if eta else "."),
                       f"Modem: {d['hail'].replace('_', ' ')}."]
         else:
-            lines.append(f"SUBJECT: Unidentified underwater vehicle{near} - contact {d['contact_id']}")
+            lines.append(f"SUBJECT: {n.subject_unknown}{near} - {n.contact} {d['contact_id']}")
             lines += ["", f"At {d['clock']} sonar contact {d['contact_id']}: {d['label_text']} "
                           f"({round(d['confidence'] * 100)}%), {d['size_m']:.1f} m, {d['speed_kn']} kn, "
                           f"heading {d['heading']}°, at {pos}{near}."]
         lines += [
-            f"Why: {d['reason']}",
-            f"Ruled out: {', '.join(d['ruled_out']).lower() or 'nothing yet'}.",
-            "Steps taken: " + ("; ".join(f"{s['clock']} {s['rungs']}" for s in done) or "none") + ".",
-            f"Recommended: {d['recommendation']}",
+            f"{n.why}: {d['reason']}",
+            f"{n.ruled_out}: {', '.join(d['ruled_out']).lower() or n.nothing_yet}.",
+            f"{n.steps}: " + ("; ".join(f"{s['clock']} {s['rungs']}" for s in done) or n.none) + ".",
+            f"{n.recommended}: {d['recommendation']}",
             "",
-            "No physical action has been taken. The next step is yours.",
+            n.closing,
         ]
         subject = lines[2].removeprefix("SUBJECT: ")
-        return {"to": texts.handoff_target, "subject": subject, "body": "\n".join(lines)}
+        return {"to": target, "subject": subject, "language": rules.language, "body": "\n".join(lines)}
 
     def _update_items(self) -> None:
         s = self.session
@@ -268,7 +276,7 @@ class Hub:
         s = self.session
         item = HandoffItem(
             id=f"H-{len(self.items) + 1:03d}", contact_id=d.contact_id, created_t=s.t, created_clock=s.clock,
-            deadline_t=s.t + (d.window_s or self.store.rules.windows_s.default), decision=d.to_dict(),
+            deadline_t=s.t + (d.window_s or self.store.rules.windows.default), decision=d.to_dict(),
             severity=d.severity(), steps=self._steps(d.contact_id))
         if "R5" in d.rungs:
             item.draft = self._draft(item.decision, item.steps)
@@ -324,7 +332,8 @@ class Hub:
         counts = Counter(d.rung for d in s.current.values())
         auto = sum(1 for r in self.receipts if r["automated"] and r["decision"]["rung"] != "R0")
         return {
-            "seen": len(s.seen), "active": len(s.current), "quiet": len(s.seen) - len(human),
+            "seen": len(s.seen), "total": len(s.seen), "needed_operator": len(human),
+            "active": len(s.current), "quiet": len(s.seen) - len(human),
             "need_you": len(pending), "watching": sum(1 for i in self.items.values() if i.status == "watching"),
             "resolved": sum(1 for i in self.items.values() if i.status not in OPEN),
             "load": load, "capacity": cfg.capacity, "over": load > cfg.capacity,
@@ -422,7 +431,7 @@ class Hub:
             scen = scenario or self.session.scenario_name
             seed = seed if seed is not None else (self.session.seed if scen == self.session.scenario_name else None)
             mode = self.mode
-        impact = preview(before, parse_rules(data), self.world, scen, mode, seed)
+        impact = preview(before, parse_rules(data), self.world, scen, mode, seed, self.advisor_cache)
         return {"changes": field_diff(before_data, data), "impact": impact}
 
     def apply(self, data: dict[str, Any], text: str | None, note: str, title: str, source: str,
@@ -464,7 +473,7 @@ class Hub:
     def _impact_later(self, entry_id: str, before: dict[str, Any], after: dict[str, Any]) -> None:
         try:
             impact = preview(parse_rules(before), parse_rules(after), self.world, self.session.scenario_name,
-                             self.mode, self.session.seed)
+                             self.mode, self.session.seed, self.advisor_cache)
             self.history.update(entry_id, impact=_impact_summary(impact))
             self._broadcast("history", {"history": self.history.public()})
         except Exception:

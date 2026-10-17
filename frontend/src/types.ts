@@ -67,6 +67,26 @@ export interface Decision {
   max_looks: number;
   traffic: string[];
   drift: Drift | null;
+  scan_label?: "debris" | "marine_life" | "known_vehicle" | "unknown";
+  trend?: "new" | "closing" | "leaving" | "loitering" | "steady";
+  closing_mps?: number;
+  cpa?: { asset: AssetRef; distance_m: number; in_s: number; level: "low" | "medium" | "high" } | null;
+  consequence_basis?: "distance" | "cpa";
+  ambiguous?: boolean;
+  ai_raised_tier?: number;
+  ai_reason?: string | null;
+  advisor?: AdvisorReceipt | null;
+}
+
+export interface AdvisorReceipt {
+  source: "rule" | "llm" | "rule_fallback" | "fail_safe";
+  inputs: Record<string, unknown>;
+  suggestion: { suggested_tier_raise: number; second_look: boolean; reason: string; confidence: number };
+  applied: boolean;
+  raised_rungs: number;
+  clamped: boolean;
+  error: string | null;
+  reason: string;
 }
 
 export interface Contact {
@@ -100,6 +120,7 @@ export interface Receipt {
   clock: string;
   automated: boolean;
   rules_version: number;
+  config_hash?: string;
   mode: Mode;
   decision: Decision;
 }
@@ -128,7 +149,7 @@ export interface HandoffItem {
   resolved_clock: string | null;
   actor: string | null;
   note: string | null;
-  draft: { to: string; subject: string; body: string } | null;
+  draft: { to: string; subject: string; body: string; language?: string } | null;
   draft_status: "drafted" | "sent" | null;
   steps: Step[];
   remaining_s: number;
@@ -137,6 +158,8 @@ export interface HandoffItem {
 
 export interface Budget {
   seen: number;
+  total?: number;
+  needed_operator?: number;
   active: number;
   quiet: number;
   need_you: number;
