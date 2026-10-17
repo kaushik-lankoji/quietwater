@@ -14,7 +14,7 @@ Built for the Dual-Use Hackathon (InnovateLA at USC, Marine track with NULL Syst
 | --- | --- |
 | **Sonar radar** | The whole screen. The drone sits at the centre; a green pulse sweeps out every 4 s and contacts appear as it passes them. Grey is low risk, yellow medium, red high (red ripples). Hover a contact for its label, confidence, distance, bearing, speed, heading, rung and reason. Click it to open its hand-off (R4/R5) or its decision receipt. |
 | **Alert Budget** (top left) | How many contacts need you and how many were handled quietly, plus the scenario picker and harbor clock. Click it to open the hand-off sheet. |
-| **Needs you** (hand-off sheet) | In two seconds: *What is it?* (label, confidence, size, speed, heading, lat/lon, distance to asset). *What's been ruled out?* (a checklist). *What am I asked to do?* (one recommendation and big **Approve / Reject / Keep watching** buttons, A to approve). Urgency tag, response-window countdown, one-line reason, and a drafted alert you send yourself. Opens on its own for urgent items. |
+| **Needs you** (hand-off sheet) | "Contact C-108", urgency, response countdown and a one-line summary. **If you approve** lists, in plain words, exactly what happens: e.g. *1. Pause bunkering at MT Sea Venture* (sends a hold request to terminal operations) and *2. Notice to USCG* (already drafted; you review and send it separately). **Approve** (A) authorises only the hold. **Review notice** opens the draft with Send (confirm, no Undo), Edit and Cancel. **Dismiss** (10 s Undo; still tracked, re-alerts if worse) and **Keep watching** (re-checks in 2:00) never send anything. After a final action it moves to the next item, or shows "All clear". Opens on its own for urgent items. |
 | **Decision receipts** | Every decision with its one-line reason. Toggle **Why not one rung higher or lower?** for the counterfactual, the S-path, and the full checklist. Export the audit log as JSON or CSV. |
 | **Twist Console** | Presets and form editors for thresholds, rungs, zones and schedules, a before/after replay diff, apply live, and a revertible history. |
 | **Control dock** | Pause/resume (Space), Replay (R), Flood (F), and Receipts. The Twist Console opens with T. |
@@ -57,7 +57,7 @@ flowchart LR
   EN -- "everything else" --> HUB
   AD --> HUB["Hub<br/>receipts · hand-off queue<br/>audit log"]
   HUB -- "SSE /api/stream" --> UI["React UI<br/>sonar radar · hand-off<br/>receipts · Twist Console"]
-  UI -- "approve / reject / watch / send" --> HUB
+  UI -- "approve · review · send · dismiss · watch · lift" --> HUB
 ```
 
 The same deterministic `Session` (simulator + classifier + engine) runs live inside the hub and in backend replay previews.
@@ -173,6 +173,39 @@ Research fleets, survey companies and insurers lose vehicles every season. That 
 
 > _Placeholder for the team: describe where IBM Bob helped (e.g. reviewing the rules engine, generating test cases, drafting twist responses, refactoring), with one concrete example and what you changed afterwards._
 
+## Hand-off states
+
+Every R4/R5 decision becomes a hand-off item. Engine decisions never change here; the item only records what a person authorised. The table lives in `backend/app/handoff.py` and is enforced in the backend (illegal moves return 409).
+
+```mermaid
+stateDiagram-v2
+  [*] --> pending
+  pending --> hold_requesting: approve (A)
+  hold_requesting --> hold_active: terminal confirms (mock, ~1 s)
+  hold_requesting --> hold_failed: terminal refuses (dev flag)
+  hold_failed --> hold_requesting: retry
+  pending --> notice_review: review notice
+  hold_active --> notice_review: review notice
+  notice_review --> notice_sent: send (confirm)
+  notice_review --> pending: cancel (back to where it was)
+  hold_active --> lifted: lift hold
+  notice_sent --> lifted: lift hold
+  notice_sent --> resolved: mark resolved (no hold)
+  pending --> dismissed: dismiss
+  dismissed --> pending: undo (10 s)
+  pending --> watching: keep watching
+  watching --> pending: escalate now / 2:00 recheck
+  pending --> expired: response window ends
+```
+
+- **Approve** sends only a hold request (mocked, logged in `hold_requests`). It never sends the external notice.
+- **Send** needs `confirm: true` and only works from `notice_review`. It writes to the mock outbox; nothing is transmitted.
+- An active hold ends only by **Lift hold**. When its 30:00 runs out it stays in place and offers **Extend**.
+- **Expired** pages the backup officer on screen only. A late operator can still act on it.
+- Every transition writes an audit entry and a decision receipt (`kind: "handoff"`), and the Alert Budget recounts from item states.
+- Timings live in `rules.yaml` → `handoff` (`hold_s`, `undo_s`, `mock_hold_delay_s`) and `alert_budget.keep_watching_snooze_s`.
+- To show the failed-hold state, start the API with `QUIETWATER_DEV=1` and `POST /api/dev/mock-hold {"fail": true}`, or start it with `QUIETWATER_MOCK_HOLD_FAIL=1`.
+
 ## Testing
 
 ```bash
@@ -181,6 +214,7 @@ make test
 
 - `backend/tests/test_engine.py`: every branch of S0–S5, the loop cap (escalates exactly once and never loops again), "confidence alone never escalates", the pending-hail cap, urgent latching, the human floor, and the recovery track.
 - `backend/tests/test_rules_and_sim.py`: geometry, schedule windows (including overnight), consequence and approach, evasion detection, deterministic replays, twist ops and validation, every preset validates, and the flood keeps the queue short.
+- `backend/tests/test_handoff.py`: every hand-off transition, every illegal move from every state (refused, nothing changes), the mock hold and its failure, send confirm, edit, undo window, keep-watching recheck, expiry paging, receipts and budget per transition, and that dismiss / keep watching never send anything.
 - `backend/tests/test_api.py`: hand-off approve/send/keep-watching, budget, twist preview/apply/history/revert, comment-preserving writes, hot reload with last-good fallback, mode switch, audit export, sim controls.
 - `backend/tests/test_advisor.py`: the advisor never lowers a decision (600 random cases), never touches hard triggers, clamps, falls back on error / timeout / malformed output / missing key, fails safe when everything fails, caps advisor second looks, and caches per snapshot and config.
 - `backend/tests/test_pipeline.py`: CPA and trend, R4/R5 only by operator approval through the API, no alert ever sent automatically, hot reload changing live decisions with a matching before/after diff, jurisdiction profiles, flood speed and budget totals, dual-use, and replay determinism even with a noisy model.
@@ -196,7 +230,8 @@ make test
 | GET | `/api/state` · `/api/config` · `/api/rules` | Snapshot, map + rules + scenarios + presets, raw YAML |
 | POST | `/api/sim/control` | `{action: play|pause|restart|speed, speed?}` |
 | POST | `/api/sim/scenario` · `/api/mode` | Load a scenario (`{name, seed?}`; random scenarios use the seed) · switch security / recovery |
-| POST | `/api/handoff/{id}` | `{action: approve|reject|watch|send, operator, note?}` |
+| POST | `/api/handoff/{id}` | `{action, operator, note?, body?, confirm?}`; actions: `approve retry review edit cancel send dismiss undo watch escalate lift resolve extend` |
+| GET | `/api/handoff/states` | The state table: states, legal moves, system moves |
 | POST | `/api/twist/preview` · `/api/twist/apply` | `{ops | rules | yaml, scenario?, title, note}` |
 | GET / POST | `/api/twist/history` · `/api/twist/revert/{id}` | Persisted twist log · revert |
 | GET | `/api/audit/export?format=json|csv` | Full audit log |

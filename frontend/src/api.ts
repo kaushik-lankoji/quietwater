@@ -1,4 +1,4 @@
-import type { Config, HandoffItem, Impact, FieldChange, Mode, RulesData, TwistEntry } from "./types";
+import type { Config, HandoffAction, HandoffItem, Impact, FieldChange, Mode, RulesData, TwistEntry } from "./types";
 
 export class ApiError extends Error {
   constructor(message: string, readonly status: number) {
@@ -44,8 +44,8 @@ export const api = {
   control: (action: string, speed?: number) => request("POST", "/api/sim/control", { action, speed }),
   scenario: (name: string, seed?: number) => request("POST", "/api/sim/scenario", { name, seed }),
   mode: (mode: Mode) => request("POST", "/api/mode", { mode, load_scenario: true }),
-  act: (id: string, action: "approve" | "reject" | "watch" | "send", operator: string, note?: string) =>
-    request<HandoffItem>("POST", `/api/handoff/${id}`, { action, operator, note }),
+  act: (id: string, action: HandoffAction, operator: string, extra?: { note?: string; body?: string; confirm?: boolean }) =>
+    request<HandoffItem>("POST", `/api/handoff/${id}`, { action, operator, ...extra }),
   preview: (payload: TwistPayload) => request<PreviewResult>("POST", "/api/twist/preview", payload),
   apply: (payload: TwistPayload & { title: string; note: string; source: "ui" | "preset" }) =>
     request<TwistEntry>("POST", "/api/twist/apply", payload),

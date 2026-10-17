@@ -1,13 +1,39 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { cls, latlon, mmss, pct } from "../format";
-import type { HandoffItem, RulesData } from "../types";
-import { Checklist, Rungs, UrgencyTag } from "./bits";
-import { Icon } from "./Icon";
+import type { HandoffAction, HandoffItem, ItemStatus, RulesData } from "../types";
+import { Checklist, UrgencyTag } from "./bits";
+import { Icon, type IconName } from "./Icon";
 
-export type Action = "approve" | "reject" | "watch" | "send";
+export type ActExtra = { body?: string; confirm?: boolean };
+export type OnAct = (item: HandoffItem, action: HandoffAction, extra?: ActExtra) => void;
 
+const ACTIVE: ItemStatus[] = ["pending", "expired", "watching", "hold_requesting", "hold_active", "hold_failed", "notice_review", "notice_sent"];
+const WAITING: ItemStatus[] = ["pending", "expired"];
+
+/** Items that belong in the operator's queue: still open, in progress, or dismissed with Undo still live. */
 export function needsAttention(i: HandoffItem) {
-  return i.status === "pending" || i.status === "watching" || (i.status === "approved" && i.draft_status === "drafted");
+  return ACTIVE.includes(i.status) || (i.status === "dismissed" && (i.undo_left_s ?? 0) > 0);
+}
+
+export const isWaiting = (i: HandoffItem) => WAITING.includes(i.status);
+export const holdStep = (i: HandoffItem) => i.plan.find((p) => p.kind === "hold");
+
+function agency(item: HandoffItem, rules: RulesData) {
+  return item.draft?.to ?? rules.modes[item.decision.track].handoff_target;
+}
+
+/** "USCG Sector Los Angeles-Long Beach" -> "USCG", "USC Wrigley Marine Lab ops desk" -> "USC Wrigley Marine Lab". */
+function shortAgency(name: string) {
+  return name.split(/\s+(?:Sector|ops desk|operations)\b/)[0].trim() || name;
+}
+
+function entered(item: HandoffItem) {
+  return item.history[item.history.length - 1]?.clock ?? item.created_clock;
+}
+
+function summary(reason: string) {
+  const first = reason.split(/(?<=\.)\s/)[0];
+  return first.length > 8 ? first : reason;
 }
 
 function Countdown({ item }: { item: HandoffItem }) {
@@ -34,82 +60,135 @@ function Countdown({ item }: { item: HandoffItem }) {
   );
 }
 
-function Decide({ item, rules, onAct, busy }: { item: HandoffItem; rules: RulesData; onAct: (item: HandoffItem, a: Action) => void; busy: boolean }) {
-  const d = item.decision;
-  const open = item.status === "pending" || item.status === "watching";
-  const awaitingSend = item.status === "approved" && item.draft_status === "drafted";
-  const target = rules.modes[d.track].handoff_target;
+function Banner({ icon, tone, title, sub, children }: { icon: IconName; tone: "ok" | "warn" | "bad" | "info" | "busy"; title: string; sub: ReactNode; children?: ReactNode }) {
   return (
-    <section className="decide" aria-label="What to approve">
-      <div className="decide-head">
-        <span className="eyebrow">We recommend</span>
-        <Rungs rungs={d.rungs} names={d.rung_names} />
+    <div className={cls("state-banner", tone)} role="status">
+      <span className="state-icon">
+        <Icon name={icon} size={18} />
+      </span>
+      <div className="state-text">
+        <span className="state-title">{title}</span>
+        <span className="state-sub">{sub}</span>
       </div>
-      <p className="ask-rec">{d.recommendation}</p>
-      {d.drift && (
-        <p className="drift">
-          Drift {d.drift.speed_kn} kn toward {d.drift.heading}°
-          {d.drift.eta_critical && ` · reaches ${d.drift.eta_critical.zone} in ~${Math.round(d.drift.eta_critical.seconds / 60)} min`}
-        </p>
-      )}
-      {open && (
-        <div className="handoff-actions">
-          <button type="button" className="btn primary large" disabled={busy} onClick={() => onAct(item, "approve")}>
-            <Icon name="check" size={20} /> Approve
-            <kbd>A</kbd>
-          </button>
-          <div className="handoff-secondary">
-            <button type="button" className="btn large" disabled={busy} onClick={() => onAct(item, "reject")}>
-              Reject
-            </button>
-            <button type="button" className="btn large" disabled={busy} onClick={() => onAct(item, "watch")}>
-              Keep watching
-            </button>
-          </div>
+      {children}
+    </div>
+  );
+}
+
+function HoldTimer({ item }: { item: HandoffItem }) {
+  const left = item.hold_left_s ?? 0;
+  const up = left <= 0;
+  return (
+    <div className={cls("hold-timer", up && "up")}>
+      <span className="hold-time num">{up ? "00:00" : mmss(left)}</span>
+      <span className="hold-label">{up ? "Hold time is up. It stays in place until you lift it." : "hold time left"}</span>
+    </div>
+  );
+}
+
+function StateBanner({ item, rules }: { item: HandoffItem; rules: RulesData }) {
+  const at = entered(item);
+  const to = agency(item, rules);
+  const hold = item.hold;
+  switch (item.status) {
+    case "expired":
+      return <Banner icon="bell" tone="bad" title="No response in time · backup officer paged" sub={`On screen only. Nothing was sent. ${at}`} />;
+    case "watching":
+      return <Banner icon="eye" tone="info" title={`Keep watching · re-checks in ${mmss(item.watch_left_s ?? 0)}`} sub={`Since ${at}. Nothing is sent.`} />;
+    case "hold_requesting":
+      return <Banner icon="sync" tone="busy" title="Sending hold request" sub={`To ${hold?.asset} operations · ${at}`} />;
+    case "hold_failed":
+      return <Banner icon="alert" tone="bad" title="Hold request failed" sub={`${hold?.asset} operations didn't confirm. Nothing is paused. ${at}`} />;
+    case "hold_active":
+      return (
+        <Banner icon="hold" tone="ok" title="Hold active" sub={`${capital(hold?.operation)} paused at ${hold?.asset} · since ${hold?.confirmed_clock ?? at}`}>
+          <HoldTimer item={item} />
+        </Banner>
+      );
+    case "notice_review":
+      return <Banner icon="file" tone="info" title={`Reviewing notice to ${shortAgency(to)}`} sub={`Not sent. Opened ${at}${item.draft_edited ? " · edited" : ""}`} />;
+    case "notice_sent":
+      return (
+        <Banner icon="send" tone="ok" title={`Notice sent to ${shortAgency(to)}`} sub={`${at} by ${item.actor} · logged in the audit`}>
+          {hold?.status === "active" && <HoldTimer item={item} />}
+        </Banner>
+      );
+    case "dismissed":
+      return <Banner icon="x" tone="info" title="Dismissed" sub={`Still tracked. Re-alerts if it gets worse. ${at}`} />;
+    case "resolved":
+      return <Banner icon="check" tone="ok" title="Resolved" sub={`${at} by ${item.actor}`} />;
+    case "lifted":
+      return <Banner icon="check" tone="ok" title="Hold lifted" sub={`${capital(hold?.operation)} can resume at ${hold?.asset} · ${at} by ${item.actor}`} />;
+    case "stood_down":
+      return <Banner icon="check" tone="ok" title="Stood down" sub={`No longer needs a person. ${at}`} />;
+    default:
+      return null;
+  }
+}
+
+function capital(s?: string) {
+  return s ? s[0].toUpperCase() + s.slice(1) : "";
+}
+
+function Plan({ item }: { item: HandoffItem }) {
+  const hasHold = Boolean(holdStep(item));
+  if (item.plan.length === 0) return null;
+  return (
+    <section className="plan" aria-label={hasHold ? "If you approve" : "Next step"}>
+      <span className="eyebrow">{hasHold ? "If you approve" : "Next step"}</span>
+      <ol>
+        {item.plan.map((p, i) => (
+          <li key={p.kind}>
+            <span className="plan-n">{i + 1}</span>
+            <div className="plan-text">
+              <span className="plan-title">{p.kind === "notice" && item.draft ? `Notice to ${shortAgency(item.draft.to)}` : p.title}</span>
+              <span className="plan-detail">{p.detail}</span>
+            </div>
+            <span className="rung-tag">{p.rung}</span>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
+function NoticeDraft({ item, editing, text, onText }: { item: HandoffItem; editing: boolean; text: string; onText: (t: string) => void }) {
+  const draft = item.draft!;
+  return (
+    <section className="notice" aria-label="Notice draft">
+      <dl className="notice-head">
+        <div>
+          <dt>To</dt>
+          <dd>{draft.to}</dd>
         </div>
-      )}
-      {!open && (
-        <div className="resolved">
-          <Icon name="check" size={18} />
-          <span>
-            {item.status === "approved" ? "Approved" : item.status === "rejected" ? "Rejected" : "Stood down"} by {item.actor} at {item.resolved_clock}
-          </span>
+        <div>
+          <dt>Subject</dt>
+          <dd>{draft.subject}</dd>
         </div>
-      )}
-      {awaitingSend && (
-        <button type="button" className="btn primary large" disabled={busy} onClick={() => onAct(item, "send")}>
-          <Icon name="send" size={18} /> Send drafted alert to {target}
-        </button>
+      </dl>
+      {editing ? (
+        <textarea className="notice-edit" value={text} onChange={(e) => onText(e.target.value)} aria-label="Notice text" spellCheck />
+      ) : (
+        <pre className="notice-body">{draft.body}</pre>
       )}
     </section>
   );
 }
 
-function Card({ item, rules, onAct, busy }: { item: HandoffItem; rules: RulesData; onAct: (item: HandoffItem, a: Action) => void; busy: boolean }) {
+function Evidence({ item, rules }: { item: HandoffItem; rules: RulesData }) {
   const d = item.decision;
-  const [copied, setCopied] = useState(false);
-  const open = item.status === "pending" || item.status === "watching";
-  const awaitingSend = item.status === "approved" && item.draft_status === "drafted";
-  const target = rules.modes[d.track].handoff_target;
   const asset = d.focus_asset;
-
   return (
-    <article className={cls("handoff", d.urgency)} aria-label={`Hand-off ${item.id} for ${d.contact_id}`}>
-      <div className="handoff-top">
-        <div className="handoff-tags">
-          <UrgencyTag urgency={d.urgency} />
-          <span className="cid">{d.contact_id}</span>
-          {item.status === "watching" && <span className="status-pill">watching</span>}
-          {item.contact_lost && <span className="status-pill">lost on sonar</span>}
-        </div>
-        {open && <Countdown item={item} />}
-      </div>
-      <p className="handoff-reason">{d.reason}</p>
-
-      <section className="handoff-section" aria-label="What is it">
-        <span className="eyebrow">What it is</span>
+    <details className="evidence">
+      <summary>
+        <span>What it is · what&rsquo;s ruled out</span>
+        <span className="chev">
+          <Icon name="chevronDown" size={16} />
+        </span>
+      </summary>
+      <div className="evidence-body">
         <div className="what">
-          <h3>{d.track === "recovery" ? rules.recovery.lost_vehicle_id : d.label_text}</h3>
+          <h4>{d.track === "recovery" ? rules.recovery.lost_vehicle_id : d.label_text}</h4>
           <span className="conf" aria-label={`Confidence ${pct(d.confidence)}`}>
             <span className="conf-bar">
               <span style={{ width: pct(d.confidence) }} />
@@ -141,149 +220,310 @@ function Card({ item, rules, onAct, busy }: { item: HandoffItem; rules: RulesDat
             <dd>{latlon(d.position, rules.harbor.origin)}</dd>
           </div>
         </dl>
-      </section>
-
-      <section className="handoff-section" aria-label="What has been ruled out">
-        <span className="eyebrow">What&rsquo;s ruled out</span>
         <Checklist checks={d.checks} />
-      </section>
-
-      {item.draft && (
-        <details className="draft" open={awaitingSend}>
-          <summary>
-            <Icon name="file" size={18} />
-            <span>Handoff package · {target}</span>
-            <span className="status-pill">{item.draft_status === "sent" ? "sent" : "drafted"}</span>
-            <span className="chev">
-              <Icon name="chevronDown" size={16} />
-            </span>
-          </summary>
-          {item.steps.length > 0 && (
-            <div className="steps">
-              {item.steps.map((s, i) => (
-                <div key={i}>
-                  <span className="num">{s.clock}</span>
-                  <span>
-                    {s.rungs} <span className="muted">· {s.automated ? "automated" : "needs you"}</span>
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-          <pre>{item.draft.body}</pre>
-          <div className="draft-actions">
-            <button
-              type="button"
-              className="btn small"
-              onClick={() => {
-                navigator.clipboard?.writeText(item.draft!.body);
-                setCopied(true);
-                window.setTimeout(() => setCopied(false), 1500);
-              }}
-            >
-              <Icon name="copy" size={16} /> {copied ? "Copied" : "Copy"}
-            </button>
-            <span className="muted">{item.draft_status === "sent" ? "Sent by you. Logged in the audit." : "Quietwater never sends this itself."}</span>
-            {item.draft_status !== "sent" && (
-              <button
-                type="button"
-                className="btn small"
-                disabled={busy || item.status !== "approved"}
-                title={item.status !== "approved" ? "Approve first" : undefined}
-                onClick={() => onAct(item, "send")}
-              >
-                <Icon name="send" size={16} /> Send
-              </button>
-            )}
-          </div>
-        </details>
-      )}
-    </article>
-  );
-}
-
-export function HandoffSheetBody({
-  items,
-  rules,
-  activeId,
-  onActive,
-  onAct,
-  busy,
-  quiet,
-}: {
-  items: HandoffItem[];
-  rules: RulesData;
-  activeId: string | null;
-  onActive: (id: string) => void;
-  onAct: (item: HandoffItem, a: Action) => void;
-  busy: boolean;
-  quiet: number;
-}) {
-  const queue = items.filter(needsAttention);
-  const selected = items.find((i) => i.id === activeId);
-  const active = selected ?? queue[0];
-  const recent = items.filter((i) => !needsAttention(i) && i !== active).slice(0, 4);
-  const idx = active ? queue.indexOf(active) : -1;
-
-  return (
-    <div className="pane">
-      {queue.length > 1 && (
-        <div className="pane-top queue-nav">
-          <button
-            type="button"
-            className="icon-button small"
-            aria-label="Previous in queue"
-            onClick={() => onActive(queue[(Math.max(idx, 0) - 1 + queue.length) % queue.length].id)}
-          >
-            <Icon name="chevronLeft" size={18} />
-          </button>
-          <span className="num">
-            {idx >= 0 ? idx + 1 : "–"} of {queue.length}
-          </span>
-          <button type="button" className="icon-button small" aria-label="Next in queue" onClick={() => onActive(queue[(idx + 1) % queue.length].id)}>
-            <Icon name="chevronRight" size={18} />
-          </button>
-        </div>
-      )}
-      <div className="pane-scroll handoff-body">
-        {active ? (
-          <Card key={active.id} item={active} rules={rules} onAct={onAct} busy={busy} />
-        ) : (
-          <div className="empty">
-            <Icon name="wave" size={32} />
-            <span className="empty-title">All quiet</span>
-            <span>
-              {quiet} contact{quiet === 1 ? "" : "s"} handled without you. A card appears here when something needs a person.
-            </span>
-          </div>
-        )}
-        {(queue.length > 1 || recent.length > 0) && (
-          <div className="queue-list">
-            <span className="eyebrow">Queue</span>
-            {queue
-              .filter((i) => i !== active)
-              .map((i) => (
-                <button type="button" key={i.id} className="queue-row" onClick={() => onActive(i.id)}>
-                  <UrgencyTag urgency={i.decision.urgency} />
-                  <span className="cid">{i.contact_id}</span>
-                  <span className="queue-what">{i.decision.recommendation}</span>
-                  <span className="num muted">{i.remaining_s < 0 ? "overdue" : mmss(i.remaining_s)}</span>
-                </button>
-              ))}
-            {recent.map((i) => (
-              <button type="button" key={i.id} className="queue-row done" onClick={() => onActive(i.id)}>
-                <span className="status-pill">{i.status.replace("_", " ")}</span>
-                <span className="cid">{i.contact_id}</span>
-                <span className="queue-what">{i.note ?? i.decision.recommendation}</span>
-                <span className="num muted">{i.resolved_clock?.slice(0, 5)}</span>
-              </button>
+        {item.history.length > 1 && (
+          <div className="timeline">
+            <span className="eyebrow">Timeline</span>
+            {item.history.map((h, i) => (
+              <div key={i}>
+                <span className="num">{h.clock}</span>
+                <span>
+                  {h.to.replace("_", " ")} <span className="muted">· {h.actor}</span>
+                </span>
+              </div>
             ))}
           </div>
         )}
       </div>
-      {active && (
-        <div className="pane-foot">
-          <Decide item={active} rules={rules} onAct={onAct} busy={busy} />
+    </details>
+  );
+}
+
+function Choice({ label, help, onClick, disabled }: { label: string; help: string; onClick: () => void; disabled: boolean }) {
+  return (
+    <div className="choice">
+      <button type="button" className="btn" disabled={disabled} onClick={onClick}>
+        {label}
+      </button>
+      <span className="choice-help">{help}</span>
+    </div>
+  );
+}
+
+function Actions({
+  item,
+  rules,
+  onAct,
+  busy,
+  editing,
+  setEditing,
+  text,
+  setText,
+}: {
+  item: HandoffItem;
+  rules: RulesData;
+  onAct: OnAct;
+  busy: boolean;
+  editing: boolean;
+  setEditing: (e: boolean) => void;
+  text: string;
+  setText: (t: string) => void;
+}) {
+  const [confirming, setConfirming] = useState(false);
+  const to = agency(item, rules);
+  const short = shortAgency(to);
+  const hold = holdStep(item);
+  const canReview = Boolean(item.draft) && item.draft_status !== "sent";
+  const snooze = mmss(rules.alert_budget.keep_watching_snooze_s);
+  const holdMins = mmss(rules.handoff?.hold_s ?? 1800);
+  const go = (a: HandoffAction, extra?: ActExtra) => onAct(item, a, extra);
+  const review = (primary: boolean) =>
+    canReview && (
+      <button type="button" className={cls("btn wrap", primary && "primary large")} disabled={busy} onClick={() => go("review")}>
+        <Icon name="file" size={18} /> Review {short} notice
+      </button>
+    );
+  const holdControls = (primary: boolean) =>
+    item.hold?.status === "active" && (
+      <div className={cls(item.hold.time_up && "pair")}>
+        <button type="button" className={cls("btn", primary && "primary large")} disabled={busy} onClick={() => go("lift")}>
+          <Icon name="play" size={16} /> Lift hold
+        </button>
+        {item.hold.time_up && (
+          <button type="button" className="btn" disabled={busy} onClick={() => go("extend")}>
+            Extend {holdMins}
+          </button>
+        )}
+      </div>
+    );
+
+  switch (item.status) {
+    case "pending":
+    case "expired":
+      return (
+        <div className="actions">
+          {hold ? (
+            <button type="button" className="btn primary large wrap" disabled={busy} onClick={() => go("approve")}>
+              <Icon name="check" size={20} /> Approve: {hold.title}
+              <kbd>A</kbd>
+            </button>
+          ) : null}
+          {review(!hold)}
+          <div className="pair">
+            <Choice label="Dismiss" help="Still tracked; re-alerts if worse" disabled={busy} onClick={() => go("dismiss")} />
+            <Choice label="Keep watching" help={`Re-checks in ${snooze}; sends nothing`} disabled={busy} onClick={() => go("watch")} />
+          </div>
+        </div>
+      );
+    case "watching":
+      return (
+        <div className="actions">
+          <button type="button" className="btn primary large" disabled={busy} onClick={() => go("escalate")}>
+            <Icon name="up" size={18} /> Escalate now
+          </button>
+          <Choice label="Dismiss" help="Still tracked; re-alerts if worse" disabled={busy} onClick={() => go("dismiss")} />
+        </div>
+      );
+    case "hold_requesting":
+      return (
+        <div className="actions">
+          <button type="button" className="btn primary large" disabled>
+            <span className="spinner small" /> Waiting for {item.hold?.asset}
+          </button>
+        </div>
+      );
+    case "hold_failed":
+      return (
+        <div className="actions">
+          <button type="button" className="btn primary large" disabled={busy} onClick={() => go("retry")}>
+            <Icon name="replay" size={18} /> Retry hold request
+          </button>
+          <div className="pair">
+            {review(false)}
+            <button type="button" className="btn" disabled={busy} onClick={() => go("resolve")}>
+              Close as resolved
+            </button>
+          </div>
+        </div>
+      );
+    case "hold_active":
+      return (
+        <div className="actions">
+          {review(true)}
+          {holdControls(!canReview)}
+        </div>
+      );
+    case "notice_review":
+      if (editing)
+        return (
+          <div className="actions">
+            <button
+              type="button"
+              className="btn primary large"
+              disabled={busy || !text.trim()}
+              onClick={() => {
+                go("edit", { body: text });
+                setEditing(false);
+              }}
+            >
+              <Icon name="check" size={18} /> Save changes
+            </button>
+            <button type="button" className="btn" disabled={busy} onClick={() => setEditing(false)}>
+              Discard changes
+            </button>
+          </div>
+        );
+      if (confirming)
+        return (
+          <div className="actions confirm" role="alertdialog" aria-label={`Send to ${to}?`}>
+            <div className="confirm-text">
+              <span className="confirm-title">Send to {short}?</span>
+              <span className="choice-help">{to}</span>
+              <span className="choice-help">This goes out now. There is no Undo.</span>
+            </div>
+            <button
+              type="button"
+              className="btn primary large danger"
+              disabled={busy}
+              onClick={() => {
+                go("send", { confirm: true });
+                setConfirming(false);
+              }}
+            >
+              <Icon name="send" size={18} /> Send now
+            </button>
+            <button type="button" className="btn" disabled={busy} onClick={() => setConfirming(false)}>
+              Back
+            </button>
+          </div>
+        );
+      return (
+        <div className="actions">
+          <button type="button" className="btn primary large wrap" disabled={busy} onClick={() => setConfirming(true)}>
+            <Icon name="send" size={18} /> Send to {short}
+          </button>
+          <div className="pair">
+            <button
+              type="button"
+              className="btn"
+              disabled={busy}
+              onClick={() => {
+                setText(item.draft?.body ?? "");
+                setEditing(true);
+              }}
+            >
+              <Icon name="edit" size={16} /> Edit
+            </button>
+            <button type="button" className="btn" disabled={busy} onClick={() => go("cancel")}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      );
+    case "notice_sent":
+      return (
+        <div className="actions">
+          {holdControls(true) || (
+            <button type="button" className="btn primary large" disabled={busy} onClick={() => go("resolve")}>
+              <Icon name="check" size={18} /> Mark resolved
+            </button>
+          )}
+        </div>
+      );
+    case "dismissed":
+      return (item.undo_left_s ?? 0) > 0 ? (
+        <div className="actions">
+          <button type="button" className="btn primary large" disabled={busy} onClick={() => go("undo")}>
+            <Icon name="undo" size={18} /> Undo · {Math.ceil(item.undo_left_s ?? 0)}s
+          </button>
+        </div>
+      ) : null;
+    default:
+      return null;
+  }
+}
+
+function Card({ item, rules, onAct, busy }: { item: HandoffItem; rules: RulesData; onAct: OnAct; busy: boolean }) {
+  const d = item.decision;
+  const [editing, setEditing] = useState(false);
+  const [text, setText] = useState("");
+  const review = item.status === "notice_review" && item.draft;
+  const showPlan = isWaiting(item);
+
+  return (
+    <>
+      <div className="pane-scroll handoff-body">
+        <article className={cls("handoff", d.urgency)} aria-label={`Contact ${d.contact_id}`}>
+          <div className="handoff-top">
+            <div className="handoff-tags">
+              <h3 className="contact-title">Contact {d.contact_id}</h3>
+              <UrgencyTag urgency={d.urgency} />
+              {item.contact_lost && <span className="status-pill">lost on sonar</span>}
+            </div>
+            {isWaiting(item) && <Countdown item={item} />}
+          </div>
+          <p className="handoff-summary">{summary(d.reason)}</p>
+          <StateBanner item={item} rules={rules} />
+          {showPlan && <Plan item={item} />}
+          {review && <NoticeDraft item={item} editing={editing} text={text} onText={setText} />}
+          <Evidence item={item} rules={rules} />
+        </article>
+      </div>
+      <div className="pane-foot">
+        <Actions item={item} rules={rules} onAct={onAct} busy={busy} editing={editing} setEditing={setEditing} text={text} setText={setText} />
+        <p className="handoff-footnote">If no one responds, the backup officer is paged. Nothing goes out automatically.</p>
+      </div>
+    </>
+  );
+}
+
+export function QueueNav({ queue, active, onActive }: { queue: HandoffItem[]; active?: HandoffItem; onActive: (id: string) => void }) {
+  if (queue.length < 2) return null;
+  const idx = active ? queue.indexOf(active) : -1;
+  const step = (n: number) => onActive(queue[(Math.max(idx, 0) + n + queue.length) % queue.length].id);
+  return (
+    <div className="queue-nav">
+      <button type="button" className="icon-button small" aria-label="Previous in queue" onClick={() => step(-1)}>
+        <Icon name="chevronLeft" size={18} />
+      </button>
+      <span className="num">
+        {idx >= 0 ? idx + 1 : "–"} of {queue.length}
+      </span>
+      <button type="button" className="icon-button small" aria-label="Next in queue" onClick={() => step(1)}>
+        <Icon name="chevronRight" size={18} />
+      </button>
+    </div>
+  );
+}
+
+export function HandoffSheetBody({
+  active,
+  rules,
+  onAct,
+  busy,
+  quiet,
+}: {
+  active?: HandoffItem;
+  rules: RulesData;
+  onAct: OnAct;
+  busy: boolean;
+  quiet: number;
+}) {
+  return (
+    <div className="pane">
+      {active ? (
+        <Card key={active.id} item={active} rules={rules} onAct={onAct} busy={busy} />
+      ) : (
+        <div className="pane-scroll handoff-body">
+          <div className="empty">
+            <span className="all-clear">
+              <Icon name="check" size={28} />
+            </span>
+            <span className="empty-title">All clear</span>
+            <span>
+              {quiet} handled quietly. A card appears here when something needs a person.
+            </span>
+          </div>
         </div>
       )}
     </div>

@@ -4,14 +4,14 @@ import { Toasts, useToasts } from "./components/bits";
 import { BudgetCard } from "./components/BudgetCard";
 import { ControlDock } from "./components/ControlDock";
 import { DualUseToggle } from "./components/DualUseToggle";
-import { HandoffSheetBody, needsAttention, type Action } from "./components/HandoffSheet";
+import { HandoffSheetBody, holdStep, isWaiting, needsAttention, QueueNav, type ActExtra } from "./components/HandoffSheet";
 import { Icon } from "./components/Icon";
 import { Radar } from "./components/Radar";
 import { ReceiptsSheetBody } from "./components/ReceiptsSheet";
 import { ScenarioButton } from "./components/ScenarioButton";
 import { Sheet } from "./components/Sheet";
 import { TwistConsole } from "./components/TwistConsole";
-import type { Config, Contact, HandoffItem } from "./types";
+import type { Config, Contact, HandoffAction, HandoffItem } from "./types";
 import { useLive } from "./useLive";
 
 type SheetName = "handoff" | "receipts" | "twist";
@@ -63,11 +63,12 @@ export default function App() {
   );
 
   const queue = useMemo(() => (snap ? snap.items.filter(needsAttention) : []), [snap]);
-  const active = (snap?.items.find((i) => i.id === activeItem) ?? queue[0]) as HandoffItem | undefined;
+  // Stay on the chosen item while it is still in the queue; once it is finished, move to the next one.
+  const active = queue.find((i) => i.id === activeItem) ?? queue[0];
 
   useEffect(() => {
     if (!snap) return;
-    const pending = snap.items.filter((i) => i.status === "pending");
+    const pending = snap.items.filter(isWaiting);
     const seen = seenPending.current;
     seenPending.current = new Set(pending.map((i) => i.id));
     if (!seen) return;
@@ -79,11 +80,24 @@ export default function App() {
   }, [snap, sheet]);
 
   const act = useCallback(
-    (item: HandoffItem, action: Action) =>
+    (item: HandoffItem, action: HandoffAction, extra?: ActExtra) =>
       run(async () => {
-        await api.act(item.id, action, OPERATOR);
-        const verb = { approve: "Approved", reject: "Rejected", watch: "Watching", send: "Alert sent" }[action];
-        push(`${verb} · ${item.contact_id}`, "ok");
+        setActiveItem(item.id);
+        await api.act(item.id, action, OPERATOR, extra);
+        const verb: Partial<Record<HandoffAction, string>> = {
+          approve: "Hold requested",
+          retry: "Hold requested again",
+          send: `Notice sent to ${item.draft?.to ?? "agency"}`,
+          dismiss: "Dismissed",
+          undo: "Back in your queue",
+          watch: "Watching",
+          escalate: "Escalated",
+          lift: "Hold lifted",
+          resolve: "Resolved",
+          extend: "Hold extended",
+          edit: "Notice updated",
+        };
+        if (verb[action]) push(`${verb[action]} · ${item.contact_id}`, "ok");
       }),
     [run, push],
   );
@@ -118,7 +132,7 @@ export default function App() {
       if (!c || !snap) return;
       const human = c.requires_human || c.rung === "R4" || c.rung === "R5";
       const items = snap.items.filter((i) => i.contact_id === c.id);
-      const item = items.find(needsAttention) ?? items[0];
+      const item = items.find(needsAttention);
       if (human && item) {
         setActiveItem(item.id);
         setSheet("handoff");
@@ -144,7 +158,7 @@ export default function App() {
       if (key === "r") return replay();
       if (key === "f") return flood();
       if (key === "t") return toggleSheet("twist");
-      if (key === "a" && sheet === "handoff" && active && !busy && (active.status === "pending" || active.status === "watching")) act(active, "approve");
+      if (key === "a" && sheet === "handoff" && active && !busy && isWaiting(active) && holdStep(active)) act(active, "approve");
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -160,7 +174,7 @@ export default function App() {
   }
 
   const recovery = snap.mode === "recovery";
-  const pending = queue.filter((i) => i.status === "pending").length;
+  const pending = queue.filter(isWaiting).length;
   const automated = receipts.filter((r) => r.automated).length;
 
   return (
@@ -189,16 +203,15 @@ export default function App() {
         </div>
       )}
 
-      <Sheet open={sheet === "handoff"} flush title="Needs you" meta={`${pending} waiting · ${snap.budget.quiet} handled quietly`} onClose={() => setSheet(null)}>
-        <HandoffSheetBody
-          items={snap.items}
-          rules={config.rules}
-          activeId={active?.id ?? null}
-          onActive={setActiveItem}
-          onAct={act}
-          busy={busy}
-          quiet={snap.budget.quiet}
-        />
+      <Sheet
+        open={sheet === "handoff"}
+        flush
+        title="Needs you"
+        meta={`${pending} waiting · ${snap.budget.quiet} handled quietly`}
+        actions={<QueueNav queue={queue} active={active} onActive={setActiveItem} />}
+        onClose={() => setSheet(null)}
+      >
+        <HandoffSheetBody active={active} rules={config.rules} onAct={act} busy={busy} quiet={snap.budget.quiet} />
       </Sheet>
 
       <Sheet open={sheet === "receipts"} flush title="Decision receipts" meta={`${receipts.length} logged · ${automated} automated`} onClose={() => setSheet(null)}>
