@@ -377,7 +377,7 @@ def test_options_describe_the_operation_and_the_area(client):
     op, area = opts["options"]
     assert (op["scope"], area["scope"]) == ("operation", "area")
     focus = item.decision["focus_asset"]
-    assert focus["name"] in op["summary"] and "Only this activity stops" in op["summary"]
+    assert focus["name"] in op["summary"] and len(op["summary"]) < 90
     assert [t["asset"] for t in op["targets"]] == [focus["name"]]
     assert focus["name"] in [t["asset"] for t in area["targets"]]
     assert opts["recommended"] in ("operation", "area") and opts["reason"]

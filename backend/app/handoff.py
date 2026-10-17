@@ -102,14 +102,12 @@ def hold_options(decision: dict[str, Any], rules: Any) -> dict[str, Any] | None:
     near.sort(key=lambda a: distance_to(pos, a.shape))
     name = focus.get("name") or "the nearest berth"
     op = focus.get("operation") or "operations"
-    what = next((a.description for a in rules.assets if a.id == focus.get("id") and a.description), None)
     recovery = decision.get("track") == "recovery"
     zone = decision.get("zone") or "this part of the harbor"
     operation = {
         "scope": "operation", "title": "This operation only",
         "action": f"Pause {op}",
-        "summary": f"{_cap(op)} at {name}. " + (what + " " if what else "")
-                   + "Only this activity stops; everything else keeps running.",
+        "summary": f"{_cap(op)} at {name}. Nothing else stops.",
         "targets": [{"asset": name, "operation": op}],
         "detail": f"Sends a hold request to {name} operations"
                   + (" until the vehicle is recovered." if recovery else "."),
