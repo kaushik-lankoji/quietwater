@@ -456,7 +456,6 @@ function Card({ item, rules, onAct, busy }: { item: HandoffItem; rules: RulesDat
         <article className={cls("handoff", d.urgency)} aria-label={`Contact ${d.contact_id}`}>
           <div className="handoff-top">
             <div className="handoff-tags">
-              <h3 className="contact-title">Contact {d.contact_id}</h3>
               <UrgencyTag urgency={d.urgency} />
               {item.contact_lost && <span className="status-pill">lost on sonar</span>}
             </div>

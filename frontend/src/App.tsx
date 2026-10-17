@@ -204,7 +204,7 @@ export default function App() {
       <Sheet
         open={sheet === "handoff"}
         flush
-        title="Needs you"
+        title={active ? `Contact ${active.contact_id}` : "All clear"}
         actions={<QueueNav queue={queue} active={active} onActive={setActiveItem} />}
         onClose={() => setSheet(null)}
       >
