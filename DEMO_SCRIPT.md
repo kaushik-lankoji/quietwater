@@ -6,7 +6,7 @@ Working thing first, one live twist through a config edit, second customer last.
 
 - `make start` (production build on :8000) or `make dev`. Open the UI full-screen at 1920×1080.
 - Open `config/rules.yaml` in an editor beside it, scrolled to `assets:` → `fuel-dock-b`.
-- Pick **Morning watch** in the Alert Budget card, press **Replay** (R) so it starts at 09:00:00, speed **2×**.
+- Pick **Morning watch** in the Alert Budget card, press **Replay** (R) so it starts at 09:00:00.
 - Fallback if the network or laptop misbehaves: everything is local. Restarting the server reloads the same seeded scenario.
 
 ## 0:00 – 0:30 · The problem
@@ -15,7 +15,7 @@ Working thing first, one live twist through a config edit, second customer last.
 
 Point at the radar: the green pulse sweeps out from the drone, and each contact lights up grey, yellow or red as it is found. The ladder is **Watch, Watch+, Ask, Slow, Hold, Hand off**.
 
-## 0:30 – 2:00 · The working thing (Morning watch, 2×)
+## 0:30 – 2:00 · The working thing (Morning watch)
 
 1. **Quiet by default.** Fish, debris and USC's registered REMUS-01 sit at *Watch*. C-106 far out gets *Watch+*: two second looks, then up one rung to *Ask*. "It never loops forever."
 2. **C-107 drifts toward the fuel dock.** *Ask* → **R4 Hold + R5 Hand off**. It turns red; click it and the hand-off sheet slides in. Read it top to bottom:
@@ -28,13 +28,13 @@ Point at the radar: the green pulse sweeps out from the drone, and each contact 
 
 ## 2:00 – 2:40 · Scale: the flood
 
-Press **Flood** (F) in the dock, 5×.
+Press **Flood** (F) in the dock.
 
 > "Spring bloom: 200 contacts. The contact summary shows how many are handled quietly and how many need a person."
 
 ## 2:40 – 3:50 · Live twist via a config edit
 
-Back to **Morning watch** (R to replay, 2×). Say the twist: *"Fuel Dock B on the west berth just started an unscheduled transfer."*
+Back to **Morning watch** (R to replay). Say the twist: *"Fuel Dock B on the west berth just started an unscheduled transfer."*
 
 1. In the editor, set `fuel-dock-b` → `active: true` and zone `west_fuel_b` → `critical: true`. Save.
 2. Toast: **Rules reloaded · v2**. Contact C-112, until now a *Slow* advisory to F/V Lucky Day, becomes **Hold + Hand off: pause fuel transfer at Fuel Dock B**.

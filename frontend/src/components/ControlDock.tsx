@@ -1,8 +1,6 @@
 import { cls } from "../format";
 import { Icon, type IconName } from "./Icon";
 
-export const SPEEDS = [1, 2, 5];
-
 function Tile({
   icon,
   label,
@@ -36,7 +34,6 @@ function Tile({
 
 export function ControlDock({
   running,
-  speed,
   flood,
   sheet,
   onToggleRun,
@@ -44,10 +41,8 @@ export function ControlDock({
   onFlood,
   onTwist,
   onReceipts,
-  onSpeed,
 }: {
   running: boolean;
-  speed: number;
   flood: boolean;
   sheet: string | null;
   onToggleRun: () => void;
@@ -55,7 +50,6 @@ export function ControlDock({
   onFlood: () => void;
   onTwist: () => void;
   onReceipts: () => void;
-  onSpeed: (speed: number) => void;
 }) {
   return (
     <nav className="dock glass" aria-label="Simulator controls">
@@ -64,14 +58,6 @@ export function ControlDock({
       <Tile icon="flood" label="Flood" onClick={onFlood} active={flood} shortcut="F" />
       <Tile icon="sliders" label="Twist" onClick={onTwist} active={sheet === "twist"} shortcut="T" />
       <Tile icon="receipt" label="Receipts" onClick={onReceipts} active={sheet === "receipts"} />
-      <div className="dock-speed" role="radiogroup" aria-label="Simulation speed">
-        {SPEEDS.map((s) => (
-          <button key={s} type="button" role="radio" aria-checked={speed === s} onClick={() => onSpeed(s)}>
-            {s}×
-          </button>
-        ))}
-        <span className="dock-speed-label">Speed</span>
-      </div>
     </nav>
   );
 }

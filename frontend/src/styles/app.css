@@ -550,44 +550,6 @@ kbd {
   transition-delay: 350ms;
 }
 
-.dock-speed {
-  height: 64px;
-  display: grid;
-  grid-template-columns: repeat(3, 40px);
-  grid-template-rows: 1fr auto;
-  gap: 2px;
-  padding: 6px 6px 8px;
-  border-radius: var(--radius-control);
-  background: var(--control-fill);
-}
-
-.dock-speed button {
-  border: none;
-  border-radius: 8px;
-  background: transparent;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
-}
-
-.dock-speed button:hover {
-  background: var(--control-fill-hover);
-}
-
-.dock-speed button[aria-checked="true"] {
-  background: var(--control-fill-active);
-  color: var(--text-primary);
-}
-
-.dock-speed-label {
-  grid-column: 1 / -1;
-  text-align: center;
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 1;
-}
-
 .scenario-button {
   position: absolute;
   z-index: 20;

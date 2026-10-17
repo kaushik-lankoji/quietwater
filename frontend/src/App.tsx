@@ -196,7 +196,6 @@ export default function App() {
 
       <ControlDock
         running={snap.running}
-        speed={snap.speed}
         flood={snap.scenario.id === FLOOD}
         sheet={sheet}
         onToggleRun={togglePause}
@@ -204,7 +203,6 @@ export default function App() {
         onFlood={flood}
         onTwist={() => toggleSheet("twist")}
         onReceipts={openReceipts}
-        onSpeed={(s) => run(() => api.control("speed", s))}
       />
 
       <ScenarioButton />
