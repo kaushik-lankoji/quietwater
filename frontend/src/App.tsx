@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "./api";
-import { AlertBudget } from "./components/AlertBudget";
+import { WatchSummary } from "./components/WatchSummary";
 import { Toasts, useToasts } from "./components/bits";
 import { HandoffPanel, needsAttention, type Action } from "./components/HandoffPanel";
 import { HarborMap, type Layers } from "./components/HarborMap";
@@ -8,12 +8,10 @@ import { Icon } from "./components/Icon";
 import { Inspector } from "./components/Inspector";
 import { Receipts } from "./components/Receipts";
 import { TopBar } from "./components/TopBar";
-import { TwistConsole } from "./components/TwistConsole";
 import { cls, rungVar } from "./format";
 import { RUNGS, type Config, type Decision, type HandoffItem } from "./types";
 import { useLive } from "./useLive";
 
-type View = "watch" | "twist";
 type Theme = "dark" | "light";
 
 const OPERATOR = "Watch officer";
@@ -29,9 +27,8 @@ function initialTheme(): Theme {
 }
 
 export default function App() {
-  const { snap, receipts, history, link } = useLive();
+  const { snap, receipts, link } = useLive();
   const [config, setConfig] = useState<Config | null>(null);
-  const [view, setView] = useState<View>("watch");
   const [theme, setTheme] = useState<Theme>(initialTheme);
   const [selected, setSelected] = useState<string | null>(null);
   const [activeItem, setActiveItem] = useState<string | null>(null);
@@ -110,7 +107,7 @@ export default function App() {
         run(() => api.control(snap.running ? "pause" : "play"));
         return;
       }
-      if (view !== "watch" || !active || busy) return;
+      if (!active || busy) return;
       const open = active.status === "pending" || active.status === "watching";
       const map: Record<string, Action> = { a: "approve", r: "reject", w: "watch" };
       const action = map[e.key.toLowerCase()];
@@ -118,7 +115,7 @@ export default function App() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [snap, view, active, busy, act, run]);
+  }, [snap, active, busy, act, run]);
 
   const latestDecision = useMemo(() => {
     const out = new Map<string, Decision>();
@@ -153,20 +150,16 @@ export default function App() {
         onMode={(recovery) => run(() => api.mode(recovery ? "recovery" : "security"))}
       />
       <div>
-        <nav className="tabs" role="tablist" aria-label="Views">
-          <button className="tab" role="tab" aria-selected={view === "watch"} onClick={() => setView("watch")}>
+        <div className="watch-toolbar">
+          <span className="watch-label">
             Watch
             <span className={cls("count", pending > 0 && "hot")}>{pending}</span>
-          </button>
-          <button className="tab" role="tab" aria-selected={view === "twist"} onClick={() => setView("twist")}>
-            Twist Console
-            {history.length > 0 && <span className="count">{history.length}</span>}
-          </button>
-          <div className="tabs-right muted">
+          </span>
+          <div className="watch-toolbar-right muted">
             <span className="mono">rules v{snap.rules.version}</span>
             <span>A approve · R reject · W keep watching · Space pause</span>
           </div>
-        </nav>
+        </div>
         {snap.rules.error && (
           <div className="banner error" role="alert">
             <Icon name="alert" />
@@ -185,80 +178,76 @@ export default function App() {
         )}
       </div>
       <main>
-        {view === "watch" ? (
-          <div className={cls("watch", receiptsCollapsed && "receipts-collapsed")}>
-            <AlertBudget budget={snap.budget} texts={texts} />
-            <HarborMap
-              harbor={config.harbor}
-              rules={config.rules}
-              contacts={snap.contacts}
-              selected={selected}
-              onSelect={setSelected}
-              focus={focus}
-              layers={layers}
-            >
-              <div className="map-overlay top-left">
-                <div className="glass map-title" title={snap.scenario.description}>
-                  <strong>{snap.scenario.title}</strong>
-                </div>
+        <div className={cls("watch", receiptsCollapsed && "receipts-collapsed")}>
+          <WatchSummary budget={snap.budget} />
+          <HarborMap
+            harbor={config.harbor}
+            rules={config.rules}
+            contacts={snap.contacts}
+            selected={selected}
+            onSelect={setSelected}
+            focus={focus}
+            layers={layers}
+          >
+            <div className="map-overlay top-left">
+              <div className="glass map-title" title={snap.scenario.description}>
+                <strong>{snap.scenario.title}</strong>
               </div>
-              <div className="map-overlay top-right">
-                <div className="glass layer-toggles" role="group" aria-label="Map layers">
-                  {(Object.keys(layers) as (keyof Layers)[]).map((k) => (
-                    <button key={k} aria-pressed={layers[k]} onClick={() => setLayers((l) => ({ ...l, [k]: !l[k] }))}>
-                      {k[0].toUpperCase() + k.slice(1)}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="map-overlay bottom-right">
-                <div className="glass legend" aria-label="Legend">
-                  {RUNGS.map((r) => (
-                    <span key={r}>
-                      <i style={{ background: rungVar(r) }} />
-                      {texts.rungs[r].name}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              {selectedContact && (
-                <div className="map-overlay bottom-left">
-                  <Inspector
-                    contact={selectedContact}
-                    decision={latestDecision.get(selectedContact.id)}
-                    onClose={() => setSelected(null)}
-                  />
-                </div>
-              )}
-            </HarborMap>
-            <div className="rail">
-              <HandoffPanel
-                items={snap.items}
-                rules={config.rules}
-                activeId={active?.id ?? null}
-                onActive={setActiveItem}
-                onAct={act}
-                busy={busy}
-                quiet={snap.budget.quiet}
-              />
             </div>
-            <Receipts
-              receipts={receipts}
-              onSelect={setSelected}
-              collapsed={receiptsCollapsed}
-              onCollapse={(v) => {
-                setReceiptsCollapsed(v);
-                try {
-                  localStorage.setItem("qw-receipts", v ? "collapsed" : "open");
-                } catch {
-                  /* storage unavailable */
-                }
-              }}
+            <div className="map-overlay top-right">
+              <div className="glass layer-toggles" role="group" aria-label="Map layers">
+                {(Object.keys(layers) as (keyof Layers)[]).map((k) => (
+                  <button key={k} aria-pressed={layers[k]} onClick={() => setLayers((l) => ({ ...l, [k]: !l[k] }))}>
+                    {k[0].toUpperCase() + k.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="map-overlay bottom-right">
+              <div className="glass legend" aria-label="Legend">
+                {RUNGS.map((r) => (
+                  <span key={r}>
+                    <i style={{ background: rungVar(r) }} />
+                    {texts.rungs[r].name}
+                  </span>
+                ))}
+              </div>
+            </div>
+            {selectedContact && (
+              <div className="map-overlay bottom-left">
+                <Inspector
+                  contact={selectedContact}
+                  decision={latestDecision.get(selectedContact.id)}
+                  onClose={() => setSelected(null)}
+                />
+              </div>
+            )}
+          </HarborMap>
+          <div className="rail">
+            <HandoffPanel
+              items={snap.items}
+              rules={config.rules}
+              activeId={active?.id ?? null}
+              onActive={setActiveItem}
+              onAct={act}
+              busy={busy}
+              quiet={snap.budget.quiet}
             />
           </div>
-        ) : (
-          <TwistConsole config={config} snap={snap} history={history} toast={push} />
-        )}
+          <Receipts
+            receipts={receipts}
+            onSelect={setSelected}
+            collapsed={receiptsCollapsed}
+            onCollapse={(v) => {
+              setReceiptsCollapsed(v);
+              try {
+                localStorage.setItem("qw-receipts", v ? "collapsed" : "open");
+              } catch {
+                /* storage unavailable */
+              }
+            }}
+          />
+        </div>
       </main>
       <Toasts toasts={toasts} />
     </div>

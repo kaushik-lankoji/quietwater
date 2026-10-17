@@ -6,7 +6,6 @@ Working thing first, one live twist through a config edit, second customer last.
 
 - `make start` (production build on :8000) or `make dev`. Open the UI full-screen at 1920×1080, dark theme.
 - Open `config/rules.yaml` in an editor beside it, scrolled to `assets:` → `fuel-dock-b`.
-- Twist Console → Twist history should be empty or show only last night's twists. Revert anything you don't want on screen.
 - Scenario **Morning watch**, press **Replay** (↻) so it starts at 09:00:00, speed **2×**.
 - Fallback if the network or laptop misbehaves: everything is local. Restarting the server reloads the same seeded scenario.
 
@@ -31,7 +30,7 @@ Point at the ladder legend on the map: **Watch, Watch+, Ask, Slow, Hold, Hand of
 
 Scenario → **Flood (200 contacts)**, 5×.
 
-> "Spring bloom: 200 contacts. The bang is 200 alarms. The Alert Budget says **198 handled quietly, 2 need you**, and the officer's attention load stays inside budget."
+> "Spring bloom: 200 contacts. The contact summary shows how many are handled quietly and how many need a person."
 
 ## 2:40 – 3:50 · Live twist via a config edit
 
@@ -39,11 +38,9 @@ Back to **Morning watch** (Replay, 2×). Say the twist: *"Fuel Dock B on the wes
 
 1. In the editor, set `fuel-dock-b` → `active: true` and zone `west_fuel_b` → `critical: true`. Save.
 2. Toast: **Rules reloaded · v2**. Contact C-112, until now a *Slow* advisory to F/V Lucky Day, becomes **Hold + Hand off: pause fuel transfer at Fuel Dock B**.
-3. Twist Console → Twist history shows the file edit, the two field changes, and the replayed impact: **need you 2 → 3, C-112 R3 → R4+R5**.
+3. The contact summary updates as the new hand-off enters the queue. Open C-112's receipt to show why the decision changed.
 
-> "No code, no restart. Every twist tonight landed the same way, and here's the history."
-
-(If the editor is awkward on stage, use the **Fuel Dock B goes live** preset: same result with the diff shown before applying.)
+> "No code and no restart. The rules reload and every active contact is re-evaluated."
 
 ## 3:50 – 4:40 · The second customer: Quiet Tuesday
 
