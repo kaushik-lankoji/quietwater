@@ -20,8 +20,8 @@ Point at the radar: the green pulse sweeps out from the drone, and each contact 
 1. **Quiet by default.** Fish, debris and USC's registered REMUS-01 sit at *Watch*. C-106 far out gets *Look again*: two second looks, then up one rung to *Ask*. "It never loops forever."
 2. **C-107 drifts toward the fuel dock.** *Ask*, then the advisor raises it to *Slow* ("closing, silent to the hail, low confidence"; it's in the receipt), then **R4 Hold + R5 Hand off** once it is inside the band. It turns red; click it and the hand-off sheet slides in. Read it top to bottom:
    - *Summary:* unknown vehicle, no answer to the hail, near Fuel Dock A.
-   - *If you approve:* "1. Pause fuel transfer at Fuel Dock A: sends a hold request to terminal operations. 2. Notice to USCG: already drafted, you send it separately."
-   - Press **A**. "Approve means one thing: one operation pauses, not the harbor. The Coast Guard notice is a separate decision." Watch it go *Sending hold request* → *Hold active, 30:00*.
+   - *If you approve:* "1. Manage activity: hold this operation or the whole area, you choose. 2. Notice to USCG: already drafted, you send it separately."
+   - Click **Manage activity**. "I choose the scope: this one operation, or the whole area. The system recommends, I decide." Pick one and place the hold. "The Coast Guard notice is a separate decision." Watch it go *Sending hold request* → *Hold active, 30:00*.
    - (Open *What it is · what's ruled out* if a judge asks: not registered, didn't answer the hail, no device signature.)
 3. **C-108 evades** after the hail → the sheet opens on its own with an **URGENT** card and a 5-minute countdown. There's no hold to approve here, so the main button is **Review USCG notice**. "The Coast Guard alert is drafted. Quietwater never sends it. *I* press send." Press **Send to USCG**, then confirm **Send now**.
 4. Click a grey contact to open its receipt, toggle **Why not one rung higher or lower?**. "Every automated action keeps a receipt: why this rung, and why not one higher or lower."
