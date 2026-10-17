@@ -36,30 +36,6 @@ function summary(reason: string) {
   return first.length > 8 ? first : reason;
 }
 
-function Countdown({ item }: { item: HandoffItem }) {
-  const total = item.window_s ?? 1;
-  const left = item.remaining_s;
-  const over = left < 0;
-  const frac = over ? 1 : Math.max(0, Math.min(1, left / total));
-  const r = 16;
-  const c = 2 * Math.PI * r;
-  return (
-    <div className={cls("countdown", over && "overdue", !over && frac < 0.25 && "low")} aria-label={over ? `Overdue by ${mmss(left)}` : `${mmss(left)} left`}>
-      <svg width={38} height={38} viewBox="0 0 38 38" aria-hidden>
-        <circle cx={19} cy={19} r={r} className="countdown-track" />
-        <circle cx={19} cy={19} r={r} className="countdown-fill" strokeDasharray={c} strokeDashoffset={c * (1 - frac)} transform="rotate(-90 19 19)" />
-      </svg>
-      <div>
-        <div className="countdown-time">
-          {over ? "+" : ""}
-          {mmss(left)}
-        </div>
-        <div className="countdown-label">{over ? "overdue" : "to respond"}</div>
-      </div>
-    </div>
-  );
-}
-
 function Banner({ icon, tone, title, sub, children }: { icon: IconName; tone: "ok" | "warn" | "bad" | "info" | "busy"; title: string; sub: ReactNode; children?: ReactNode }) {
   return (
     <div className={cls("state-banner", tone)} role="status">
@@ -459,7 +435,6 @@ function Card({ item, rules, onAct, busy }: { item: HandoffItem; rules: RulesDat
               <UrgencyTag urgency={d.urgency} />
               {item.contact_lost && <span className="status-pill">lost on sonar</span>}
             </div>
-            {isWaiting(item) && <Countdown item={item} />}
           </div>
           <p className="handoff-summary">{summary(d.reason)}</p>
           <StateBanner item={item} rules={rules} />

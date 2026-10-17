@@ -1150,49 +1150,6 @@ select.field-input {
   color: var(--text-secondary);
 }
 
-.countdown {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.countdown svg circle {
-  fill: none;
-  stroke-width: 3;
-}
-
-.countdown-track {
-  stroke: var(--control-fill);
-}
-
-.countdown-fill {
-  stroke: var(--text-primary);
-  stroke-linecap: round;
-  transition: stroke-dashoffset 0.5s linear;
-}
-
-.countdown.low .countdown-fill {
-  stroke: var(--risk-mid);
-}
-
-.countdown.overdue .countdown-fill {
-  stroke: var(--risk-high);
-}
-
-.countdown-time {
-  font: 600 18px/1.1 var(--font-display);
-  font-variant-numeric: tabular-nums;
-}
-
-.countdown.overdue .countdown-time {
-  color: var(--risk-high);
-}
-
-.countdown-label {
-  font-size: 12px;
-  color: var(--text-tertiary);
-}
-
 .handoff-section {
   display: grid;
   gap: var(--space-4);
