@@ -690,7 +690,7 @@ kbd {
   display: flex;
   align-items: flex-start;
   gap: var(--space-3);
-  padding: var(--space-5) var(--space-5) var(--space-4);
+  padding: var(--space-6) var(--space-6) var(--space-5);
 }
 
 .sheet-title-block {
@@ -699,7 +699,7 @@ kbd {
 }
 
 .sheet-title {
-  font-size: 20px;
+  font-size: 26px;
   font-weight: 600;
 }
 
@@ -734,7 +734,7 @@ kbd {
 }
 
 .pane-top {
-  padding: 0 var(--space-5) var(--space-3);
+  padding: 0 var(--space-6) var(--space-4);
 }
 
 .pane-scroll {
@@ -742,13 +742,13 @@ kbd {
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 0 var(--space-5) var(--space-5);
+  padding: 0 var(--space-6) var(--space-6);
   scrollbar-width: thin;
   scrollbar-color: var(--control-fill-active) transparent;
 }
 
 .pane-foot {
-  padding: var(--space-4) var(--space-5) var(--space-5);
+  padding: var(--space-5) var(--space-6) var(--space-6);
   border-top: 1px solid var(--divider);
 }
 
@@ -1123,7 +1123,7 @@ select.field-input {
 
 .handoff {
   display: grid;
-  gap: var(--space-5);
+  gap: var(--space-6);
 }
 
 .handoff-top {
@@ -1195,8 +1195,8 @@ select.field-input {
 
 .handoff-section {
   display: grid;
-  gap: var(--space-3);
-  padding-top: var(--space-4);
+  gap: var(--space-4);
+  padding-top: var(--space-5);
   border-top: 1px solid var(--divider);
 }
 
@@ -1244,7 +1244,7 @@ select.field-input {
 .decide {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: var(--space-2);
+  gap: var(--space-4);
 }
 
 .decide-head {
@@ -1268,8 +1268,8 @@ select.field-input {
 
 .handoff-actions {
   display: grid;
-  gap: var(--space-2);
-  margin-top: var(--space-2);
+  gap: var(--space-3);
+  margin-top: var(--space-3);
 }
 
 .handoff-actions .btn.primary {
@@ -1287,7 +1287,7 @@ select.field-input {
 .handoff-secondary {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--space-2);
+  gap: var(--space-3);
 }
 
 .resolved {
@@ -2139,7 +2139,7 @@ input[type="range"] {
 }
 
 .contact-title {
-  font: 600 20px/1.2 var(--font-display);
+  font: 600 24px/1.2 var(--font-display);
 }
 
 .handoff-summary {

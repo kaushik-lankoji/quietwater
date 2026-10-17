@@ -174,8 +174,6 @@ export default function App() {
   }
 
   const recovery = snap.mode === "recovery";
-  const pending = queue.filter(isWaiting).length;
-  const automated = receipts.filter((r) => r.automated).length;
 
   return (
     <div className="app">
@@ -207,18 +205,17 @@ export default function App() {
         open={sheet === "handoff"}
         flush
         title="Needs you"
-        meta={`${pending} waiting · ${snap.budget.quiet} handled quietly`}
         actions={<QueueNav queue={queue} active={active} onActive={setActiveItem} />}
         onClose={() => setSheet(null)}
       >
         <HandoffSheetBody active={active} rules={config.rules} onAct={act} busy={busy} quiet={snap.budget.quiet} />
       </Sheet>
 
-      <Sheet open={sheet === "receipts"} flush title="Decision receipts" meta={`${receipts.length} logged · ${automated} automated`} onClose={() => setSheet(null)}>
+      <Sheet open={sheet === "receipts"} flush title="Decision receipts" onClose={() => setSheet(null)}>
         <ReceiptsSheetBody receipts={receipts} focus={receiptFocus} onFocus={setReceiptFocus} />
       </Sheet>
 
-      <Sheet open={sheet === "twist"} title="Twist Console" meta={`Live rules v${config.version} · no code, no restart`} onClose={() => setSheet(null)}>
+      <Sheet open={sheet === "twist"} title="Twist Console" onClose={() => setSheet(null)}>
         <TwistConsole config={config} snap={snap} history={history} toast={push} />
       </Sheet>
 
