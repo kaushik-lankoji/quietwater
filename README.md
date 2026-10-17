@@ -12,11 +12,13 @@ Built for the Dual-Use Hackathon (InnovateLA at USC, Marine track with NULL Syst
 
 | Screen | What it answers |
 | --- | --- |
-| **Harbor map** | Every contact, coloured by rung, with trails, zones (critical ones hatched), assets, traffic, and a dashed line to the asset that makes a hand-off urgent. |
-| **Needs you** (hand-off) | In two seconds: *What is it?* (label, confidence, size, speed, heading, lat/lon, distance to asset). *What's been ruled out?* (a checklist). *What am I asked to do?* (one recommendation, big **Approve / Reject / Keep watching**, keys A / R / W). Urgency tag, response-window countdown, one-line reason, and a drafted alert you send yourself. |
-| **Contact summary** | Shows how many contacts were handled quietly and how many hand-offs currently need a person. |
-| **Decision receipts** | Every decision with its one-line reason. Toggle **Why not one rung higher / lower?** for the counterfactual, the S-path, and the full checklist. Export the audit log as JSON or CSV. |
-| **Quiet Tuesday** | One switch turns the same engine into lost-research-vehicle recovery for the second customer. |
+| **Sonar radar** | The whole screen. The drone sits at the centre; a green pulse sweeps out every 4 s and contacts appear as it passes them. Grey is low risk, yellow medium, red high (red ripples). Hover a contact for its label, confidence, distance, bearing, speed, heading, rung and reason. Click it to open its hand-off (R4/R5) or its decision receipt. |
+| **Alert Budget** (top left) | How many contacts need you and how many were handled quietly, plus the scenario picker and harbor clock. Click it to open the hand-off sheet. |
+| **Needs you** (hand-off sheet) | In two seconds: *What is it?* (label, confidence, size, speed, heading, lat/lon, distance to asset). *What's been ruled out?* (a checklist). *What am I asked to do?* (one recommendation and big **Approve / Reject / Keep watching** buttons, A to approve). Urgency tag, response-window countdown, one-line reason, and a drafted alert you send yourself. Opens on its own for urgent items. |
+| **Decision receipts** | Every decision with its one-line reason. Toggle **Why not one rung higher or lower?** for the counterfactual, the S-path, and the full checklist. Export the audit log as JSON or CSV. |
+| **Twist Console** | Presets and form editors for thresholds, rungs, zones and schedules, a before/after replay diff, apply live, and a revertible history. |
+| **Control dock** | Pause/resume (Space), Replay (R), Flood (F), Twist (T), Receipts, and speed. |
+| **Dual-use** (top right) | One switch turns the same engine into lost-research-vehicle recovery for the second customer. |
 
 ## Run it
 
@@ -51,7 +53,7 @@ flowchart LR
   RY --> EN
   FA --> EN["Rules engine<br/>S0–S5 decision tree<br/>reason · ruled-out · why-not"]
   EN --> HUB["Hub<br/>receipts · hand-off queue<br/>audit log"]
-  HUB -- "SSE /api/stream" --> UI["React UI<br/>map · hand-off · contact summary<br/>receipts"]
+  HUB -- "SSE /api/stream" --> UI["React UI<br/>sonar radar · hand-off<br/>receipts · Twist Console"]
   UI -- "approve / reject / watch / send" --> HUB
 ```
 
@@ -117,7 +119,7 @@ Scenarios, archetypes and the mock classifier's behaviour live in `config/scenar
 
 ## Second customer
 
-**USC Wrigley Marine Lab, on a quiet Tuesday.** At 07:31 their REMUS-02 loses comms during a sediment survey. The lab calls the harbor office. The watch officer flips **Quiet Tuesday**. The same sonar feed, classifier, consequence model and ladder now answer a different question: *is this ours, and where is it drifting?*
+**USC Wrigley Marine Lab, on a quiet Tuesday.** At 07:31 their REMUS-02 loses comms during a sediment survey. The lab calls the harbor office. The watch officer flips the **Dual-use** switch. The same sonar feed, classifier, consequence model and ladder now answer a different question: *is this ours, and where is it drifting?*
 
 - R1 **Re-scan** possible matches, capped like any second look.
 - R2 **Ping** the acoustic modem.
@@ -168,7 +170,7 @@ config/            rules.yaml (hot-reloaded), scenarios.yaml, harbor.yaml, twist
 backend/app/       rules.py (schema, store, ops) · facts.py · engine.py · classifier.py
                    simulator.py · session.py · twists.py · hub.py · main.py
 backend/tests/     engine, rules/sim, API
-frontend/src/      App, components (HarborMap, HandoffPanel, WatchSummary, Receipts…)
+frontend/src/      App, radar/ (canvas engine), components (Radar, HandoffSheet, ReceiptsSheet, TwistConsole…), styles/tokens.css
 data/              twist_history.json (created at runtime, git-ignored)
 ```
 
