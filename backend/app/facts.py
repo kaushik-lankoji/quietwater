@@ -60,6 +60,11 @@ class Facts:
     improvised: bool = False
     traffic: list[str] = field(default_factory=list)
     trail: list[tuple[float, float, float, float, float]] = field(default_factory=list)
+    scan_label: str = "unknown"
+    trend: str = "new"
+    closing_mps: float = 0.0
+    cpa: dict[str, Any] | None = None
+    consequence_basis: str = "distance"
 
 
 def clock_at(start: str, t: float) -> str:
@@ -97,6 +102,60 @@ def assess_consequence(rules: Rules, p: tuple[float, float]) -> tuple[str, Asset
         if level > best_level or (level == best_level and level > 0 and d < best_ref.distance_m):
             best_level, best_ref = level, ref
     return LEVELS[best_level], best_ref or nearest_ref
+
+
+def _level(rules: Rules, kind: str, d: float) -> int:
+    band = rules.band_for(kind)
+    return 2 if d <= band.high_m else 1 if d <= band.medium_m else 0
+
+
+def closest_approach(rules: Rules, p: tuple[float, float], heading: float, speed: float) -> dict[str, Any] | None:
+    cfg = rules.consequence.cpa
+    if cfg.horizon_s <= 0 or speed <= 0:
+        return None
+    steps = int(cfg.horizon_s // cfg.step_s)
+    path = [project(p, heading, speed, k * cfg.step_s) for k in range(steps + 1)]
+    best = None
+    for asset in rules.assets:
+        if not asset.active:
+            continue
+        d, k = min((distance_to(q, asset.shape), k) for k, q in enumerate(path))
+        level = _level(rules, asset.kind, d)
+        rank = (level, -d)
+        if best is None or rank > best[0]:
+            best = (rank, {"asset": AssetRef(asset.id, asset.name, asset.kind, asset.operation,
+                                              distance_to(p, asset.shape)),
+                           "distance_m": round(d), "in_s": round(k * cfg.step_s), "level": LEVELS[level]})
+    return best[1] if best else None
+
+
+def assess_trend(rules: Rules, trail, position: tuple[float, float], speed: float, now: float,
+                 asset: AssetRef | None) -> tuple[str, float]:
+    cfg = rules.trend
+    window = [s for s in trail if s[0] >= now - cfg.window_s]
+    if len(window) < 3 or window[-1][0] - window[0][0] < cfg.window_s * 0.9:
+        return "new", 0.0
+    turned = sum(angle_diff(a[3], b[3]) for a, b in zip(window, window[1:], strict=False))
+    shape = next((a.shape for a in rules.assets if asset and a.id == asset.id), None)
+    rate = 0.0
+    if shape is not None:
+        span = now - window[0][0]
+        rate = (distance_to(position, shape) - distance_to((window[0][1], window[0][2]), shape)) / span
+    if turned >= cfg.loiter_turn_deg or speed <= cfg.loiter_speed_mps:
+        return "loitering", round(rate, 3)
+    if rate <= -cfg.closing_mps:
+        return "closing", round(rate, 3)
+    if rate >= cfg.closing_mps:
+        return "leaving", round(rate, 3)
+    return "steady", round(rate, 3)
+
+
+def coarse_label(rules: Rules, label: str, category: str, confidence: float) -> str:
+    if category == "non_vehicle":
+        return "marine_life" if label == "biologic" else "debris"
+    if category in ("research", "commercial") and confidence >= rules.thresholds.classify_confidence:
+        return "known_vehicle"
+    return "unknown"
 
 
 def find_approach(rules: Rules, p: tuple[float, float], heading: float, speed: float) -> AssetRef | None:
@@ -170,6 +229,14 @@ def derive_facts(*, contact_id: str, t: float, clock: str, position: tuple[float
     consistent, consistency_note = check_consistency(
         rules, entry, classification.label, size_m, speed_mps, signature, hail)
     consequence, nearest = assess_consequence(rules, position)
+    basis = "distance"
+    cpa = None
+    if category != "non_vehicle":
+        cpa = closest_approach(rules, position, heading, speed_mps)
+        cap = LEVELS.index(rules.consequence.cpa.raise_to)
+        if cpa and min(LEVELS.index(cpa["level"]), cap) > LEVELS.index(consequence):
+            consequence, nearest, basis = LEVELS[min(LEVELS.index(cpa["level"]), cap)], cpa["asset"], "cpa"
+    trend, closing = assess_trend(rules, trail, position, speed_mps, t, (cpa or {}).get("asset") or nearest)
     evasive, evasion_note = detect_evasion(rules, trail, hailed_t, t)
     if scripted_evasive and not evasive:
         evasive, evasion_note = True, "evading the investigation"
@@ -191,6 +258,10 @@ def derive_facts(*, contact_id: str, t: float, clock: str, position: tuple[float
         hostile=hostile, evasive=evasive, evasion_note=evasion_note,
         improvised=category == "improvised" and classification.confidence >= rules.thresholds.improvised_confidence,
         traffic=traffic, trail=list(trail),
+        scan_label=coarse_label(rules, classification.label, category, classification.confidence),
+        trend=trend, closing_mps=closing,
+        cpa={k: (v.as_dict() if isinstance(v, AssetRef) else v) for k, v in cpa.items()} if cpa else None,
+        consequence_basis=basis,
     )
 
 

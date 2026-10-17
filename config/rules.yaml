@@ -32,6 +32,7 @@ consequence:
     ship: {high_m: 120, medium_m: 350}
     cable: {high_m: 60, medium_m: 200}
     dive_area: {high_m: 150, medium_m: 400}
+  cpa: {horizon_s: 120, step_s: 5, raise_to: medium}
 
 approach:
   radius_m: 300
@@ -47,6 +48,12 @@ hail:
   timeout_s: 10
 
 traffic_radius_m: 400
+
+trend:
+  window_s: 30
+  closing_mps: 0.05
+  loiter_turn_deg: 75
+  loiter_speed_mps: 0.03
 
 consistency:
   size_tolerance_m: 0.5
@@ -206,8 +213,8 @@ modes:
     handoff_target: USCG Sector Los Angeles-Long Beach
     rungs:
       R0: {name: Watch, action: "Log it and keep watching."}
-      R1: {name: Watch+, action: "Second look on the next sonar pass ({look} of {max_looks})."}
-      R2: {name: Ask, action: "Hail on acoustic modem and VHF 16; request ID."}
+      R1: {name: Look again, action: "Second look on the next sonar pass ({look} of {max_looks})."}
+      R2: {name: Ask, action: "Hail on {hail_channel}; request ID."}
       R3: {name: Slow, action: "Advise {vessels} to slow to 5 kn."}
       R4: {name: Hold, action: "Pause {operation} at {asset}."}
       R5: {name: Hand off, action: "Hand the package to {target}. Alert is drafted; you press send."}
@@ -222,3 +229,75 @@ modes:
       R3: {name: Notify traffic, action: "Tell {vessels} a drifting AUV is in their path."}
       R4: {name: Hold lane, action: "Pause {operation} at {asset} until the vehicle is recovered."}
       R5: {name: Recover, action: "Send last fix and drift to {target}; recovery boat on your go."}
+
+advisor:
+  enabled: true
+  backend: rule
+  max_raise: 1
+  raise_at: 0.6
+  second_look_at: 0.35
+  timeout_s: 3.0
+  weights: {low_confidence: 0.3, silent: 0.2, closing: 0.3, loitering: 0.15, anomaly: 0.4, inconsistent: 0.3,
+            medium_consequence: 0.1}
+  anomaly: {non_vehicle_max_size_m: 2.5, non_vehicle_max_speed_mps: 1.5}
+  llm:
+    provider: anthropic
+    model: claude-haiku-5-5
+    api_key_env: ANTHROPIC_API_KEY
+    timeout_s: 2.5
+    max_tokens: 200
+
+jurisdiction: la
+
+jurisdictions:
+  la:
+    name: Port of Los Angeles
+    registry_source: Port of LA research and survey registry
+    notice_recipient: USCG Sector Los Angeles-Long Beach
+    hail_channel: acoustic modem and VHF 16
+    language: en
+  singapore:
+    name: Port of Singapore
+    registry_source: MPA underwater works permits
+    notice_recipient: MPA Port Operations Control Centre
+    hail_channel: acoustic modem and VHF 12 (Port Operations)
+    language: en
+    windows_s: {urgent: 180, hold_handoff: 1200, default: 600}
+    registry:
+      - id: NUS-AUV-3
+        operator: NUS Tropical Marine Science Institute
+        vehicle_type: research_auv
+        size_m: 1.8
+        signature: bluefin-9
+        authorized_zones: [research_box]
+        schedule:
+          - {start: "08:00", end: "18:00"}
+  eu:
+    name: Port of Rotterdam
+    registry_source: Havenbedrijf Rotterdam permit register
+    notice_recipient: Kustwacht Nederland
+    hail_channel: acoustic modem and VHF 11 (Rotterdam traffic)
+    language: nl
+    windows_s: {urgent: 240, hold_handoff: 1500, default: 900}
+    registry:
+      - id: RWS-ROV-2
+        operator: Rijkswaterstaat
+        vehicle_type: commercial_rov
+        size_m: 1.2
+        signature: saab-seaeye
+        authorized_zones: [dive_zone]
+        schedule:
+          - {start: "07:00", end: "19:00"}
+    notice:
+      to: AAN
+      sender: VAN
+      subject_unknown: Onbekend onderwatervoertuig
+      subject_found: gevonden
+      contact: contact
+      why: Reden
+      ruled_out: Uitgesloten
+      nothing_yet: nog niets
+      steps: Genomen stappen
+      none: geen
+      recommended: Aanbevolen
+      closing: Er is geen fysieke actie ondernomen. De volgende stap is aan u.

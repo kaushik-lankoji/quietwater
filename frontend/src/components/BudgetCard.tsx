@@ -7,6 +7,7 @@ export function BudgetCard({
   budget,
   clock,
   scenario,
+  seed,
   scenarios,
   link,
   onScenario,
@@ -15,12 +16,14 @@ export function BudgetCard({
   budget: Budget;
   clock: string;
   scenario: string;
+  seed: number;
   scenarios: ScenarioInfo[];
   link: Link;
   onScenario: (id: string) => void;
   onOpen: () => void;
 }) {
   const hot = budget.need_you > 0;
+  const random = scenarios.find((s) => s.id === scenario)?.random;
   return (
     <section className="budget glass" aria-label="Alert budget">
       <button type="button" className={cls("budget-main", hot && "hot")} onClick={onOpen} aria-label={`${budget.need_you} need you. Open hand-off`}>
@@ -45,6 +48,7 @@ export function BudgetCard({
         </label>
         <span className={cls("budget-clock", link !== "live" && "lost")}>{link === "live" ? clock : "Reconnecting"}</span>
       </div>
+      {random && <div className="budget-seed">Seed {seed} · R replays it</div>}
     </section>
   );
 }

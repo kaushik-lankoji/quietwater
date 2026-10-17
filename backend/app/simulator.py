@@ -54,6 +54,16 @@ class SimContact:
         return "pending" if age < timeout_s else "none"
 
 
+def is_water(harbor: dict[str, Any], p: tuple[float, float]) -> bool:
+    b = harbor["bounds"]
+    if not (0 <= p[0] <= b["w"] and 0 <= p[1] <= b["h"]):
+        return False
+    if any(point_in_polygon(p, poly) for poly in harbor["land"]):
+        return False
+    return not any(pr["x"] <= p[0] <= pr["x"] + pr["w"] and pr["y"] <= p[1] <= pr["y"] + pr["h"]
+                   for pr in harbor.get("piers", []))
+
+
 class Simulator:
     def __init__(self, scenario: dict[str, Any], catalog: dict[str, Any], harbor: dict[str, Any],
                  seed: int | None = None):
@@ -133,13 +143,7 @@ class Simulator:
         return areas[0][0] + areas[0][2] / 2, areas[0][1] + areas[0][3] / 2
 
     def is_water(self, p: tuple[float, float]) -> bool:
-        b = self.harbor["bounds"]
-        if not (0 <= p[0] <= b["w"] and 0 <= p[1] <= b["h"]):
-            return False
-        if any(point_in_polygon(p, poly) for poly in self.harbor["land"]):
-            return False
-        return not any(pr["x"] <= p[0] <= pr["x"] + pr["w"] and pr["y"] <= p[1] <= pr["y"] + pr["h"]
-                       for pr in self.harbor.get("piers", []))
+        return is_water(self.harbor, p)
 
     def step(self, dt: float) -> None:
         self.t = round(self.t + dt, 3)

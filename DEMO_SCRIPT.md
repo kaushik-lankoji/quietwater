@@ -13,12 +13,12 @@ Working thing first, one live twist through a config edit, second customer last.
 
 > "Detecting a small underwater vehicle in a harbor is getting cheap. Handling one isn't. Today the answer is the bang: every sonar hit is an alarm, everyone gets called, the fuel dock stops. Quietwater is the layer between *seen* and *handled*. It finds the gentlest response that works."
 
-Point at the radar: the green pulse sweeps out from the drone, and each contact lights up grey, yellow or red as it is found. The ladder is **Watch, Watch+, Ask, Slow, Hold, Hand off**.
+Point at the radar: the green pulse sweeps out from the drone, and each contact lights up grey, yellow or red as it is found. The ladder is **Watch, Look again, Ask, Slow, Hold, Hand off**.
 
 ## 0:30 – 2:00 · The working thing (Morning watch)
 
-1. **Quiet by default.** Fish, debris and USC's registered REMUS-01 sit at *Watch*. C-106 far out gets *Watch+*: two second looks, then up one rung to *Ask*. "It never loops forever."
-2. **C-107 drifts toward the fuel dock.** *Ask* → **R4 Hold + R5 Hand off**. It turns red; click it and the hand-off sheet slides in. Read it top to bottom:
+1. **Quiet by default.** Fish, debris and USC's registered REMUS-01 sit at *Watch*. C-106 far out gets *Look again*: two second looks, then up one rung to *Ask*. "It never loops forever."
+2. **C-107 drifts toward the fuel dock.** *Ask*, then the advisor raises it to *Slow* ("closing, silent to the hail, low confidence"; it's in the receipt), then **R4 Hold + R5 Hand off** once it is inside the band. It turns red; click it and the hand-off sheet slides in. Read it top to bottom:
    - *What is it:* unknown vehicle, 45%, 199 m from Fuel Dock A.
    - *What's ruled out:* not registered, didn't answer the hail, no device signature, not closing, not evading.
    - *What am I asked to do:* "Pause fuel transfer at Fuel Dock A, then hand off."
@@ -60,6 +60,7 @@ Flip the **Dual-use** switch (top right).
 ## If a judge asks
 
 - *What decides alone vs. with a person?* R0–R3 automatic; Hold and Hand off always need a person. That floor is enforced in the schema.
-- *What if confidence is high but it's far away?* Stays at Watch+. Confidence alone never escalates.
+- *What if confidence is high but it's far away?* Stays at Look again. Confidence alone never escalates.
 - *Model?* The classifier is an interface. The mock is scripted; a real sonar model plugs in behind the same interface.
+- *Where's the AI?* A narrow advisor reviews only ambiguous contacts. It can raise or ask for another look, never lower, and never touches hard triggers. It runs offline by default; an LLM backend is one config line and falls back safely.
 - *Physical response?* Out of scope by design. We stop at the hand-off.
