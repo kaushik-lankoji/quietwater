@@ -529,7 +529,8 @@ def advise_decision(f: Facts, mem: Memory, rules: Rules, mode: str, d: Decision,
     c.path = list(d.path) + ["AI"]
     rungs, outcome = list(d.rungs), d.outcome
     loop = rules.loop
-    if second_look and rung_index(d.rung) < rung_index("R1"):
+    extra = raise_by
+    if rung_index(d.rung) < rung_index("R1") and (raise_by > 0 or second_look):
         if mem.second_looks >= loop.max_second_looks:
             rungs, outcome = _shift(["R1"], loop.escalate_by), "advisor_look_escalated"
         else:
@@ -539,9 +540,11 @@ def advise_decision(f: Facts, mem: Memory, rules: Rules, mode: str, d: Decision,
                 mem.second_looks += 1
                 mem.next_look_t = f.t + loop.interval_s
             rungs, outcome = ["R1"], "advisor_second_look"
-    if raise_by > 0:
-        rungs = _shift(rungs, raise_by)
-        outcome = f"{d.outcome}_raised" if outcome == d.outcome else outcome
+        extra = max(0, raise_by - 1)
+    if extra > 0:
+        rungs = _shift(rungs, extra)
+        if outcome == d.outcome:
+            outcome = f"{d.outcome}_raised"
     if rung_index(rungs[-1]) <= rung_index(d.rung) and outcome == d.outcome:
         return d
     return _finish(c, outcome, rungs, f"{d.reason} Advisor: {note}",
