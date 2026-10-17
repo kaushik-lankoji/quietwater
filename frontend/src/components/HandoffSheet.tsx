@@ -168,7 +168,7 @@ function Evidence({ item, rules }: { item: HandoffItem; rules: RulesData }) {
   return (
     <details className="evidence">
       <summary>
-        <span>What it is · what&rsquo;s ruled out</span>
+        <span>Details</span>
         <span className="chev">
           <Icon name="chevronDown" size={16} />
         </span>
