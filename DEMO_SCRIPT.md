@@ -4,7 +4,7 @@ Working thing first, one live twist through a config edit, second customer last.
 
 ## Before you go on (2 minutes)
 
-- `make start` (production build on :8000) or `make dev`. Open the UI full-screen at 1920×1080, dark theme.
+- `make start` (production build on :8000) or `make dev`. Open the UI full-screen at 1920×1080.
 - Open `config/rules.yaml` in an editor beside it, scrolled to `assets:` → `fuel-dock-b`.
 - Scenario **Morning watch**, press **Replay** (↻) so it starts at 09:00:00, speed **2×**.
 - Fallback if the network or laptop misbehaves: everything is local. Restarting the server reloads the same seeded scenario.
@@ -61,5 +61,5 @@ Flip **Quiet Tuesday**.
 
 - *What decides alone vs. with a person?* R0–R3 automatic; Hold and Hand off always need a person. That floor is enforced in the schema.
 - *What if confidence is high but it's far away?* Stays at Watch+. Confidence alone never escalates.
-- *Model?* The classifier is an interface. The mock is scripted; `PretrainedClassifier` is the adapter for a real sonar model.
+- *Model?* The classifier is an interface. The mock is scripted; a real sonar model plugs in behind the same interface.
 - *Physical response?* Out of scope by design. We stop at the hand-off.

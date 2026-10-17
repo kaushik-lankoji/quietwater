@@ -24,7 +24,7 @@ log = logging.getLogger("quietwater")
 
 OPEN = ("pending", "watching")
 DEFAULT_SCENARIO = {"security": "harbor_morning", "recovery": "lost_vehicle"}
-SPEEDS = (0.5, 1, 2, 5, 10)
+SPEEDS = (1, 2, 5)
 
 
 def now_iso() -> str:
@@ -134,9 +134,6 @@ class Hub:
                 self.running = True
             elif action == "pause":
                 self.running = False
-            elif action == "step":
-                self.running = False
-                self._advance(self.tick_s * max(self.speed, 1))
             elif action == "restart":
                 self.load_scenario(self.session.scenario_name, self.session.seed, actor=actor, mode=self.mode)
                 self.running = True

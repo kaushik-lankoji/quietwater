@@ -12,7 +12,7 @@ Built for the Dual-Use Hackathon (InnovateLA at USC, Marine track with NULL Syst
 
 | Screen | What it answers |
 | --- | --- |
-| **Harbor map** | Every contact, coloured by rung, with trails, zones (critical ones hatched), assets, traffic, and a dashed line to the asset that makes a hand-off urgent. Wheel to zoom, drag to pan. |
+| **Harbor map** | Every contact, coloured by rung, with trails, zones (critical ones hatched), assets, traffic, and a dashed line to the asset that makes a hand-off urgent. |
 | **Needs you** (hand-off) | In two seconds: *What is it?* (label, confidence, size, speed, heading, lat/lon, distance to asset). *What's been ruled out?* (a checklist). *What am I asked to do?* (one recommendation, big **Approve / Reject / Keep watching**, keys A / R / W). Urgency tag, response-window countdown, one-line reason, and a drafted alert you send yourself. |
 | **Contact summary** | Shows how many contacts were handled quietly and how many hand-offs currently need a person. |
 | **Decision receipts** | Every decision with its one-line reason. Toggle **Why not one rung higher / lower?** for the counterfactual, the S-path, and the full checklist. Export the audit log as JSON or CSV. |
@@ -43,9 +43,9 @@ The demo starts on its own with seeded data ("Morning watch"). If port 5173 is t
 ```mermaid
 flowchart LR
   subgraph SIM["Simulator (mock sonar)"]
-    SC["Scripted scenarios<br/>random generator<br/>200-contact flood"]
+    SC["Scripted scenarios<br/>200-contact flood"]
   end
-  SC --> CL["Classifier interface<br/>MockClassifier · PretrainedClassifier adapter"]
+  SC --> CL["Classifier interface<br/>MockClassifier"]
   CL --> FA["Facts<br/>identity · schedule · zone · hail<br/>consequence · approach · evasion · traffic"]
   RY[("config/rules.yaml<br/>hot-reloaded")] --> FA
   RY --> EN
@@ -154,8 +154,8 @@ make test
 | --- | --- | --- |
 | GET | `/api/stream` | SSE: `hello` (full state), `tick` (2 Hz), `history` |
 | GET | `/api/state` · `/api/config` · `/api/rules` | Snapshot, map + rules + scenarios + presets, raw YAML |
-| POST | `/api/sim/control` | `{action: play|pause|step|restart|speed, speed?}` |
-| POST | `/api/sim/scenario` · `/api/mode` | Load a scenario (optional seed) · switch security / recovery |
+| POST | `/api/sim/control` | `{action: play|pause|restart|speed, speed?}` |
+| POST | `/api/sim/scenario` · `/api/mode` | Load a scenario · switch security / recovery |
 | POST | `/api/handoff/{id}` | `{action: approve|reject|watch|send, operator, note?}` |
 | POST | `/api/twist/preview` · `/api/twist/apply` | `{ops | rules | yaml, scenario?, title, note}` |
 | GET / POST | `/api/twist/history` · `/api/twist/revert/{id}` | Persisted twist log · revert |

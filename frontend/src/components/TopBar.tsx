@@ -3,14 +3,12 @@ import type { Config, Snapshot } from "../types";
 import type { Link } from "../useLive";
 import { Icon, Logo } from "./Icon";
 
-const SPEEDS = [0.5, 1, 2, 5, 10];
+const SPEEDS = [1, 2, 5];
 
 export function TopBar({
   snap,
   config,
   link,
-  theme,
-  onTheme,
   onControl,
   onScenario,
   onMode,
@@ -18,22 +16,18 @@ export function TopBar({
   snap: Snapshot;
   config: Config;
   link: Link;
-  theme: "dark" | "light";
-  onTheme: () => void;
   onControl: (action: string, speed?: number) => void;
-  onScenario: (id: string, seed?: number) => void;
+  onScenario: (id: string) => void;
   onMode: (recovery: boolean) => void;
 }) {
   const recovery = snap.mode === "recovery";
   const modeText = config.rules.modes[snap.mode];
-  const progress = Math.min(100, (snap.t / snap.scenario.duration_s) * 100);
   return (
     <header className="topbar">
       <div className="brand">
         <Logo />
         <div>
           <div className="brand-name">Quietwater</div>
-          <div className="brand-tag">The gentlest response that works</div>
         </div>
       </div>
       <span className="mode-chip" title={modeText.customer}>
@@ -52,12 +46,9 @@ export function TopBar({
         ))}
       </select>
       <span className="topbar-spacer" />
-      <div className="clock-block" aria-label={`Harbor time ${snap.clock}`}>
-        <span className="clock">{snap.clock}</span>
-        <span className="progress" aria-hidden>
-          <span style={{ width: `${progress}%` }} />
-        </span>
-      </div>
+      <span className="clock" aria-label={`Harbor time ${snap.clock}`}>
+        {snap.clock}
+      </span>
       <div className="controls">
         <button
           className="btn icon-only"
@@ -67,22 +58,9 @@ export function TopBar({
         >
           <Icon name={snap.running ? "pause" : "play"} />
         </button>
-        <button className="btn icon-only" onClick={() => onControl("step")} aria-label="Step" title="Step">
-          <Icon name="step" />
-        </button>
         <button className="btn icon-only" onClick={() => onControl("restart")} aria-label="Replay from start" title="Replay from start">
           <Icon name="replay" />
         </button>
-        {snap.scenario.id === "random" && (
-          <button
-            className="btn icon-only"
-            onClick={() => onScenario("random", Math.floor(Math.random() * 100000))}
-            aria-label="New random seed"
-            title="New random seed"
-          >
-            <Icon name="shuffle" />
-          </button>
-        )}
         <div className="segmented" role="group" aria-label="Speed">
           {SPEEDS.map((s) => (
             <button key={s} aria-pressed={snap.speed === s} onClick={() => onControl("speed", s)}>
@@ -100,9 +78,6 @@ export function TopBar({
       >
         <span className="track" />
         Quiet Tuesday
-      </button>
-      <button className="btn icon-only ghost" onClick={onTheme} aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}>
-        <Icon name={theme === "dark" ? "sun" : "moon"} />
       </button>
       <span className={cls("link-dot", link)}>{link === "live" ? "live" : link === "lost" ? "reconnecting" : "connecting"}</span>
     </header>

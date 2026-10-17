@@ -1,8 +1,7 @@
-import { memo, useCallback, useEffect, useMemo, useRef, useState, type ReactNode, type SVGProps } from "react";
+import { memo, useMemo, useRef, useState, type ReactNode, type SVGProps } from "react";
 import { cls, nearestPoint, pct, rungVar } from "../format";
 import type { Asset, AssetRef, Contact, Harbor, Point, RulesData, Shape, Zone } from "../types";
 import { RungChip } from "./bits";
-import { Icon } from "./Icon";
 
 const VIEW = { x: 150, y: 140, w: 1850, h: 1180 };
 
@@ -333,40 +332,8 @@ export function HarborMap({
   children,
 }: Props) {
   const wrap = useRef<HTMLDivElement>(null);
-  const svg = useRef<SVGSVGElement>(null);
   const [hover, setHover] = useState<{ c: Contact; x: number; y: number } | null>(null);
   const mouse = useRef<[number, number]>([0, 0]);
-  const [vb, setVb] = useState(VIEW);
-  const drag = useRef<{ x: number; y: number; vb: typeof VIEW; moved: boolean } | null>(null);
-
-  const scale = useCallback(() => {
-    const r = svg.current?.getBoundingClientRect();
-    return r ? Math.max(vb.w / r.width, vb.h / r.height) : 1;
-  }, [vb]);
-
-  const zoom = useCallback((factor: number, at?: [number, number]) => {
-    setVb((v) => {
-      const w = Math.min(VIEW.w * 1.3, Math.max(320, v.w * factor));
-      const h = (w * VIEW.h) / VIEW.w;
-      const [cx, cy] = at ?? [v.x + v.w / 2, v.y + v.h / 2];
-      return { x: cx - ((cx - v.x) * w) / v.w, y: cy - ((cy - v.y) * h) / v.h, w, h };
-    });
-  }, []);
-
-  useEffect(() => {
-    const el = svg.current;
-    if (!el || compact) return;
-    const onWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      const ctm = el.getScreenCTM();
-      if (!ctm) return;
-      const pt = new DOMPoint(e.clientX, e.clientY).matrixTransform(ctm.inverse());
-      zoom(e.deltaY > 0 ? 1.12 : 1 / 1.12, [pt.x, pt.y]);
-    };
-    el.addEventListener("wheel", onWheel, { passive: false });
-    return () => el.removeEventListener("wheel", onWheel);
-  }, [zoom, compact]);
-
   const focusContact = focus ? contacts.find((c) => c.id === focus.contactId) : undefined;
   const focusAsset = focus?.asset ? rules.assets.find((a) => a.id === focus.asset!.id) : undefined;
   const focusLine = useMemo(() => {
@@ -392,32 +359,9 @@ export function HarborMap({
       style={compact ? { borderRadius: 10, border: "1px solid var(--border)", height: 280 } : undefined}
     >
       <svg
-        ref={svg}
         className="map-svg"
-        viewBox={`${vb.x} ${vb.y} ${vb.w} ${vb.h}`}
+        viewBox={`${VIEW.x} ${VIEW.y} ${VIEW.w} ${VIEW.h}`}
         preserveAspectRatio="xMidYMid meet"
-        style={{ cursor: drag.current?.moved ? "grabbing" : compact ? "default" : "grab" }}
-        onPointerDown={(e) => {
-          if (compact || e.button !== 0) return;
-          drag.current = { x: e.clientX, y: e.clientY, vb, moved: false };
-        }}
-        onPointerMove={(e) => {
-          const d = drag.current;
-          if (!d) return;
-          const dx = e.clientX - d.x;
-          const dy = e.clientY - d.y;
-          if (!d.moved && Math.hypot(dx, dy) < 5) return;
-          d.moved = true;
-          const k = scale();
-          setVb({ ...d.vb, x: d.vb.x - dx * k, y: d.vb.y - dy * k });
-        }}
-        onPointerUp={() => {
-          window.setTimeout(() => (drag.current = null), 0);
-        }}
-        onPointerLeave={() => (drag.current = null)}
-        onClickCapture={(e) => {
-          if (drag.current?.moved) e.stopPropagation();
-        }}
         onClick={() => onSelect?.(null)}
         role="img"
         aria-label="Harbor map"
@@ -517,21 +461,6 @@ export function HarborMap({
             <RungChip rung={hover.c.rung} name={hover.c.rung_names[hover.c.rung_names.length - 1]} />
           </div>
           <span className="muted">{hover.c.reason}</span>
-        </div>
-      )}
-      {!compact && (
-        <div className="map-overlay zoom-controls">
-          <div className="glass layer-toggles" role="group" aria-label="Zoom">
-            <button aria-label="Zoom in" onClick={() => zoom(1 / 1.3)}>
-              +
-            </button>
-            <button aria-label="Zoom out" onClick={() => zoom(1.3)}>
-              −
-            </button>
-            <button aria-label="Reset view" onClick={() => setVb(VIEW)} disabled={vb === VIEW}>
-              <Icon name="replay" size={14} />
-            </button>
-          </div>
         </div>
       )}
       {children}

@@ -1,11 +1,7 @@
 const PATHS: Record<string, string> = {
   play: "M7 4.5v15l12-7.5z",
   pause: "M7 4h3.5v16H7zM13.5 4H17v16h-3.5z",
-  step: "M6 4.5v15l9-7.5zM16.5 4H19v16h-2.5z",
   replay: "M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z",
-  shuffle: "M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5",
-  sun: "M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0-5h0v3m0 14v3M2 12h3m14 0h3M4.9 4.9l2.1 2.1m10 10 2.1 2.1M4.9 19.1 7 17m10-10 2.1-2.1",
-  moon: "M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z",
   check: "M5 12.5 10 17 19 7",
   x: "M6 6l12 12M18 6 6 18",
   eye: "M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12zm10-3a3 3 0 1 0 0 6 3 3 0 0 0 0-6z",
@@ -28,7 +24,7 @@ const PATHS: Record<string, string> = {
   minus: "M5 12h14",
 };
 
-const FILLED = new Set(["play", "pause", "step", "replay", "moon", "dot", "send"]);
+const FILLED = new Set(["play", "pause", "replay", "dot", "send"]);
 
 export function Icon({ name, size = 18, title }: { name: keyof typeof PATHS | string; size?: number; title?: string }) {
   const d = PATHS[name] ?? PATHS.dot;

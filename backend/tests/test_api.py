@@ -155,8 +155,5 @@ def test_audit_export_json_and_csv(client):
 def test_sim_controls(client):
     assert client.post("/api/sim/control", json={"action": "pause"}).json()["running"] is False
     assert client.post("/api/sim/control", json={"action": "speed", "speed": 4.2}).json()["speed"] == 5
-    t = client.hub.session.t
-    client.post("/api/sim/control", json={"action": "step"})
-    assert client.hub.session.t > t
     client.post("/api/sim/control", json={"action": "restart"})
     assert client.hub.session.t == 0

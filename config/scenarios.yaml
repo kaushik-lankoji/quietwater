@@ -182,18 +182,6 @@ scenarios:
         unknown_far: [[1350, 1080, 520, 70], [300, 1010, 400, 110]]
         stray_research: [[1350, 1080, 520, 70], [300, 1010, 400, 110]]
 
-  random:
-    title: Random harbor
-    description: A seeded random mix. Press shuffle for a new seed.
-    mode: security
-    seed: 1
-    duration_s: 240
-    contacts: []
-    generator:
-      count: 40
-      prefix: R
-      mix: {fish: 0.35, bottle: 0.15, kelp: 0.1, unknown: 0.15, survey_rov: 0.1, stray_research: 0.1, evasive: 0.03, improvised: 0.02}
-
   lost_vehicle:
     title: Lost REMUS-02
     description: USC's REMUS-02 lost comms at 07:31 during a sediment survey and is drifting east. Same sonar, same engine, a different job.

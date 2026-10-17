@@ -12,46 +12,18 @@ import { cls, rungVar } from "./format";
 import { RUNGS, type Config, type Decision, type HandoffItem } from "./types";
 import { useLive } from "./useLive";
 
-type Theme = "dark" | "light";
-
 const OPERATOR = "Watch officer";
-
-function initialTheme(): Theme {
-  try {
-    const saved = localStorage.getItem("qw-theme");
-    if (saved === "dark" || saved === "light") return saved;
-  } catch {
-    /* storage unavailable */
-  }
-  return window.matchMedia?.("(prefers-color-scheme: light)").matches ? "light" : "dark";
-}
 
 export default function App() {
   const { snap, receipts, link } = useLive();
   const [config, setConfig] = useState<Config | null>(null);
-  const [theme, setTheme] = useState<Theme>(initialTheme);
   const [selected, setSelected] = useState<string | null>(null);
   const [activeItem, setActiveItem] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [layers, setLayers] = useState<Layers>({ zones: true, trails: true, labels: true });
-  const [receiptsCollapsed, setReceiptsCollapsed] = useState(() => {
-    try {
-      return localStorage.getItem("qw-receipts") === "collapsed";
-    } catch {
-      return false;
-    }
-  });
+  const [receiptsCollapsed, setReceiptsCollapsed] = useState(false);
   const { toasts, push } = useToasts();
   const lastVersion = useRef<number | null>(null);
-
-  useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-    try {
-      localStorage.setItem("qw-theme", theme);
-    } catch {
-      /* storage unavailable */
-    }
-  }, [theme]);
 
   useEffect(() => {
     if (snap) document.documentElement.dataset.mode = snap.mode;
@@ -109,9 +81,7 @@ export default function App() {
       }
       if (!active || busy) return;
       const open = active.status === "pending" || active.status === "watching";
-      const map: Record<string, Action> = { a: "approve", r: "reject", w: "watch" };
-      const action = map[e.key.toLowerCase()];
-      if (action && open) act(active, action);
+      if (e.key.toLowerCase() === "a" && open) act(active, "approve");
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -143,10 +113,8 @@ export default function App() {
         snap={snap}
         config={config}
         link={link}
-        theme={theme}
-        onTheme={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
         onControl={(action, speed) => run(() => api.control(action, speed))}
-        onScenario={(id, seed) => run(() => api.scenario(id, seed))}
+        onScenario={(id) => run(() => api.scenario(id))}
         onMode={(recovery) => run(() => api.mode(recovery ? "recovery" : "security"))}
       />
       <div>
@@ -157,7 +125,7 @@ export default function App() {
           </span>
           <div className="watch-toolbar-right muted">
             <span className="mono">rules v{snap.rules.version}</span>
-            <span>A approve · R reject · W keep watching · Space pause</span>
+            <span>A approve · Space pause</span>
           </div>
         </div>
         {snap.rules.error && (
@@ -238,14 +206,7 @@ export default function App() {
             receipts={receipts}
             onSelect={setSelected}
             collapsed={receiptsCollapsed}
-            onCollapse={(v) => {
-              setReceiptsCollapsed(v);
-              try {
-                localStorage.setItem("qw-receipts", v ? "collapsed" : "open");
-              } catch {
-                /* storage unavailable */
-              }
-            }}
+            onCollapse={setReceiptsCollapsed}
           />
         </div>
       </main>

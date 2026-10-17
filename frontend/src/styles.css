@@ -49,60 +49,10 @@
   color-scheme: dark;
 }
 
-:root[data-theme="light"] {
-  --bg: #eef2f5;
-  --bg-2: #e6ecf0;
-  --surface: #ffffff;
-  --surface-2: #f5f8fa;
-  --surface-3: #eaf0f4;
-  --border: #d5dfe6;
-  --border-strong: #b4c3cf;
-  --text: #0b1620;
-  --text-2: #33475a;
-  --muted: #5d7183;
-  --focus: #0a6cd6;
-  --shadow: 0 1px 2px rgba(10, 30, 50, 0.06), 0 10px 28px rgba(10, 30, 50, 0.08);
-
-  --accent: #0d9488;
-  --accent-ink: #ffffff;
-  --accent-soft: rgba(13, 148, 136, 0.1);
-
-  --r0: #5e6e7d;
-  --r1: #1f6fe0;
-  --r2: #0b8f82;
-  --r3: #b78300;
-  --r4: #d9600c;
-  --r5: #d4142a;
-  --ok: #0f8f5c;
-  --warn: #b78300;
-  --danger: #d4142a;
-
-  --water: #d7e7f1;
-  --water-2: #cfe1ed;
-  --grid: rgba(30, 80, 120, 0.07);
-  --land: #e9e4d8;
-  --land-edge: #c8c0ad;
-  --pier: #d8d1c0;
-  --map-label: rgba(30, 50, 70, 0.6);
-  --zone: rgba(40, 70, 100, 0.55);
-  --zone-crit: rgba(212, 20, 42, 0.7);
-  --zone-crit-fill: rgba(212, 20, 42, 0.06);
-  --cable: #7c3aed;
-  --vessel: #23384a;
-
-  color-scheme: light;
-}
-
 :root[data-mode="recovery"] {
   --accent: #3ddc97;
   --accent-ink: #032015;
   --accent-soft: rgba(61, 220, 151, 0.14);
-}
-
-:root[data-theme="light"][data-mode="recovery"] {
-  --accent: #0f8f5c;
-  --accent-ink: #ffffff;
-  --accent-soft: rgba(15, 143, 92, 0.1);
 }
 
 * {
@@ -196,12 +146,6 @@ button {
   letter-spacing: -0.01em;
 }
 
-.brand-tag {
-  font-size: 12px;
-  color: var(--muted);
-  margin-top: -2px;
-}
-
 .mode-chip {
   display: inline-flex;
   align-items: center;
@@ -219,32 +163,9 @@ button {
   flex: 1;
 }
 
-.clock-block {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  min-width: 130px;
-}
-
 .clock {
   font: 600 22px/1.1 var(--mono);
   letter-spacing: 0.02em;
-}
-
-.progress {
-  width: 100%;
-  height: 3px;
-  border-radius: 3px;
-  background: var(--surface-3);
-  margin-top: 6px;
-  overflow: hidden;
-}
-
-.progress > span {
-  display: block;
-  height: 100%;
-  background: var(--accent);
-  transition: width 0.5s linear;
 }
 
 .controls {
@@ -632,8 +553,7 @@ main {
   box-shadow: none;
 }
 
-:root[data-theme="dark"] .rung.solid.R3,
-:root:not([data-theme]) .rung.solid.R3 {
+.rung.solid.R3 {
   color: #231a00;
 }
 
@@ -730,18 +650,6 @@ main {
 .map-overlay.bottom-right {
   bottom: 12px;
   right: 12px;
-}
-
-.map-overlay.zoom-controls {
-  top: 64px;
-  right: 12px;
-}
-
-.zoom-controls button {
-  min-width: 34px;
-  font-size: 17px;
-  display: grid;
-  place-items: center;
 }
 
 .map-overlay.bottom-left {
@@ -1574,12 +1482,6 @@ main {
   }
 }
 
-@media (max-width: 1560px) {
-  .brand-tag {
-    display: none;
-  }
-}
-
 @media (max-width: 1080px) {
   .watch-toolbar-right span:last-child {
     display: none;
@@ -1605,9 +1507,6 @@ main {
   }
   .receipt-detail {
     padding-left: 16px;
-  }
-  .clock-block {
-    min-width: 100px;
   }
 }
 
@@ -1635,7 +1534,6 @@ main {
   .watch-summary .stat .n {
     font-size: 26px;
   }
-  .brand-tag,
   .topbar .select {
     display: none;
   }

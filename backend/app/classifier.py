@@ -70,35 +70,7 @@ class MockClassifier:
         return Classification(entry["label"], conf, {entry["label"]: conf}, "script")
 
 
-class PretrainedClassifier:
-    """Adapter for a real sonar classifier.
-
-    Wire a pretrained model here. `classify` receives the same Observation the
-    mock gets; return a Classification whose label is a key of `classes` in
-    rules.yaml (map model labels with `label_map`). Select it with
-    `classifier.backend: pretrained` and `classifier.model_path` in rules.yaml.
-    """
-
-    name = "pretrained"
-
-    def __init__(self, model_path: str | None, label_map: dict[str, str] | None = None):
-        self.model_path = model_path
-        self.label_map = label_map or {}
-        self.model = self._load(model_path)
-
-    def _load(self, model_path: str | None) -> Any:
-        raise NotImplementedError("Load your model (ONNX/TorchScript) from classifier.model_path here")
-
-    def features(self, obs: Observation) -> list[float]:
-        return [obs.size_m, obs.speed_mps, float(obs.look)]
-
-    def classify(self, obs: Observation) -> Classification:
-        raise NotImplementedError("Run self.model on self.features(obs) and map the top label")
-
-
 def build_classifier(backend: str, model_path: str | None, mock_profile: dict[str, Any]) -> Classifier:
     if backend == "mock":
         return MockClassifier(mock_profile)
-    if backend == "pretrained":
-        return PretrainedClassifier(model_path)
     raise ValueError(f"unknown classifier backend '{backend}'")
