@@ -75,6 +75,13 @@ function withAlpha(color: string, alpha: number): string {
   return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
 }
 
+function blend(a: string, b: string, t: number): string {
+  const x = parseInt(a.replace("#", ""), 16);
+  const y = parseInt(b.replace("#", ""), 16);
+  const mix = (s: number) => Math.round(((x >> s) & 255) * (1 - t) + ((y >> s) & 255) * t);
+  return `#${((mix(16) << 16) | (mix(8) << 8) | mix(0)).toString(16).padStart(6, "0")}`;
+}
+
 export class RadarEngine {
   private ctx: CanvasRenderingContext2D;
   private palette: Palette;
@@ -92,6 +99,8 @@ export class RadarEngine {
   private reduced: boolean;
   hovered: string | null = null;
   selected: string | null = null;
+  /** Contacts whose hand-off the operator has dealt with: drawn as a grayed-out red. */
+  handled: ReadonlySet<string> = new Set();
   onChange: (() => void) | null = null;
 
   constructor(private canvas: HTMLCanvasElement) {
@@ -301,11 +310,12 @@ export class RadarEngine {
       const a = this.alpha(e, now);
       if (a <= 0.01) continue;
       const { x, y } = this.position(e);
-      const color = p[e.tier];
+      const done = e.tier === "high" && this.handled.has(e.id);
+      const color = done ? blend(p.high, p.low, 0.62) : p[e.tier];
       const hover = e.id === this.hovered;
       const r = e.radius * (hover ? HOVER_SCALE : 1);
 
-      if (e.tier === "high" && !this.reduced) {
+      if (e.tier === "high" && !done && !this.reduced) {
         const phase = ((now - e.pingedAt) % RIPPLE_PERIOD_MS) / RIPPLE_PERIOD_MS;
         ctx.strokeStyle = withAlpha(color, 0.45 * (1 - phase) * a);
         ctx.lineWidth = 1.5;

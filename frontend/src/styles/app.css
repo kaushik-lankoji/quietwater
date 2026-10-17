@@ -2524,3 +2524,11 @@ input[type="range"] {
 .receipt.transition .receipt-main {
   min-width: 0;
 }
+
+.risk-pill.handled {
+  color: var(--text-secondary);
+}
+
+.risk-pill.handled .risk-dot.high {
+  background: color-mix(in srgb, var(--risk-high) 38%, var(--risk-low));
+}

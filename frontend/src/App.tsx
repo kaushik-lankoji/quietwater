@@ -11,12 +11,13 @@ import { ReceiptsSheetBody } from "./components/ReceiptsSheet";
 import { ScenarioButton } from "./components/ScenarioButton";
 import { Sheet } from "./components/Sheet";
 import { TwistConsole } from "./components/TwistConsole";
-import type { Config, Contact, HandoffAction, HandoffItem } from "./types";
+import type { Config, Contact, HandoffAction, HandoffItem, ItemStatus } from "./types";
 import { useLive } from "./useLive";
 
 type SheetName = "handoff" | "receipts" | "twist";
 
 const OPERATOR = "Watch officer";
+const HANDLED: ItemStatus[] = ["hold_requesting", "hold_active", "notice_sent", "dismissed", "resolved", "lifted", "stood_down"];
 const FLOOD = "flood";
 const RANDOM = { security: "random_harbor", recovery: "random_recovery" } as const;
 
@@ -61,6 +62,17 @@ export default function App() {
     },
     [push],
   );
+
+  // A red contact turns gray once its latest hand-off is dismissed, stood down, or acted on.
+  const handledKey = useMemo(() => {
+    const latest = new Map<string, HandoffItem>();
+    for (const i of snap?.items ?? []) {
+      const prev = latest.get(i.contact_id);
+      if (!prev || i.created_t > prev.created_t || (i.created_t === prev.created_t && i.id > prev.id)) latest.set(i.contact_id, i);
+    }
+    return [...latest.values()].filter((i) => HANDLED.includes(i.status)).map((i) => i.contact_id).sort().join(",");
+  }, [snap?.items]);
+  const handled = useMemo<ReadonlySet<string>>(() => new Set(handledKey ? handledKey.split(",") : []), [handledKey]);
 
   const queue = useMemo(() => (snap ? snap.items.filter(needsAttention) : []), [snap]);
   // Stay on the chosen item while it is still in the queue; once it is finished, move to the next one.
@@ -177,7 +189,7 @@ export default function App() {
 
   return (
     <div className="app">
-      <Radar contacts={snap.contacts} run={snap.run} selected={selected} onSelect={onSelect} />
+      <Radar contacts={snap.contacts} run={snap.run} selected={selected} handled={handled} onSelect={onSelect} />
 
       <BudgetCard
         budget={snap.budget}
