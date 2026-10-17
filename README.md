@@ -14,9 +14,8 @@ Built for the Dual-Use Hackathon (InnovateLA at USC, Marine track with NULL Syst
 | --- | --- |
 | **Harbor map** | Every contact, coloured by rung, with trails, zones (critical ones hatched), assets, traffic, and a dashed line to the asset that makes a hand-off urgent. Wheel to zoom, drag to pan. |
 | **Needs you** (hand-off) | In two seconds: *What is it?* (label, confidence, size, speed, heading, lat/lon, distance to asset). *What's been ruled out?* (a checklist). *What am I asked to do?* (one recommendation, big **Approve / Reject / Keep watching**, keys A / R / W). Urgency tag, response-window countdown, one-line reason, and a drafted alert you send yourself. |
-| **Alert budget** | "198 handled quietly · 2 need you", operator attention load against a budget, rung mix on sonar now, and the bang (200 alarms) against the ladder (2 asks). |
+| **Contact summary** | Shows how many contacts were handled quietly and how many hand-offs currently need a person. |
 | **Decision receipts** | Every decision with its one-line reason. Toggle **Why not one rung higher / lower?** for the counterfactual, the S-path, and the full checklist. Export the audit log as JSON or CSV. |
-| **Twist Console** | Edit thresholds, rung mappings, wording, zones, assets and the vehicle schedule live, or pick a preset. Every change is replayed on the same seeded scenario with the old and new rules, and you see exactly which decisions move before you apply. History is persisted and revertible. |
 | **Quiet Tuesday** | One switch turns the same engine into lost-research-vehicle recovery for the second customer. |
 
 ## Run it
@@ -37,7 +36,7 @@ The demo starts on its own with seeded data ("Morning watch"). If port 5173 is t
 | `make build` | Production build of the UI (`frontend/dist`) and byte-compiles the backend. |
 | `make start` | Builds, then serves UI + API from one process on `:8000`. |
 | `make test` | Backend unit + API tests, ruff, and a TypeScript type check. |
-| `docker compose up` | One container on `:8000`. `config/` and `data/` are mounted, so live twists still work. |
+| `docker compose up` | One container on `:8000`. `config/` and `data/` are mounted, so rules can still reload from disk. |
 
 ## Architecture
 
@@ -51,14 +50,12 @@ flowchart LR
   RY[("config/rules.yaml<br/>hot-reloaded")] --> FA
   RY --> EN
   FA --> EN["Rules engine<br/>S0–S5 decision tree<br/>reason · ruled-out · why-not"]
-  EN --> HUB["Hub<br/>receipts · hand-off queue<br/>alert budget · audit log"]
-  HUB -- "SSE /api/stream" --> UI["React UI<br/>map · hand-off · budget<br/>receipts · Twist Console"]
+  EN --> HUB["Hub<br/>receipts · hand-off queue<br/>audit log"]
+  HUB -- "SSE /api/stream" --> UI["React UI<br/>map · hand-off · contact summary<br/>receipts"]
   UI -- "approve / reject / watch / send" --> HUB
-  UI -- "preview / apply" --> TW["Twist engine<br/>same seeded replay, before vs after"]
-  TW --> RY
 ```
 
-The same deterministic `Session` (simulator + classifier + engine) runs live inside the hub and headless inside the Twist Console, so a preview is an honest replay rather than an estimate.
+The same deterministic `Session` (simulator + classifier + engine) runs live inside the hub and in backend replay previews.
 
 ### The decision tree
 
@@ -103,21 +100,7 @@ Rules the engine holds to:
 
 ## Changing rules for a twist
 
-Twists land at 11:30 PM, 4:30 AM and 7:00 AM. None of them should need code. Three paths, fastest first:
-
-1. **Twist Console → preset.** Click a preset, read the before/after diff, name it ("Twist 2: …"), and press **Apply twist live**. Presets live in `config/twist_presets.yaml`; add one in a minute:
-   ```yaml
-   - id: night-divers
-     title: Night divers at Pier 300
-     description: Hull team in the water until 06:00.
-     ops:
-       - op: append
-         path: assets
-         value: {id: dive-p300, name: Pier 300 night dive, kind: dive_area, operation: diver operations, active: true, shape: {type: circle, x: 1560, y: 520, r: 60}}
-   ```
-   Paths look like `thresholds.classify_confidence`, `assets[fuel-dock-b].active`, `registry[USC-REMUS-01].schedule`. Ops are `set` (default), `append` and `remove`.
-2. **Twist Console → editors.** Thresholds, rung mapping (any situation → any set of rungs), rung wording, zones and assets (with a live mini-map), the vehicle schedule, or raw YAML. The preview re-runs on every change.
-3. **Edit `config/rules.yaml` and save.** The server picks it up within half a second, toasts "Rules reloaded", logs it in Twist History with its impact, and re-decides every contact. An invalid edit is rejected with the reason shown in a banner; the last good rules keep running.
+Edit `config/rules.yaml` and save. The server picks it up within half a second, shows a "Rules reloaded" toast, records the change in its backend history, and re-decides every contact. An invalid edit is rejected with the reason shown in a banner; the last good rules keep running. The twist API endpoints remain available for scripted previews and changes.
 
 | Twist sounds like… | Touch |
 | --- | --- |
@@ -185,7 +168,7 @@ config/            rules.yaml (hot-reloaded), scenarios.yaml, harbor.yaml, twist
 backend/app/       rules.py (schema, store, ops) · facts.py · engine.py · classifier.py
                    simulator.py · session.py · twists.py · hub.py · main.py
 backend/tests/     engine, rules/sim, API
-frontend/src/      App, components (HarborMap, HandoffPanel, AlertBudget, Receipts, TwistConsole…)
+frontend/src/      App, components (HarborMap, HandoffPanel, WatchSummary, Receipts…)
 data/              twist_history.json (created at runtime, git-ignored)
 ```
 
