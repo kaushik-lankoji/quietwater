@@ -328,6 +328,7 @@ export interface ScenarioInfo {
   mode: Mode;
   duration_s: number;
   contacts: number;
+  random: boolean;
 }
 
 export interface Preset {

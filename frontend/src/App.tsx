@@ -18,6 +18,9 @@ type SheetName = "handoff" | "receipts" | "twist";
 
 const OPERATOR = "Watch officer";
 const FLOOD = "flood";
+const RANDOM = { security: "random_harbor", recovery: "random_recovery" } as const;
+
+const newSeed = () => crypto.getRandomValues(new Uint32Array(1))[0] % 1_000_000;
 
 export default function App() {
   const { snap, receipts, history, link } = useLive();
@@ -92,6 +95,17 @@ export default function App() {
   }, [snap, run]);
   const replay = useCallback(() => run(() => api.control("restart")), [run]);
   const flood = useCallback(() => run(() => api.scenario(FLOOD)), [run]);
+  const loadScenario = useCallback(
+    (id: string) => {
+      const random = config?.scenarios.find((s) => s.id === id)?.random;
+      setSelected(null);
+      run(() => api.scenario(id, random ? newSeed() : undefined));
+    },
+    [config, run],
+  );
+  const randomize = useCallback(() => {
+    if (snap) loadScenario(RANDOM[snap.mode]);
+  }, [snap, loadScenario]);
 
   const openReceipts = useCallback(() => {
     setReceiptFocus(null);
@@ -157,9 +171,10 @@ export default function App() {
         budget={snap.budget}
         clock={snap.clock}
         scenario={snap.scenario.id}
+        seed={snap.scenario.seed}
         scenarios={config.scenarios}
         link={link}
-        onScenario={(id) => run(() => api.scenario(id))}
+        onScenario={loadScenario}
         onOpen={() => toggleSheet("handoff")}
       />
 
@@ -204,7 +219,7 @@ export default function App() {
         onReceipts={openReceipts}
       />
 
-      <ScenarioButton />
+      <ScenarioButton onClick={randomize} />
       <Toasts toasts={toasts} />
     </div>
   );
