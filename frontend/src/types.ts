@@ -174,6 +174,64 @@ export interface Snapshot {
   receipts: Receipt[];
 }
 
+export interface FieldChange {
+  path: string;
+  before: unknown;
+  after: unknown;
+}
+
+export interface Totals {
+  contacts: number;
+  quiet: number;
+  need_you: number;
+}
+
+export interface CompactDecision {
+  rungs: Rung[];
+  rung: Rung;
+  rung_names: string[];
+  outcome: string;
+  reason: string;
+  requires_human: boolean;
+  urgency: Urgency;
+  path: string[];
+  label_text: string;
+}
+
+export interface ImpactRow {
+  contact_id: string;
+  label: string;
+  before: CompactDecision | null;
+  after: CompactDecision | null;
+  changed: boolean;
+  direction: "up" | "down" | "same";
+  first_human_t: { before: number | null; after: number | null };
+}
+
+export interface Impact {
+  scenario: string;
+  mode: Mode;
+  seed: number;
+  duration_s: number;
+  before: Totals;
+  after: Totals;
+  changed: number;
+  rows: ImpactRow[];
+}
+
+export interface TwistEntry {
+  id: string;
+  at: string;
+  source: "ui" | "preset" | "file" | "revert";
+  title: string;
+  note: string;
+  rules_version: number;
+  clock: string;
+  scenario: string;
+  changes: FieldChange[];
+  impact: Impact | null;
+}
+
 export interface Shape {
   type: "rect" | "circle" | "line";
   x?: number;
@@ -272,10 +330,18 @@ export interface ScenarioInfo {
   contacts: number;
 }
 
+export interface Preset {
+  id: string;
+  title: string;
+  description: string;
+  ops: { op?: string; path: string; value?: unknown }[];
+}
+
 export interface Config {
   harbor: Harbor;
   rules: RulesData;
   version: number;
   error: string | null;
   scenarios: ScenarioInfo[];
+  presets: Preset[];
 }

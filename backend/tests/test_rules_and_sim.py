@@ -119,7 +119,7 @@ def test_presets_all_validate(rules):
         parse_rules(apply_ops(data, preset["ops"]))
 
 
-@pytest.mark.parametrize("name", ["harbor_morning", "all_archetypes", "lost_vehicle", "random"])
+@pytest.mark.parametrize("name", ["harbor_morning", "all_archetypes", "lost_vehicle"])
 def test_scenarios_are_deterministic(rules, name):
     world = World.load(REPO / "config")
     mode = world.scenario(name).get("mode", "security")

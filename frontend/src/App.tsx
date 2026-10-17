@@ -1,61 +1,35 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "./api";
-import { WatchSummary } from "./components/WatchSummary";
 import { Toasts, useToasts } from "./components/bits";
-import { HandoffPanel, needsAttention, type Action } from "./components/HandoffPanel";
-import { HarborMap, type Layers } from "./components/HarborMap";
+import { BudgetCard } from "./components/BudgetCard";
+import { ControlDock } from "./components/ControlDock";
+import { DualUseToggle } from "./components/DualUseToggle";
+import { HandoffSheetBody, needsAttention, type Action } from "./components/HandoffSheet";
 import { Icon } from "./components/Icon";
-import { Inspector } from "./components/Inspector";
-import { Receipts } from "./components/Receipts";
-import { TopBar } from "./components/TopBar";
-import { cls, rungVar } from "./format";
-import { RUNGS, type Config, type Decision, type HandoffItem } from "./types";
+import { Radar } from "./components/Radar";
+import { ReceiptsSheetBody } from "./components/ReceiptsSheet";
+import { ScenarioButton } from "./components/ScenarioButton";
+import { Sheet } from "./components/Sheet";
+import { TwistConsole } from "./components/TwistConsole";
+import type { Config, Contact, HandoffItem } from "./types";
 import { useLive } from "./useLive";
 
-type Theme = "dark" | "light";
+type SheetName = "handoff" | "receipts" | "twist";
 
 const OPERATOR = "Watch officer";
-
-function initialTheme(): Theme {
-  try {
-    const saved = localStorage.getItem("qw-theme");
-    if (saved === "dark" || saved === "light") return saved;
-  } catch {
-    /* storage unavailable */
-  }
-  return window.matchMedia?.("(prefers-color-scheme: light)").matches ? "light" : "dark";
-}
+const FLOOD = "flood";
 
 export default function App() {
-  const { snap, receipts, link } = useLive();
+  const { snap, receipts, history, link } = useLive();
   const [config, setConfig] = useState<Config | null>(null);
-  const [theme, setTheme] = useState<Theme>(initialTheme);
+  const [sheet, setSheet] = useState<SheetName | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [activeItem, setActiveItem] = useState<string | null>(null);
+  const [receiptFocus, setReceiptFocus] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [layers, setLayers] = useState<Layers>({ zones: true, trails: true, labels: true });
-  const [receiptsCollapsed, setReceiptsCollapsed] = useState(() => {
-    try {
-      return localStorage.getItem("qw-receipts") === "collapsed";
-    } catch {
-      return false;
-    }
-  });
   const { toasts, push } = useToasts();
   const lastVersion = useRef<number | null>(null);
-
-  useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-    try {
-      localStorage.setItem("qw-theme", theme);
-    } catch {
-      /* storage unavailable */
-    }
-  }, [theme]);
-
-  useEffect(() => {
-    if (snap) document.documentElement.dataset.mode = snap.mode;
-  }, [snap?.mode]);
+  const seenPending = useRef<Set<string> | null>(null);
 
   const version = snap?.rules.version;
   useEffect(() => {
@@ -86,7 +60,20 @@ export default function App() {
   );
 
   const queue = useMemo(() => (snap ? snap.items.filter(needsAttention) : []), [snap]);
-  const active = queue.find((i) => i.id === activeItem) ?? queue[0];
+  const active = (snap?.items.find((i) => i.id === activeItem) ?? queue[0]) as HandoffItem | undefined;
+
+  useEffect(() => {
+    if (!snap) return;
+    const pending = snap.items.filter((i) => i.status === "pending");
+    const seen = seenPending.current;
+    seenPending.current = new Set(pending.map((i) => i.id));
+    if (!seen) return;
+    const fresh = pending.find((i) => !seen.has(i.id) && i.decision.urgency === "urgent");
+    if (fresh && sheet === null) {
+      setActiveItem(fresh.id);
+      setSheet("handoff");
+    }
+  }, [snap, sheet]);
 
   const act = useCallback(
     (item: HandoffItem, action: Action) =>
@@ -98,157 +85,126 @@ export default function App() {
     [run, push],
   );
 
+  const toggleSheet = useCallback((name: SheetName) => setSheet((s) => (s === name ? null : name)), []);
+
+  const togglePause = useCallback(() => {
+    if (snap) run(() => api.control(snap.running ? "pause" : "play"));
+  }, [snap, run]);
+  const replay = useCallback(() => run(() => api.control("restart")), [run]);
+  const flood = useCallback(() => run(() => api.scenario(FLOOD)), [run]);
+
+  const openReceipts = useCallback(() => {
+    setReceiptFocus(null);
+    toggleSheet("receipts");
+  }, [toggleSheet]);
+
+  const onSelect = useCallback(
+    (c: Contact | null) => {
+      setSelected(c?.id ?? null);
+      if (!c || !snap) return;
+      const human = c.requires_human || c.rung === "R4" || c.rung === "R5";
+      const items = snap.items.filter((i) => i.contact_id === c.id);
+      const item = items.find(needsAttention) ?? items[0];
+      if (human && item) {
+        setActiveItem(item.id);
+        setSheet("handoff");
+      } else {
+        setReceiptFocus(c.id);
+        setSheet("receipts");
+      }
+    },
+    [snap],
+  );
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement;
       if (["INPUT", "TEXTAREA", "SELECT"].includes(t.tagName) || e.metaKey || e.ctrlKey || e.altKey) return;
-      if (e.key === " " && snap) {
+      const key = e.key.toLowerCase();
+      if (key === "escape") return setSheet(null);
+      if (key === " ") {
+        if (t.tagName === "BUTTON") return;
         e.preventDefault();
-        run(() => api.control(snap.running ? "pause" : "play"));
-        return;
+        return togglePause();
       }
-      if (!active || busy) return;
-      const open = active.status === "pending" || active.status === "watching";
-      const map: Record<string, Action> = { a: "approve", r: "reject", w: "watch" };
-      const action = map[e.key.toLowerCase()];
-      if (action && open) act(active, action);
+      if (key === "r") return replay();
+      if (key === "f") return flood();
+      if (key === "t") return toggleSheet("twist");
+      if (key === "a" && sheet === "handoff" && active && !busy && (active.status === "pending" || active.status === "watching")) act(active, "approve");
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [snap, active, busy, act, run]);
-
-  const latestDecision = useMemo(() => {
-    const out = new Map<string, Decision>();
-    for (const r of receipts) out.set(r.contact_id, r.decision);
-    return out;
-  }, [receipts]);
+  }, [togglePause, replay, flood, toggleSheet, sheet, active, busy, act]);
 
   if (!snap || !config) {
     return (
-      <div className="empty" style={{ height: "100%" }}>
+      <div className="app loading">
         <span className="spinner" />
-        <span>{link === "lost" ? "Waiting for the Quietwater server on :8000…" : "Connecting to the harbor…"}</span>
+        <span>{link === "lost" ? "Waiting for the Quietwater server on :8000" : "Connecting to the harbor"}</span>
       </div>
     );
   }
 
-  const texts = config.rules.modes[snap.mode];
-  const selectedContact = selected ? snap.contacts.find((c) => c.id === selected) : undefined;
-  const focus = active ? { contactId: active.contact_id, asset: active.decision.focus_asset } : null;
+  const recovery = snap.mode === "recovery";
   const pending = queue.filter((i) => i.status === "pending").length;
+  const automated = receipts.filter((r) => r.automated).length;
 
   return (
     <div className="app">
-      <TopBar
-        snap={snap}
-        config={config}
+      <Radar contacts={snap.contacts} run={snap.run} selected={selected} onSelect={onSelect} />
+
+      <BudgetCard
+        budget={snap.budget}
+        clock={snap.clock}
+        scenario={snap.scenario.id}
+        scenarios={config.scenarios}
         link={link}
-        theme={theme}
-        onTheme={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
-        onControl={(action, speed) => run(() => api.control(action, speed))}
-        onScenario={(id, seed) => run(() => api.scenario(id, seed))}
-        onMode={(recovery) => run(() => api.mode(recovery ? "recovery" : "security"))}
+        onScenario={(id) => run(() => api.scenario(id))}
+        onOpen={() => toggleSheet("handoff")}
       />
-      <div>
-        <div className="watch-toolbar">
-          <span className="watch-label">
-            Watch
-            <span className={cls("count", pending > 0 && "hot")}>{pending}</span>
+
+      <DualUseToggle on={recovery} onChange={(on) => run(() => api.mode(on ? "recovery" : "security"))} />
+
+      {snap.rules.error && (
+        <div className="banner glass" role="alert">
+          <Icon name="alert" size={18} />
+          <span>
+            <strong>rules.yaml has an error.</strong> Still running on v{snap.rules.version}. {snap.rules.error}
           </span>
-          <div className="watch-toolbar-right muted">
-            <span className="mono">rules v{snap.rules.version}</span>
-            <span>A approve · R reject · W keep watching · Space pause</span>
-          </div>
         </div>
-        {snap.rules.error && (
-          <div className="banner error" role="alert">
-            <Icon name="alert" />
-            <span>
-              <strong>rules.yaml has an error.</strong> Still running on v{snap.rules.version}. {snap.rules.error}
-            </span>
-          </div>
-        )}
-        {snap.mode === "recovery" && (
-          <div className="banner recovery">
-            <Icon name="wave" />
-            <span>
-              <strong>Second customer: {texts.customer}.</strong> {snap.scenario.description}
-            </span>
-          </div>
-        )}
-      </div>
-      <main>
-        <div className={cls("watch", receiptsCollapsed && "receipts-collapsed")}>
-          <WatchSummary budget={snap.budget} />
-          <HarborMap
-            harbor={config.harbor}
-            rules={config.rules}
-            contacts={snap.contacts}
-            selected={selected}
-            onSelect={setSelected}
-            focus={focus}
-            layers={layers}
-          >
-            <div className="map-overlay top-left">
-              <div className="glass map-title" title={snap.scenario.description}>
-                <strong>{snap.scenario.title}</strong>
-              </div>
-            </div>
-            <div className="map-overlay top-right">
-              <div className="glass layer-toggles" role="group" aria-label="Map layers">
-                {(Object.keys(layers) as (keyof Layers)[]).map((k) => (
-                  <button key={k} aria-pressed={layers[k]} onClick={() => setLayers((l) => ({ ...l, [k]: !l[k] }))}>
-                    {k[0].toUpperCase() + k.slice(1)}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="map-overlay bottom-right">
-              <div className="glass legend" aria-label="Legend">
-                {RUNGS.map((r) => (
-                  <span key={r}>
-                    <i style={{ background: rungVar(r) }} />
-                    {texts.rungs[r].name}
-                  </span>
-                ))}
-              </div>
-            </div>
-            {selectedContact && (
-              <div className="map-overlay bottom-left">
-                <Inspector
-                  contact={selectedContact}
-                  decision={latestDecision.get(selectedContact.id)}
-                  onClose={() => setSelected(null)}
-                />
-              </div>
-            )}
-          </HarborMap>
-          <div className="rail">
-            <HandoffPanel
-              items={snap.items}
-              rules={config.rules}
-              activeId={active?.id ?? null}
-              onActive={setActiveItem}
-              onAct={act}
-              busy={busy}
-              quiet={snap.budget.quiet}
-            />
-          </div>
-          <Receipts
-            receipts={receipts}
-            onSelect={setSelected}
-            collapsed={receiptsCollapsed}
-            onCollapse={(v) => {
-              setReceiptsCollapsed(v);
-              try {
-                localStorage.setItem("qw-receipts", v ? "collapsed" : "open");
-              } catch {
-                /* storage unavailable */
-              }
-            }}
-          />
-        </div>
-      </main>
+      )}
+
+      <Sheet open={sheet === "handoff"} flush title="Needs you" meta={`${pending} waiting · ${snap.budget.quiet} handled quietly`} onClose={() => setSheet(null)}>
+        <HandoffSheetBody
+          items={snap.items}
+          rules={config.rules}
+          activeId={active?.id ?? null}
+          onActive={setActiveItem}
+          onAct={act}
+          busy={busy}
+          quiet={snap.budget.quiet}
+        />
+      </Sheet>
+
+      <Sheet open={sheet === "receipts"} flush title="Decision receipts" meta={`${receipts.length} logged · ${automated} automated`} onClose={() => setSheet(null)}>
+        <ReceiptsSheetBody receipts={receipts} focus={receiptFocus} onFocus={setReceiptFocus} />
+      </Sheet>
+
+      <Sheet open={sheet === "twist"} title="Twist Console" meta={`Live rules v${config.version} · no code, no restart`} onClose={() => setSheet(null)}>
+        <TwistConsole config={config} snap={snap} history={history} toast={push} />
+      </Sheet>
+
+      <ControlDock
+        running={snap.running}
+        flood={snap.scenario.id === FLOOD}
+        sheet={sheet}
+        onToggleRun={togglePause}
+        onReplay={replay}
+        onFlood={flood}
+        onReceipts={openReceipts}
+      />
+
+      <ScenarioButton />
       <Toasts toasts={toasts} />
     </div>
   );

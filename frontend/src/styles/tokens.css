@@ -1,0 +1,58 @@
+:root {
+  --font: "Universal Sans Text", "Universal Sans Display", Inter, -apple-system, system-ui, sans-serif;
+  --font-display: "Universal Sans Display", "Universal Sans Text", Inter, -apple-system, system-ui, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, monospace;
+
+  --bg: #f4f4f4;
+  --bg-edge: #ececec;
+  --surface: #ffffff;
+  --surface-glass: rgba(255, 255, 255, 0.72);
+  --glass-filter: blur(24px) saturate(1.2);
+  --text-primary: #171a20;
+  --text-secondary: #5c5e62;
+  --text-tertiary: #8e8e8e;
+  --divider: rgba(23, 26, 32, 0.08);
+  --control-fill: #eeeeee;
+  --control-fill-hover: #e4e4e4;
+  --control-fill-active: #d0d1d2;
+  --accent-blue: #3e6ae1;
+  --pulse-green: #2db872;
+  --risk-low: #9a9ca0;
+  --risk-mid: #f2b01e;
+  --risk-high: #e5484d;
+  --drone: #393c41;
+
+  --radius-control: 12px;
+  --radius-panel: 16px;
+  --radius-pill: 999px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  --shadow-float: 0 8px 32px rgba(23, 26, 32, 0.08);
+  --shadow-tight: 0 1px 2px rgba(23, 26, 32, 0.06);
+  --shadow: var(--shadow-float), var(--shadow-tight);
+
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur: 240ms;
+  --dur-fast: 200ms;
+  --dur-slow: 280ms;
+
+  --sheet-width: 420px;
+  --sheet-top: 88px;
+  --sheet-bottom: 124px;
+
+  color-scheme: light;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur: 1ms;
+    --dur-fast: 1ms;
+    --dur-slow: 1ms;
+  }
+}

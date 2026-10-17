@@ -22,7 +22,7 @@ DIST = ROOT / "frontend" / "dist"
 
 
 class ControlBody(BaseModel):
-    action: Literal["play", "pause", "step", "restart", "speed"]
+    action: Literal["play", "pause", "restart", "speed"]
     speed: float | None = None
 
 
