@@ -46,3 +46,44 @@ Data between stages:
 | D8 | Alert Budget: handled quietly + needs operator = total | `quiet` counts contacts that never needed a person; `need_you` counts *currently pending* items. Once an item is approved, watched or stood down the two no longer add up to `seen` | `hub.py` `budget` |
 | D9 | Same seed + same config gives identical decisions | True for the engine. Receipts record `rules_version` (a counter that resets on restart), not a content hash of the config, so a receipt cannot prove which config produced it | `hub.py` `_record` |
 | D10 | Thresholds, mappings, zones, schedules, jurisdiction in `rules.yaml`, hot-reloadable | True except jurisdiction (D4). Mock-classifier tuning lives in `scenarios.yaml` (sensor simulation, acceptable) | `rules.py` `RulesStore` |
+
+## 3. After this audit (`v3-audited`)
+
+```mermaid
+flowchart TD
+  SIM["simulator.py · Simulator.step()"] -->|SimContact| OBS
+  subgraph SESSION["session.py · Session.evaluate()"]
+    OBS["Observation"] --> CLS["classifier.py · Classifier.classify()<br/>fine label + confidence"]
+    CLS --> FACTS["facts.py · derive_facts()<br/>+ scan_label (debris / marine_life / known_vehicle / unknown)<br/>+ closest_approach() CPA per active asset<br/>+ assess_trend() closing / leaving / loitering / steady<br/>consequence = max(distance band, CPA band capped by cpa.raise_to)"]
+    FACTS -->|Facts| DECIDE["engine.py · decide()<br/>S0–S5 / M1–M3, latch<br/>source of truth"]
+    DECIDE --> AMB{"advisor.py · is_ambiguous()<br/>unknown, low confidence,<br/>or unexplained behaviour?<br/>never hard triggers"}
+    AMB -- no --> OUT[Decision]
+    AMB -- yes --> LAYER["advisor.py · AdvisorLayer.consult()<br/>cache key = config hash + contact snapshot"]
+    LAYER --> PRIMARY["primary: RuleBasedAdvisor (default)<br/>or LLMAdvisor (flag, env key, timeout)"]
+    PRIMARY -- "error / timeout / invalid JSON" --> FALLBACK["RuleBasedAdvisor"]
+    FALLBACK -- "also fails" --> SAFE["fail safe: +1 rung"]
+    PRIMARY --> CLAMP["clamp 0..max_raise"]
+    FALLBACK --> CLAMP
+    SAFE --> APPLY
+    CLAMP --> APPLY["engine.py · advise_decision()<br/>raise only; steps up from R0 use the<br/>counted look-again loop"]
+    APPLY --> OUT
+  end
+  OUT --> HUB["hub.py · _record(): receipt + config_hash + advisor record<br/>_update_items(): R4/R5 → pending item, draft only"]
+  HUB --> SSE["/api/stream"] --> UI["React UI"]
+  UI -->|"POST /api/handoff/{id} approve → send"| ACT["Hub.act()<br/>send refused until approved"]
+  ACT --> OUTBOX["mock outbox"]
+  RULES["rules.yaml: thresholds, ladder, zones, registry,<br/>CPA, trend, advisor, jurisdictions"] -->|hot reload| HUB
+```
+
+| # | Status | What changed |
+| --- | --- | --- |
+| D1 | **Fixed, with a deliberate difference** | Every decision carries `scan_label` in the target vocabulary. The fine labels stay, because the engine's hard triggers (improvised, military) need them. `known_vehicle` means a confidently classified research or commercial vehicle; registration is still checked separately in S1 |
+| D2 | Open | Only the mock classifier exists. `Observation.truth` and `label_track` are simulation inputs |
+| D3 | **Fixed** | `closest_approach()` projects each contact's course over `consequence.cpa.horizon_s`; a course into a band raises consequence up to `cpa.raise_to` (default `medium`). `assess_trend()` labels closing, leaving, loitering or steady over `trend.window_s`. Both are on every decision and feed the advisor |
+| D4 | **Fixed** | `jurisdiction` + `jurisdictions` profiles (LA, Singapore, EU) set registry source and registry, notice recipient, hail channel, notice language and response windows |
+| D5 | **Fixed** | `advisor.py`: `Advisor` protocol, `RuleBasedAdvisor` (default), `LLMAdvisor` (flag, off), `AdvisorLayer` with clamp, fallback, fail-safe, timeout and cache; `advise_decision()` in the engine applies a raise; receipts carry `ambiguous`, `ai_raised_tier`, `ai_reason` and the full `advisor` record |
+| D6 | **Fixed** | R1 is "Look again". Advisor-requested looks use the same counted loop and cap |
+| D7 | Verified; auth still open | Tested through the API: R4/R5 receipts are never automated, items start pending, `send` is refused before `approve`, unknown actions are rejected, no scenario sends an alert without an operator. The operator is still an unauthenticated string |
+| D8 | **Fixed in data** | Budget adds `total` and `needed_operator`; `quiet + needed_operator == total` always. The UI still shows the live pending count as "need you" |
+| D9 | **Fixed** | Receipts and audit entries carry `config_hash` (content hash of the rules) |
+| D10 | Verified | Hot reload re-decides live contacts without a restart (tested) |

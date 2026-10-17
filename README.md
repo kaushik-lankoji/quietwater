@@ -47,12 +47,15 @@ flowchart LR
   subgraph SIM["Simulator (mock sonar)"]
     SC["Scripted scenarios<br/>200-contact flood<br/>seeded random scenarios"]
   end
-  SC --> CL["Classifier interface<br/>MockClassifier"]
-  CL --> FA["Facts<br/>identity · schedule · zone · hail<br/>consequence · approach · evasion · traffic"]
+  SC --> CL["Fast scan<br/>Classifier interface · MockClassifier"]
+  CL --> FA["Facts<br/>identity · schedule · zone · hail · consequence<br/>CPA · trend · approach · evasion · traffic"]
   RY[("config/rules.yaml<br/>hot-reloaded")] --> FA
   RY --> EN
-  FA --> EN["Rules engine<br/>S0–S5 decision tree<br/>reason · ruled-out · why-not"]
-  EN --> HUB["Hub<br/>receipts · hand-off queue<br/>audit log"]
+  RY --> AD
+  FA --> EN["Rules engine (source of truth)<br/>S0–S5 decision tree<br/>reason · ruled-out · why-not"]
+  EN -- "ambiguous only" --> AD["Advisor layer<br/>rule-based (default) · LLM (opt-in)<br/>raise or look again, never lower"]
+  EN -- "everything else" --> HUB
+  AD --> HUB["Hub<br/>receipts · hand-off queue<br/>audit log"]
   HUB -- "SSE /api/stream" --> UI["React UI<br/>sonar radar · hand-off<br/>receipts · Twist Console"]
   UI -- "approve / reject / watch / send" --> HUB
 ```
@@ -87,7 +90,7 @@ flowchart TD
 | --- | --- | --- | --- |
 | R0 | Watch | automatic | Logged. |
 | R1 | Look again | automatic | Second look on the next sonar pass. Capped at `loop.max_second_looks`, then up one rung. Never loops forever. |
-| R2 | Ask | automatic | Hail on acoustic modem and VHF 16. |
+| R2 | Ask | automatic | Hail on the jurisdiction's channel (acoustic modem and VHF 16 in LA). |
 | R3 | Slow | automatic | Advisory to named nearby vessels. |
 | R4 | Hold | **person** | Recommend pausing *one* operation at the asset at risk. |
 | R5 | Hand off | **person** | Full package; Coast Guard alert pre-drafted. The operator presses send. |
@@ -99,6 +102,32 @@ Rules the engine holds to:
 - **Urgent hand-offs latch.** Once a contact earns an urgent R5, it doesn't flap back down because it turned around.
 - **Hold and Hand off always need a person.** `human_required_from` can be lowered (R3 in a twist), never raised above R4. The schema rejects it.
 - **Every decision explains itself:** a one-line reason, the S-path, a ruled-out checklist, and why not one rung higher or lower.
+- **Consequence looks ahead.** Distance bands set the base level; if a contact's straight-line course enters an asset's band within `consequence.cpa.horizon_s`, consequence rises (capped at `consequence.cpa.raise_to`). Each decision also carries a closing / leaving / loitering trend.
+
+### The advisor layer (the narrow AI)
+
+The rules engine decides. The advisor only reviews contacts the engine marks **ambiguous** (unknown, low confidence, or unexplained behaviour such as a 3 m "fish"). It can raise a decision by at most `advisor.max_raise` rungs or ask for a second look. It never sees hard triggers (improvised device, hostile, closing fast, evasive, military, high consequence) and it cannot lower anything. Guardrails are in code (`backend/app/advisor.py`), not in a prompt:
+
+- Output is validated strictly and clamped; a negative suggestion becomes 0.
+- If the advisor errors, times out or returns invalid output, the rule-based advisor answers instead. If that fails too, the contact goes up one rung: it fails safe, never quiet.
+- Answers are cached per contact snapshot and config hash, so a replay or a Twist Console diff gives the same result twice.
+- Every call is written to the receipt (`advisor`: inputs, suggestion, applied or clamped, source, error) with `ai_raised_tier` and `ai_reason` on the decision.
+
+The default `advisor.backend: rule` is deterministic, offline and needs no keys. An LLM backend is available but off:
+
+```yaml
+advisor:
+  backend: llm            # default: rule
+  llm: {model: claude-haiku-5-5, api_key_env: ANTHROPIC_API_KEY, timeout_s: 2.5}
+```
+
+```bash
+export ANTHROPIC_API_KEY=...   # never committed; read from the environment
+```
+
+### Jurisdictions
+
+`jurisdiction: la` picks a profile from `jurisdictions:` in `rules.yaml`. A profile sets the registry source (and optionally its own registry), the notice recipient, the hail channel, the notice language and the response windows. LA, Singapore and an EU (Rotterdam) profile ship as examples; switching is one line or a twist (`{"path": "jurisdiction", "value": "eu"}`).
 
 ## Changing rules for a twist
 
@@ -113,6 +142,8 @@ Edit `config/rules.yaml` and save. The server picks it up within half a second, 
 | "A person must approve slow advisories" | `human_required_from: R3` |
 | "Different action for medium consequence" | `ladder.unknown_medium_*` |
 | "Rename a rung / change the wording" | `modes.security.rungs` |
+| "We're demoing for Singapore / Rotterdam" | `jurisdiction: singapore` or `eu` |
+| "Make the AI more / less eager" | `advisor.raise_at`, `advisor.weights`, `advisor.max_raise`, `advisor.enabled` |
 | "New kind of contact or scenario" | `config/scenarios.yaml` (reloaded on the next scenario load) |
 
 Scenarios, archetypes and the mock classifier's behaviour live in `config/scenarios.yaml`. The harbor drawing is `config/harbor.yaml`.
@@ -151,6 +182,11 @@ make test
 - `backend/tests/test_engine.py`: every branch of S0–S5, the loop cap (escalates exactly once and never loops again), "confidence alone never escalates", the pending-hail cap, urgent latching, the human floor, and the recovery track.
 - `backend/tests/test_rules_and_sim.py`: geometry, schedule windows (including overnight), consequence and approach, evasion detection, deterministic replays, twist ops and validation, every preset validates, and the flood keeps the queue short.
 - `backend/tests/test_api.py`: hand-off approve/send/keep-watching, budget, twist preview/apply/history/revert, comment-preserving writes, hot reload with last-good fallback, mode switch, audit export, sim controls.
+- `backend/tests/test_advisor.py`: the advisor never lowers a decision (600 random cases), never touches hard triggers, clamps, falls back on error / timeout / malformed output / missing key, fails safe when everything fails, caps advisor second looks, and caches per snapshot and config.
+- `backend/tests/test_pipeline.py`: CPA and trend, R4/R5 only by operator approval through the API, no alert ever sent automatically, hot reload changing live decisions with a matching before/after diff, jurisdiction profiles, flood speed and budget totals, dual-use, and replay determinism even with a noisy model.
+- `backend/tests/test_randomizer.py`: random scenarios are valid, seeded, deterministic and always include low, mid and high risk.
+
+`PIPELINE_AUDIT.md` traces a contact through every stage, file by file.
 
 ## API
 
