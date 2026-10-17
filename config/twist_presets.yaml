@@ -1,0 +1,51 @@
+- id: fuel-dock-b-live
+  title: Fuel Dock B goes live
+  description: West berth starts an unscheduled fuel transfer. Its area becomes critical.
+  ops:
+    - {path: "assets[fuel-dock-b].active", value: true}
+    - {path: "zones[west_fuel_b].critical", value: true}
+
+- id: divers-near-tanker
+  title: Divers in the water at the tanker
+  description: A hull-inspection team drops in beside MT Sea Venture.
+  ops:
+    - op: append
+      path: assets
+      value:
+        id: dive-tanker
+        name: Tanker hull dive
+        kind: dive_area
+        operation: diver operations
+        active: true
+        shape: {type: circle, x: 1700, y: 340, r: 50}
+
+- id: stricter-classifier
+  title: Stricter classifier
+  description: Command wants 85% confidence before trusting a label.
+  ops:
+    - {path: thresholds.classify_confidence, value: 0.85}
+
+- id: remus-schedule-moved
+  title: REMUS-01 window moved to 12:00-14:00
+  description: USC reschedules its survey; the morning run is now off schedule.
+  ops:
+    - {path: "registry[USC-REMUS-01].schedule", value: [{start: "12:00", end: "14:00"}]}
+
+- id: approve-slow
+  title: Harbor master approves every Slow
+  description: Slow advisories now need a person. Watch and Ask stay automatic.
+  ops:
+    - {path: human_required_from, value: R3}
+
+- id: three-looks
+  title: Three second looks before escalating
+  description: Night shift is thin; give the sonar one more pass.
+  ops:
+    - {path: loop.max_second_looks, value: 3}
+
+- id: wider-fuel-buffer
+  title: Wider fuel-dock buffer
+  description: High consequence starts at 350 m from any fuel dock.
+  ops:
+    - {path: consequence.by_kind.fuel_dock.high_m, value: 350}
+    - {path: consequence.by_kind.fuel_dock.medium_m, value: 600}

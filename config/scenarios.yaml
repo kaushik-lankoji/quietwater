@@ -1,0 +1,234 @@
+current: {heading: 160, speed_mps: 0.08}
+
+mock_classifier:
+  per_look: 0.06
+  noise: 0.03
+  base:
+    biologic: 0.87
+    debris: 0.86
+    research_auv: 0.56
+    commercial_rov: 0.62
+    military_uuv: 0.78
+    improvised_device: 0.66
+    unknown: 0.44
+
+archetypes:
+  bottle: {truth: debris, size_m: 0.3, signature: plastic-return, speed_mps: 0.08, motion: drift, hail: none}
+  kelp: {truth: debris, size_m: 1.2, signature: kelp-mat, speed_mps: 0.08, motion: drift, hail: none}
+  fish: {truth: biologic, size_m: 0.8, signature: swim-bladder, speed_mps: 0.6, motion: wander, hail: none}
+  research_sub:
+    truth: research_auv
+    size_m: 1.6
+    signature: remus-100
+    speed_mps: 1.2
+    motion: waypoints
+    hail: ok
+    label_track: [{t: 0, label: research_auv, conf: 0.86}]
+  survey_rov:
+    truth: commercial_rov
+    size_m: 1.2
+    signature: survey-rov
+    speed_mps: 0.6
+    motion: straight
+    hail: ok
+  inspection_rov:
+    truth: commercial_rov
+    size_m: 1.1
+    signature: seaeye-falcon
+    speed_mps: 0.3
+    motion: loiter
+    hail: ok
+    label_track: [{t: 0, label: commercial_rov, conf: 0.84}]
+  unknown:
+    truth: unknown
+    size_m: 1.4
+    signature: unclassified
+    speed_mps: 0.3
+    motion: straight
+    hail: none
+    label_track:
+      - {look: 0, label: unknown, conf: 0.45}
+      - {look: 1, label: unknown, conf: 0.50}
+      - {look: 2, label: unknown, conf: 0.55}
+  unknown_far:
+    truth: unknown
+    size_m: 1.3
+    signature: unclassified
+    speed_mps: 0.2
+    motion: straight
+    hail: none
+    heading_choices: [90, 270]
+  stray_research:
+    truth: research_auv
+    size_m: 1.5
+    signature: iver-3
+    speed_mps: 0.2
+    motion: straight
+    hail: none
+    heading_choices: [90, 270]
+  evasive:
+    truth: unknown
+    size_m: 1.8
+    signature: unclassified
+    speed_mps: 0.9
+    motion: straight
+    hail: none
+    evade_on_hail: true
+    label_track: [{t: 0, label: unknown, conf: 0.52}]
+  improvised:
+    truth: improvised_device
+    size_m: 0.9
+    signature: improvised-hull
+    speed_mps: 0.25
+    motion: straight
+    hail: none
+    label_track:
+      - {t: 0, label: unknown, conf: 0.41}
+      - {t: 12, label: improvised_device, conf: 0.72}
+  military:
+    truth: military_uuv
+    size_m: 3.2
+    signature: large-uuv
+    speed_mps: 1.5
+    motion: straight
+    hail: none
+    label_track: [{t: 0, label: military_uuv, conf: 0.81}]
+
+scenarios:
+  harbor_morning:
+    title: Morning watch
+    description: Twelve contacts on a working morning. Two need a person; the rest are handled quietly.
+    mode: security
+    seed: 7
+    duration_s: 300
+    contacts:
+      - {id: C-101, archetype: bottle, start: [720, 1000]}
+      - {id: C-102, archetype: fish, start: [1300, 980], heading: 200}
+      - {id: C-103, archetype: fish, start: [820, 430], heading: 90}
+      - id: C-104
+        archetype: research_sub
+        transponder: USC-REMUS-01
+        start: [360, 960]
+        waypoints: [[700, 960], [700, 1010], [360, 1010], [360, 1060], [700, 1060], [700, 1100], [360, 1100]]
+        loop: true
+      - {id: C-105, archetype: inspection_rov, transponder: HDS-ROV-7, start: [620, 380]}
+      - {id: C-106, archetype: unknown, start: [1650, 1110], heading: 270, speed_mps: 0.25}
+      - id: C-107
+        archetype: unknown
+        spawn_t: 15
+        start: [1730, 480]
+        speed_mps: 0.7
+        waypoints: [[1725, 360]]
+      - {id: C-108, archetype: evasive, spawn_t: 100, start: [1060, 1180], heading: 350}
+      - {id: C-109, archetype: kelp, start: [420, 720]}
+      - {id: C-110, archetype: survey_rov, start: [1450, 1080], heading: 250}
+      - {id: C-112, archetype: unknown, start: [400, 575], motion: loiter, speed_mps: 0.15}
+      - id: C-111
+        archetype: fish
+        start: [900, 1010]
+        heading: 140
+        label_track:
+          - {look: 0, label: biologic, conf: 0.62}
+          - {look: 1, label: biologic, conf: 0.81}
+
+  all_archetypes:
+    title: Every archetype
+    description: One of each - bottle, fish, research sub, unknown far, near a ship, near the fuel dock, evasive, improvised device, military.
+    mode: security
+    seed: 11
+    duration_s: 240
+    contacts:
+      - {id: A-1, archetype: bottle, start: [700, 1000]}
+      - {id: A-2, archetype: fish, start: [1300, 1000], heading: 30}
+      - id: A-3
+        archetype: research_sub
+        transponder: USC-REMUS-01
+        start: [360, 960]
+        waypoints: [[700, 960], [700, 1060], [360, 1060]]
+        loop: true
+      - {id: A-4, archetype: unknown, start: [1600, 1110], heading: 270, speed_mps: 0.2}
+      - {id: A-5, archetype: unknown, start: [1180, 400], motion: loiter, speed_mps: 0.2}
+      - {id: A-6, archetype: unknown, start: [1720, 360], motion: loiter, speed_mps: 0.2}
+      - {id: A-7, archetype: evasive, spawn_t: 20, start: [1050, 1150], heading: 0}
+      - {id: A-8, archetype: improvised, start: [800, 660], heading: 100}
+      - {id: A-9, archetype: military, start: [1400, 1050], heading: 300, speed_mps: 0.6}
+
+  flood:
+    title: Flood (200 contacts)
+    description: A spring bloom - 200 sonar contacts. The ladder keeps the officer's queue short.
+    mode: security
+    seed: 42
+    duration_s: 240
+    contacts:
+      - id: C-104
+        archetype: research_sub
+        transponder: USC-REMUS-01
+        start: [360, 960]
+        waypoints: [[700, 960], [700, 1060], [360, 1060]]
+        loop: true
+      - {id: C-105, archetype: inspection_rov, transponder: HDS-ROV-7, start: [620, 380]}
+      - id: C-107
+        archetype: unknown
+        spawn_t: 15
+        start: [1730, 480]
+        speed_mps: 0.7
+        waypoints: [[1725, 360]]
+      - {id: C-108, archetype: evasive, spawn_t: 60, start: [1060, 1180], heading: 350}
+    generator:
+      count: 196
+      prefix: F
+      mix: {fish: 0.48, bottle: 0.16, kelp: 0.12, unknown_far: 0.14, stray_research: 0.06, survey_rov: 0.04}
+      regions:
+        unknown_far: [[1350, 1080, 520, 70], [300, 1010, 400, 110]]
+        stray_research: [[1350, 1080, 520, 70], [300, 1010, 400, 110]]
+
+  random:
+    title: Random harbor
+    description: A seeded random mix. Press shuffle for a new seed.
+    mode: security
+    seed: 1
+    duration_s: 240
+    contacts: []
+    generator:
+      count: 40
+      prefix: R
+      mix: {fish: 0.35, bottle: 0.15, kelp: 0.1, unknown: 0.15, survey_rov: 0.1, stray_research: 0.1, evasive: 0.03, improvised: 0.02}
+
+  lost_vehicle:
+    title: Lost REMUS-02
+    description: USC's REMUS-02 lost comms at 07:31 during a sediment survey and is drifting east. Same sonar, same engine, a different job.
+    mode: recovery
+    seed: 3
+    duration_s: 300
+    clock_start: "07:40"
+    contacts:
+      - id: L-201
+        archetype: research_sub
+        signature: remus-100-sn02
+        start: [700, 1000]
+        heading: 75
+        speed_mps: 0.45
+        motion: straight
+        hail: none
+        events: [{t: 200, set: {hail: intermittent, transponder: USC-REMUS-02}}]
+        label_track:
+          - {look: 0, label: research_auv, conf: 0.58}
+          - {look: 1, label: research_auv, conf: 0.68}
+          - {look: 2, label: research_auv, conf: 0.82}
+      - id: L-202
+        archetype: research_sub
+        transponder: USC-REMUS-01
+        start: [360, 1080]
+        waypoints: [[560, 1080], [560, 1110], [360, 1110]]
+        loop: true
+      - {id: L-203, archetype: fish, start: [1250, 900], heading: 300}
+      - {id: L-204, archetype: bottle, start: [880, 1020]}
+      - {id: L-205, archetype: kelp, start: [1500, 1050]}
+      - {id: L-206, archetype: inspection_rov, transponder: HDS-ROV-7, start: [610, 400]}
+      - id: L-207
+        archetype: fish
+        start: [1000, 1060]
+        heading: 120
+        label_track:
+          - {look: 0, label: biologic, conf: 0.64}
+          - {look: 1, label: biologic, conf: 0.83}

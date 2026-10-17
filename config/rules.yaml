@@ -1,0 +1,224 @@
+# Quietwater rules. Every threshold, mapping, zone, asset and schedule lives here.
+# The server hot-reloads this file on save. Invalid edits are rejected and the
+# last good version keeps running. Coordinates are metres on the harbor grid
+# (x east, y south, origin at the north-west corner of the map).
+
+harbor:
+  name: Port of San Pedro (demo grid)
+  origin: {lat: 33.7450, lon: -118.2900}
+  clock_start: "09:00"
+
+classifier:
+  backend: mock
+
+thresholds:
+  classify_confidence: 0.70
+  non_vehicle_confidence: 0.75
+  improvised_confidence: 0.60
+
+classes:
+  biologic: non_vehicle
+  debris: non_vehicle
+  research_auv: research
+  commercial_rov: commercial
+  military_uuv: military
+  improvised_device: improvised
+  unknown: unknown
+
+consequence:
+  default: {high_m: 120, medium_m: 350}
+  by_kind:
+    fuel_dock: {high_m: 200, medium_m: 450}
+    ship: {high_m: 120, medium_m: 350}
+    cable: {high_m: 60, medium_m: 200}
+    dive_area: {high_m: 150, medium_m: 400}
+
+approach:
+  radius_m: 300
+  cone_deg: 30
+  min_speed_mps: 0.8
+
+evasion:
+  window_s: 20
+  turn_deg: 120
+  speed_jump: 1.8
+
+hail:
+  timeout_s: 10
+
+traffic_radius_m: 400
+
+consistency:
+  size_tolerance_m: 0.5
+  speed_margin: 1.2
+
+class_profiles:
+  research_auv: {max_speed_mps: 2.5}
+  commercial_rov: {max_speed_mps: 1.5}
+  military_uuv: {max_speed_mps: 4.0}
+
+loop:
+  max_second_looks: 2
+  interval_s: 15
+  escalate_by: 1
+
+ladder:
+  non_vehicle: [R0]
+  identity_ok_noncritical: [R0]
+  identity_ok_critical: [R0]
+  threat: [R5]
+  evasive: [R5]
+  military: [R4, R5]
+  unknown_low: [R1]
+  unknown_medium_quiet: [R2]
+  unknown_medium_traffic: [R3]
+  unknown_high: [R4, R5]
+  awaiting_hail: [R2]
+
+human_required_from: R4
+
+windows_s:
+  urgent: 300
+  hold_handoff: 1800
+  default: 900
+
+alert_budget:
+  capacity: 6
+  weights: {R0: 0, R1: 0, R2: 0, R3: 1, R4: 2, R5: 3}
+  keep_watching_snooze_s: 60
+
+zones:
+  - id: fuel_dock_area
+    name: Fuel dock area
+    critical: true
+    shape: {type: rect, x: 1560, y: 180, w: 320, h: 180}
+  - id: dive_zone
+    name: Pier 100 dive zone
+    critical: true
+    shape: {type: circle, x: 600, y: 420, r: 110}
+  - id: cable_corridor
+    name: Cable corridor
+    critical: true
+    shape: {type: line, points: [[260, 820], [900, 760], [1500, 880], [1890, 860]], width: 80}
+  - id: main_channel
+    name: Main channel
+    critical: true
+    shape: {type: rect, x: 900, y: 540, w: 400, h: 700}
+  - id: research_box
+    name: Research box
+    critical: false
+    shape: {type: rect, x: 300, y: 930, w: 440, h: 200}
+  - id: west_fuel_b
+    name: West fuel berth
+    critical: false
+    shape: {type: rect, x: 260, y: 560, w: 200, h: 200}
+  - id: inner_basin
+    name: Inner basin
+    critical: false
+    shape: {type: rect, x: 240, y: 170, w: 1680, h: 1020}
+
+assets:
+  - id: fuel-dock-a
+    name: Fuel Dock A
+    kind: fuel_dock
+    operation: fuel transfer
+    active: true
+    shape: {type: rect, x: 1600, y: 190, w: 140, h: 55}
+  - id: mt-sea-venture
+    name: MT Sea Venture (tanker)
+    kind: ship
+    operation: bunkering
+    active: true
+    shape: {type: rect, x: 1610, y: 252, w: 210, h: 40}
+  - id: mv-pacific-star
+    name: MV Pacific Star (container)
+    kind: ship
+    operation: container loading
+    active: true
+    shape: {type: rect, x: 1048, y: 220, w: 50, h: 270}
+  - id: fuel-dock-b
+    name: Fuel Dock B
+    kind: fuel_dock
+    operation: fuel transfer
+    active: false
+    shape: {type: rect, x: 262, y: 600, w: 60, h: 120}
+  - id: dive-pier-100
+    name: Pier 100 hull-inspection dive
+    kind: dive_area
+    operation: diver operations
+    active: true
+    shape: {type: circle, x: 600, y: 420, r: 70}
+  - id: ti-cable
+    name: Terminal Island power cable
+    kind: cable
+    operation: anchoring in the cable corridor
+    active: true
+    shape: {type: line, points: [[260, 820], [900, 760], [1500, 880], [1890, 860]], width: 20}
+
+traffic:
+  - {id: tug-bravo, name: Tug Bravo, x: 1180, y: 690}
+  - {id: pilot-1, name: Pilot boat 1, x: 1110, y: 1140}
+  - {id: ferry-express, name: Catalina Express, x: 1240, y: 430}
+  - {id: fv-lucky-day, name: F/V Lucky Day, x: 720, y: 640}
+
+registry:
+  - id: USC-REMUS-01
+    operator: USC Wrigley Marine Lab
+    vehicle_type: research_auv
+    size_m: 1.6
+    signature: remus-100
+    authorized_zones: [research_box]
+    schedule:
+      - {start: "08:00", end: "16:00"}
+  - id: USC-REMUS-02
+    operator: USC Wrigley Marine Lab
+    vehicle_type: research_auv
+    size_m: 1.6
+    signature: remus-100-sn02
+    authorized_zones: [research_box]
+    schedule:
+      - {start: "07:00", end: "12:00"}
+  - id: HDS-ROV-7
+    operator: Harbor Diving Services
+    vehicle_type: commercial_rov
+    size_m: 1.1
+    signature: seaeye-falcon
+    authorized_zones: [dive_zone]
+    schedule:
+      - {start: "08:30", end: "11:30"}
+
+recovery:
+  lost_vehicle_id: USC-REMUS-02
+  confirm_confidence: 0.75
+  drift_horizon_s: 600
+  window_s: 3600
+  ladder:
+    possible: [R1]
+    possible_exhausted: [R2]
+    confirmed: [R5]
+    confirmed_traffic: [R3, R5]
+    confirmed_hazard: [R4, R5]
+
+modes:
+  security:
+    title: Harbor Watch
+    customer: Harbor watch officer
+    handoff_target: USCG Sector Los Angeles-Long Beach
+    rungs:
+      R0: {name: Watch, action: "Log it and keep watching."}
+      R1: {name: Watch+, action: "Second look on the next sonar pass ({look} of {max_looks})."}
+      R2: {name: Ask, action: "Hail on acoustic modem and VHF 16; request ID."}
+      R3: {name: Slow, action: "Advise {vessels} to slow to 5 kn."}
+      R4: {name: Hold, action: "Pause {operation} at {asset}."}
+      R5: {name: Hand off, action: "Hand the package to {target}. Alert is drafted; you press send."}
+  recovery:
+    title: Quiet Tuesday
+    customer: USC Wrigley Marine Lab (lost vehicle owner)
+    handoff_target: USC Wrigley Marine Lab ops desk
+    rungs:
+      R0: {name: Log, action: "Not our vehicle. Logged."}
+      R1: {name: Re-scan, action: "Re-scan on the next sonar pass ({look} of {max_looks})."}
+      R2: {name: Ping, action: "Ping the acoustic modem for a position fix."}
+      R3: {name: Notify traffic, action: "Tell {vessels} a drifting AUV is in their path."}
+      R4: {name: Hold lane, action: "Pause {operation} at {asset} until the vehicle is recovered."}
+      R5: {name: Recover, action: "Send last fix and drift to {target}; recovery boat on your go."}
