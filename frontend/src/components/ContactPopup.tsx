@@ -11,12 +11,14 @@ const EDGE = 16;
 export function ContactPopup({
   contact,
   handled,
+  watched,
   x,
   y,
   radius,
 }: {
   contact: Contact;
   handled?: boolean;
+  watched?: boolean;
   x: number;
   y: number;
   radius: number;
@@ -50,7 +52,7 @@ export function ContactPopup({
     >
       <div className="popup-head">
         <span className="popup-title">{contact.label_text}</span>
-        <RiskPill tier={tier} handled={handled && tier === "high"} />
+        <RiskPill tier={tier} handled={handled && tier === "high"} watched={watched} />
       </div>
       <dl className="popup-grid">
         <div>

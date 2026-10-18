@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { cls, mmss } from "../format";
-import { tierOf } from "../radar/geometry";
 import type { HandoffItem } from "../types";
-import { RiskDot } from "./bits";
 import { Icon } from "./Icon";
 
 /** Contacts the operator chose to keep watching, soonest re-check first. */
@@ -27,7 +25,7 @@ export function WatchPanel({ items, active, onOpen }: { items: HandoffItem[]; ac
             return (
               <li key={i.id}>
                 <button type="button" className={cls("watch-row", active === i.id && "on")} onClick={() => onOpen(i.id)}>
-                  <RiskDot tier={tierOf(d.rung, d.urgency)} />
+                  <span className="risk-dot watching" aria-hidden />
                   <span className="watch-main">
                     <span className="watch-id">{d.contact_id}</span>
                     <span className="watch-what">{d.label_text}</span>
