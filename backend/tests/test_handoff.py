@@ -381,7 +381,8 @@ def test_options_describe_the_operation_and_the_area(client):
     assert [t["asset"] for t in op["targets"]] == [focus["name"]]
     assert focus["name"] in [t["asset"] for t in area["targets"]]
     assert opts["recommended"] in ("operation", "area") and opts["reason"]
-    assert opts["radius_m"] == hub.store.rules.handoff.area_radius_m
+    assert opts["radius_m"] <= hub.store.rules.handoff.area_radius_m
+    assert opts["radius_m"] in hub.store.rules.handoff.area_radius_candidates_m
 
 
 def test_area_covers_every_active_operation_in_range_and_nothing_inactive(client):

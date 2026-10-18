@@ -19,7 +19,8 @@ DISPLAY = {
 URGENCY_RANK = {"routine": 0, "elevated": 1, "urgent": 2}
 LATCHING = ("threat", "evasive")
 LIVE_FIELDS = ("t", "clock", "position", "heading", "speed_kn", "checks", "ruled_out", "consequence",
-               "nearest_asset", "zone", "traffic", "confidence", "hail", "trend", "closing_mps", "cpa")
+               "nearest_asset", "zone", "traffic", "confidence", "hail", "hail_route", "trend",
+               "closing_mps", "cpa")
 
 
 def display_label(label: str) -> str:
@@ -76,6 +77,8 @@ class Decision:
     registered: bool
     registry_id: str | None
     hail: str
+    hail_route: str
+    approval_role: str | None
     look: int
     max_looks: int
     traffic: list[str] = field(default_factory=list)
@@ -175,6 +178,7 @@ def build_checks(f: Facts, rules: Rules) -> list[dict[str, Any]]:
         "none": (True, f"no answer after {f.hail_age_s or 0:.0f} s"),
         "intermittent": (None, "intermittent answer"),
         "mismatch": (True, "answer does not match registration"),
+        "unavailable": (None, "no compatible vehicle link; a reply was not expected"),
     }[f.hail]
     add("hail", "Answers the hail", *hail)
 
@@ -210,8 +214,21 @@ def _finish(c: _Ctx, outcome: str, rungs: list[str], reason: str, higher: str, l
             window_s = windows.urgent if urgency == "urgent" else windows.default
     focus = _focus(f)
     target = rules.handoff_target(c.text_mode)
+    profile = rules.profile
+    surface = profile.surface_channel if profile else rules.hail_channel
+    acoustic = profile.acoustic_channel if profile else "compatible acoustic modem"
+    contact_instruction = {
+        "acoustic": f"Send an acoustic hail via {acoustic}; request ID.",
+        "surface": f"Call the support vessel or operator on {surface}; request ID.",
+        "unavailable": f"No compatible vehicle link; ask port traffic on {surface} to identify an operator.",
+    }[f.hail_route]
+    approval_role = ((profile.handoff_approver if top == "R5" else profile.hold_approver)
+                     if profile and human else None)
     fmt = {
         "hail_channel": rules.hail_channel,
+        "contact_instruction": contact_instruction,
+        "hold_approver": profile.hold_approver if profile else "harbor watch officer",
+        "handoff_approver": profile.handoff_approver if profile else "harbor watch officer",
         "look": min(c.mem.second_looks + 1, rules.loop.max_second_looks) or 1,
         "max_looks": rules.loop.max_second_looks,
         "vessels": ", ".join(f.traffic) if f.traffic else "nearby traffic",
@@ -236,6 +253,7 @@ def _finish(c: _Ctx, outcome: str, rungs: list[str], reason: str, higher: str, l
         focus_asset=focus.as_dict() if focus else None,
         position=f.position, heading=round(f.heading), speed_kn=round(f.speed_mps * MPS_TO_KN, 1),
         size_m=f.size_m, zone=f.zone_name, registered=f.registered, registry_id=f.registry_id, hail=f.hail,
+        hail_route=f.hail_route, approval_role=approval_role,
         look=c.mem.second_looks, max_looks=rules.loop.max_second_looks, traffic=list(f.traffic), drift=drift,
         scan_label=f.scan_label, trend=f.trend, closing_mps=f.closing_mps, cpa=f.cpa,
         consequence_basis=f.consequence_basis,
@@ -281,6 +299,8 @@ def _s1(c: _Ctx) -> Decision:
 
 def _s2(c: _Ctx) -> Decision:
     c.path.append("S2")
+    if c.f.hail == "unavailable":
+        return _s4(c)
     if c.mem.hailed_t is None:
         c.mem.hailed_t = c.f.t
     if c.f.hail == "not_hailed":
@@ -328,9 +348,11 @@ def _s4(c: _Ctx) -> Decision:
                        top, "a hostile flag needs a person now.", urgency="urgent")
     if f.approaching:
         a = f.approaching
+        hail_state = ("no compatible vehicle link" if f.hail == "unavailable" else
+                      "hail pending" if f.hail == "pending" else "no answer to the hail")
         return _finish(c, "threat", ladder.threat,
-                       f"Closing on {a.name} at {f.speed_mps * MPS_TO_KN:.1f} kn, {a.distance_m:.0f} m out, "
-                       f"with no answer to the hail.",
+                       f"Closing on {a.name} at {f.speed_mps * MPS_TO_KN:.1f} kn, {a.distance_m:.0f} m out, " +
+                       f"with {hail_state}.",
                        top, f"it is closing on {a.name}; holding one operation will not stop it arriving.",
                        urgency="urgent")
     return _s5(c)
@@ -379,10 +401,11 @@ def _unknown(c: _Ctx, note: str | None = None) -> Decision:
                 f"under the {pct(rules.thresholds.classify_confidence)} bar")
     asset = f.nearest_asset
     band = rules.band_for(asset.kind) if asset else rules.consequence.default
+    hail_gap = "no compatible vehicle link" if f.hail == "unavailable" else "no answer to the hail"
     if f.consequence == "high":
         op = _focus(f)
         return _finish(c, "unknown_high", rules.ladder.unknown_high,
-                       f"{lead}, no answer to the hail, {_dist(f)}" + (f" during {op.operation}." if op else "."),
+                       f"{lead}, {hail_gap}, {_dist(f)}" + (f" during {op.operation}." if op else "."),
                        "pausing one operation is the gentlest step that removes the risk; "
                        "closing the harbor is the bang.",
                        f"slowing traffic leaves {op.operation if op else 'operations'} running "
@@ -435,7 +458,8 @@ def _low_loop(c: _Ctx, lead: str, band) -> Decision:
                    f"{lead}, {far}. Low consequence: {done}.",
                    f"asking needs medium consequence; {far} (medium starts at {band.medium_m:.0f} m). "
                    f"Confidence alone never escalates.",
-                   "it has not been identified and has not answered the hail.")
+                   "it has not been identified; " + ("no compatible vehicle link exists."
+                   if f.hail == "unavailable" else "it has not answered the hail."))
 
 
 def is_recovery_target(f: Facts, rules: Rules) -> bool:

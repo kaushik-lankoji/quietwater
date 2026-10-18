@@ -5,6 +5,7 @@ import { BudgetCard } from "./components/BudgetCard";
 import { DualUseToggle } from "./components/DualUseToggle";
 import { HandoffSheetBody, isWaiting, needsAttention, QueueNav, type ActExtra } from "./components/HandoffSheet";
 import { Icon } from "./components/Icon";
+import { OptimizationPanel } from "./components/OptimizationPanel";
 import { Radar } from "./components/Radar";
 import { ReceiptsSheetBody } from "./components/ReceiptsSheet";
 import { ScenarioButton } from "./components/ScenarioButton";
@@ -194,13 +195,16 @@ export default function App() {
 
   return (
     <div className="app">
-      <Radar contacts={snap.contacts} run={snap.run} selected={selected} handled={handled} holds={holds} onSelect={onSelect} />
+      <Radar contacts={snap.contacts} run={snap.run} selected={selected} handled={handled} holds={holds}
+        rangeM={snap.scenario.coverage_radius_m} onSelect={onSelect} />
 
       <BudgetCard
         budget={snap.budget}
         clock={snap.clock}
         scenario={snap.scenario.id}
         seed={snap.scenario.seed}
+        trafficLevel={snap.scenario.traffic_level}
+        coverageRadiusM={snap.scenario.coverage_radius_m}
         scenarios={config.scenarios}
         link={link}
         onScenario={loadScenario}
@@ -246,6 +250,7 @@ export default function App() {
       </Sheet>
 
       <ScenarioButton onClick={randomize} />
+      <OptimizationPanel metrics={snap.optimization} />
       <Toasts toasts={toasts} />
     </div>
   );

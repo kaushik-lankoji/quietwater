@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import math
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -32,29 +34,38 @@ def test_contacts_are_valid(world, name, mode):
     for seed in range(60):
         scen = world.build(name, seed)
         contacts = scen["contacts"]
-        assert 8 <= len(contacts) <= 15
+        assert 0 <= len(contacts) <= 200
+        assert 350 <= scen["coverage_radius_m"] <= 1300
+        assert scen["water_area_km2"] > 0
         assert len({c["id"] for c in contacts}) == len(contacts)
         assert scen["seed"] == seed and scen["clock_start"]
         for c in contacts:
             assert c["archetype"] in world.catalog["archetypes"]
             assert is_water(world.harbor, tuple(c["start"]))
+            center = world.harbor["sensor_center"]
+            assert math.dist(c["start"], (center["x"], center["y"])) <= scen["coverage_radius_m"]
             for wp in c.get("waypoints", []):
                 assert is_water(world.harbor, tuple(wp))
+                assert math.dist(wp, (center["x"], center["y"])) <= scen["coverage_radius_m"]
 
 
 @pytest.mark.parametrize("name,mode", RANDOM)
-def test_every_scenario_has_low_mid_and_high(rules, world, name, mode):
-    for seed in range(25):
-        s = Session(rules, world, name, mode, seed)
-        s.run(dt=1.0)
-        assert {tier(d.rung) for d in s.peak.values()} == {"low", "mid", "high"}, f"seed {seed}"
+def test_traffic_ranges_include_clear_and_peak_even_at_different_radii(world, name, mode):
+    scenarios = [world.build(name, seed) for seed in range(100)]
+    assert any(len(s["contacts"]) <= 2 for s in scenarios)
+    assert any(len(s["contacts"]) >= 81 for s in scenarios)
+    assert len({s["coverage_radius_m"] for s in scenarios}) >= 10
+    assert any(s["traffic_level"] == "Peak surge" and s["coverage_radius_m"] < 800 for s in scenarios)
 
 
 def test_recovery_scenario_contains_the_lost_vehicle(rules, world):
     sig = rules.registry_entry(rules.recovery.lost_vehicle_id).signature
     for seed in range(30):
-        contacts = world.build("random_recovery", seed)["contacts"]
-        assert sum(c.get("signature") == sig for c in contacts) == 1
+        scenario = world.build("random_recovery", seed)
+        contacts = scenario["contacts"]
+        assert sum(c.get("signature") == sig for c in contacts) <= 1
+        if len(contacts) >= 3 and scenario["coverage_radius_m"] >= 800:
+            assert sum(c.get("signature") == sig for c in contacts) == 1
 
 
 @pytest.mark.parametrize("name,mode", RANDOM)

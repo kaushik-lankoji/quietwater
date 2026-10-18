@@ -8,6 +8,8 @@ export function BudgetCard({
   clock,
   scenario,
   seed,
+  trafficLevel,
+  coverageRadiusM,
   scenarios,
   link,
   onScenario,
@@ -17,6 +19,8 @@ export function BudgetCard({
   clock: string;
   scenario: string;
   seed: number;
+  trafficLevel?: string | null;
+  coverageRadiusM: number;
   scenarios: ScenarioInfo[];
   link: Link;
   onScenario: (id: string) => void;
@@ -49,7 +53,7 @@ export function BudgetCard({
         </label>
         <span className={cls("budget-clock", link !== "live" && "lost")}>{link === "live" ? clock : "Reconnecting"}</span>
       </div>
-      {random && <div className="budget-seed">Seed {seed} · R replays it</div>}
+      {random && <div className="budget-seed">{trafficLevel ?? "Random traffic"} · {coverageRadiusM.toLocaleString()} m sector · Seed {seed} · R replays it</div>}
     </section>
   );
 }

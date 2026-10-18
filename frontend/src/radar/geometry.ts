@@ -25,7 +25,7 @@ export function toPolar(x: number, y: number): Polar {
   return { distance: Math.hypot(dx, dy), bearing, dx, dy };
 }
 
-export const inRange = (p: Polar) => p.distance <= RANGE_M;
+export const inRange = (p: Polar, rangeM = RANGE_M) => p.distance <= rangeM;
 
 export function contactRadius(sizeM: number): number {
   const t = Math.max(0, Math.min(1, (sizeM - 0.3) / 2.7));

@@ -24,6 +24,7 @@ class SimContact:
     signature: str
     motion: str
     hail: str
+    hail_route: str = "acoustic"
     transponder: str | None = None
     hail_delay_s: float = 4.0
     hostile: bool = False
@@ -46,6 +47,8 @@ class SimContact:
     rng: random.Random = field(default_factory=random.Random)
 
     def hail_status(self, t: float, timeout_s: float) -> str:
+        if self.hail_route == "unavailable":
+            return "unavailable"
         if self.hailed_t is None:
             return "not_hailed"
         age = t - self.hailed_t
@@ -86,6 +89,8 @@ class Simulator:
     def _build(self, spec: dict[str, Any]) -> SimContact:
         arch = dict(self.catalog["archetypes"][spec["archetype"]])
         merged = {**arch, **spec}
+        if merged.get("hail_route", "acoustic") not in ("acoustic", "surface", "unavailable"):
+            raise ValueError("hail_route must be acoustic, surface, or unavailable")
         x, y = merged["start"]
         heading = merged.get("heading")
         if heading is None:
@@ -99,6 +104,7 @@ class Simulator:
             id=spec["id"], archetype=spec["archetype"], truth=merged["truth"], x=float(x), y=float(y),
             heading=float(heading), speed=float(merged.get("speed_mps", 0.3)), size_m=float(merged["size_m"]),
             signature=merged["signature"], motion=motion, hail=merged.get("hail", "none"),
+            hail_route=merged.get("hail_route", "acoustic"),
             transponder=merged.get("transponder"), hail_delay_s=float(merged.get("hail_delay_s", 4)),
             hostile=bool(merged.get("hostile", False)), evasive_flag=bool(merged.get("evasive", False)),
             evade_on_hail=bool(merged.get("evade_on_hail", False)),

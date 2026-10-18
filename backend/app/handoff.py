@@ -82,7 +82,7 @@ def _cap(text: str) -> str:
     return text[:1].upper() + text[1:]
 
 
-def hold_options(decision: dict[str, Any], rules: Any) -> dict[str, Any] | None:
+def hold_options(decision: dict[str, Any], rules: Any, radius_m: float | None = None) -> dict[str, Any] | None:
     """What the operator can hold, and which choice we recommend. Always the operator's call.
 
     "operation" holds the one activity the contact threatens. "area" holds every active
@@ -92,7 +92,7 @@ def hold_options(decision: dict[str, Any], rules: Any) -> dict[str, Any] | None:
         return None
     focus = decision.get("focus_asset") or {}
     pos = tuple(decision["position"])
-    radius = rules.handoff.area_radius_m
+    radius = radius_m if radius_m is not None else rules.handoff.area_radius_m
     near = []
     for a in rules.assets:
         if a.active and distance_to(pos, a.shape) <= radius:

@@ -1,0 +1,1039 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [7 0 R 9 0 R 11 0 R 13 0 R 15 0 R 17 0 R 19 0 R 21 0 R 23 0 R 25 0 R 27 0 R 29 0 R 31 0 R 33 0 R 35 0 R 37 0 R 39 0 R 41 0 R] /Count 18 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Courier /Encoding /WinAnsiEncoding >>
+endobj
+6 0 obj
+<< /Length 978 >>
+stream
+0.08 0.17 0.24 rg 0 0 612 792 re f
+0.06 0.54 0.51 rg 56 659 48 5 re f
+0.70 0.91 0.88 rg BT /F2 10.00 Tf 1 0 0 1 56.00 680.00 Tm (QUIETWATER  /  PROJECT DOSSIER) Tj ET
+1 1 1 rg BT /F2 35.00 Tf 1 0 0 1 56.00 606.00 Tm (Quietwater) Tj ET
+1 1 1 rg BT /F2 27.00 Tf 1 0 0 1 56.00 565.00 Tm (Comprehensive Project Report) Tj ET
+0.79 0.92 0.91 rg BT /F1 17.00 Tf 1 0 0 1 56.00 525.00 Tm (The gentlest response that works) Tj ET
+0.33 0.49 0.52 RG 1 w 56 495 m 556 495 l S
+0.91 0.95 0.95 rg BT /F1 11.00 Tf 1 0 0 1 56.00 457.00 Tm (Technical, product, design, economic, and operational account) Tj ET
+0.91 0.95 0.95 rg BT /F1 11.00 Tf 1 0 0 1 56.00 433.00 Tm (Prepared 17 October 2026 from the local Quietwater working tree) Tj ET
+0.70 0.91 0.88 rg BT /F2 9.00 Tf 1 0 0 1 56.00 115.00 Tm (CURRENT LOCAL WORKING TREE  |  17 OCTOBER 2026) Tj ET
+0.79 0.87 0.88 rg BT /F1 9.00 Tf 1 0 0 1 56.00 92.00 Tm (Simulation and decision-support documentation; not an operational authorization.) Tj ET
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 6 0 R >>
+endobj
+8 0 obj
+<< /Length 6793 >>
+stream
+0.06 0.54 0.51 rg 56 751 24 3 re f
+0.38 0.44 0.48 rg BT /F2 8.00 Tf 1 0 0 1 89.00 750.00 Tm (QUIETWATER  /  COMPREHENSIVE PROJECT REPORT) Tj ET
+0.08 0.17 0.24 RG 0.6 w 56 744 m 558 744 l S
+0.08 0.17 0.24 rg BT /F2 15.00 Tf 1 0 0 1 56.00 711.00 Tm (1. Scope and evidence standard) Tj ET
+0.06 0.54 0.51 rg 56 699.00 27 2 re f
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 686.00 Tm (This report describes the current local project, the problem it addresses, the decisions it makes, the interface a) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 671.60 Tm (harbor watch officer sees, its simulator, its cost and staffing estimates, its tests, and the work required before an) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 657.20 Tm (operational deployment. The local working tree contains changes that may not yet be on GitHub; this report therefore) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 642.80 Tm (describes the inspected files, not an asserted release. The source of truth for current behavior is the executable code) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 628.40 Tm (and configuration. The README, demo script, backend notes, pipeline audit, and older four-page project handoff were) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 614.00 Tm (used as context, but their older promises are identified where the implementation differs.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 590.60 Tm ("Working" in this report means the local software runs on simulated contacts. It does not mean a harbor, Coast Guard) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 576.20 Tm (unit, or research lab has approved or deployed it. Detection, radio and acoustic contact, hold requests, dispatch, and) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 561.80 Tm (the external notice outbox are mocked. The decision engine, simulator, live updates, handoff workflow, audit receipts,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 547.40 Tm (configuration changes, and replay are software features that exist in the project.) Tj ET
+0.08 0.17 0.24 rg BT /F2 15.00 Tf 1 0 0 1 56.00 514.00 Tm (2. Executive account) Tj ET
+0.06 0.54 0.51 rg 56 502.00 27 2 re f
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 489.00 Tm (Quietwater is a decision-support tool for a harbor watch officer facing an unidentified autonomous underwater vehicle) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 474.60 Tm (\(AUV/UUV\) in a working harbor. It sits between a sonar contact being seen and a person deciding what to do. Its) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 460.20 Tm (design question is not merely "Is this dangerous?" but "What is the smallest response that handles the evidence and) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 445.80 Tm (the consequence?" This matters because a port has expensive, safety-critical operations: ships, fuel transfers,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 431.40 Tm (submerged cables, divers, traffic lanes, and research activity. Treating every sonar return as an emergency creates) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 417.00 Tm (needless interruptions and costly shutdowns; ignoring every return misses genuine hazards.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 393.60 Tm (The system classifies a contact, checks identity and schedule, attempts an appropriate contact path, assesses) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 379.20 Tm (behavior and proximity, and chooses a rung on a six-step ladder: R0 Watch, R1 Look again, R2 Ask, R3 Slow, R4 Hold,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 364.80 Tm (R5 Hand off. R0-R3 can be automated under the default rules. R4 and R5 always require a human workflow. The) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 350.40 Tm (machine drafts an external notice but never transmits it automatically. A second look is capped at two. A hard trigger,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 336.00 Tm (such as an improvised-device signature or a contact closing on an asset, goes directly to urgent handoff. Each) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 321.60 Tm (decision records a plain-language reason, a checklist of what has been ruled out, and why a neighboring rung was not) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 307.20 Tm (selected.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 283.80 Tm (The interface is deliberately operator-centered: a sweeping harbor radar, Alert Budget, prominent handoff sheet,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 269.40 Tm (decision receipts, a live Twist Console, and a collapsible Watch efficiency panel. The same engine also has a recovery) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 255.00 Tm (mode for the quiet-day problem of finding a lost research vehicle. Configuration profiles illustrate how a local registry,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 240.60 Tm (contact channels, notice recipient, language, response windows, and approver labels can change by port without) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 226.20 Tm (rewriting the ladder. These are demonstration profiles, not verified operational plans.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 202.80 Tm (In a fresh headless run of the checked-out code, the scripted 200-contact flood produced 200 seen, 198 handled) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 188.40 Tm (quietly, 2 that ever needed a person, and 0 cloud AI calls. It completed 240 simulated seconds in 4.42 seconds of wall) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 174.00 Tm (time on this machine, with an engine-reported mean of 0.09 ms per decision. Those are reproducible demonstration) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 159.60 Tm (observations, not field performance or a service-level guarantee. The cost model estimated 396 minutes of manual) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 145.20 Tm (triage capacity freed under its configured two-minute-per-quiet-contact assumption; that is an opportunity value, not) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 130.80 Tm (payroll saved.) Tj ET
+0.08 0.17 0.24 rg BT /F2 15.00 Tf 1 0 0 1 56.00 97.40 Tm (3. Origin, audience, and boundaries) Tj ET
+0.06 0.54 0.51 rg 56 85.40 27 2 re f
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 72.40 Tm (Quietwater was built for the InnovateLA at USC Dual-Use Hackathon, Marine track with NULL Systems. The) Tj ET
+0.08 0.17 0.24 RG 0.5 w 56 43 m 558 43 l S
+0.38 0.44 0.48 rg BT /F1 8 Tf 1 0 0 1 56 28 Tm (Quietwater | Comprehensive project report | 17 Oct 2026) Tj ET
+0.38 0.44 0.48 rg BT /F2 8 Tf 1 0 0 1 534 28 Tm (2) Tj ET
+endstream
+endobj
+9 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 8 0 R >>
+endobj
+10 0 obj
+<< /Length 7024 >>
+stream
+0.06 0.54 0.51 rg 56 751 24 3 re f
+0.38 0.44 0.48 rg BT /F2 8.00 Tf 1 0 0 1 89.00 750.00 Tm (QUIETWATER  /  COMPREHENSIVE PROJECT REPORT) Tj ET
+0.08 0.17 0.24 RG 0.6 w 56 744 m 558 744 l S
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 721.00 Tm (challenge asks what belongs between "seen" and "handled" when an unauthorized autonomous vehicle appears in a) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 706.60 Tm (working harbor. Its themes are a gentle response, cost and scale, a useful everyday second customer, an adaptable) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 692.20 Tm (response to live twists, and a reliable five-minute demonstration. Physical interception, jamming, disabling, and) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 677.80 Tm (capture are explicitly outside the product boundary.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 654.40 Tm (The primary user is a harbor watch officer, not the vehicle operator. The primary institutional setting is a port or) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 640.00 Tm (waterside security team. The second customer story is a research lab or survey organization looking for its own) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 625.60 Tm (missing underwater vehicle on an ordinary day. In both modes, the watch officer needs context quickly: what the) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 611.20 Tm (contact may be, what evidence supports or weakens that reading, what is nearby, which step is recommended, what) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 596.80 Tm (happens if approved, and whether the machine has already done anything.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 573.40 Tm (The central product promise is proportionality. Cheap automated review happens before scarce human attention. A) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 559.00 Tm (contact far from anything consequential gets watched or examined again. A contact near working assets may justify a) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 544.60 Tm (hail or a traffic advisory. Stopping work and sending a notice are separated and require a person. A new port should) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 530.20 Tm (change a reviewed local profile and thresholds rather than rewrite the engine. None of those choices turns Quietwater) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 515.80 Tm (into a surveillance or enforcement authority; local governance remains necessary.) Tj ET
+0.08 0.17 0.24 rg BT /F2 15.00 Tf 1 0 0 1 56.00 482.40 Tm (4. End-to-end system flow) Tj ET
+0.06 0.54 0.51 rg 56 470.40 27 2 re f
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 457.40 Tm (The data path is: scripted or seeded simulated sonar contact -> pluggable classifier -> derived facts -> deterministic) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 443.00 Tm (rules engine -> narrow advisor for ambiguous cases -> decision receipt and, if needed, a handoff item -> live user) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 428.60 Tm (interface. An operator action returns through the API to the handoff state machine and audit log. Configuration from) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 414.20 Tm (YAML informs the classifier mapping, thresholds, geography, consequences, ladder text, response windows,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 399.80 Tm (jurisdictions, optimization parameters, and simulator behavior. The same Session class runs a live scenario and a) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 385.40 Tm (replay preview, which makes before/after rule comparisons meaningful.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 362.00 Tm (The classifier interface accepts an observation and returns a label, confidence, score map, and source. The current) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 347.60 Tm (MockClassifier uses scripted labels where provided and otherwise derives a deterministic noisy label from scenario) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 333.20 Tm (truth and the number of second looks. That truth is internal to the simulator, not evidence the live decision engine) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 318.80 Tm (would have. The adapter is clear, but a pretrained sonar model has not been integrated. Fine labels include research) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 304.40 Tm (AUV, commercial ROV, military UUV, improvised device, biologic, debris, and unknown; the coarse scan label) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 290.00 Tm (compresses these into marine life, debris, known vehicle, or unknown for display and routing.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 266.60 Tm (The facts stage adds registry status, scheduled time, authorized zone, class/size/speed/signature consistency,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 252.20 Tm (nearest active asset, distance-based consequence, projected closest approach, trend, approach direction, evasion) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 237.80 Tm (after a hail, nearby traffic, and whether a compatible communication route exists. The final Decision record contains) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 223.40 Tm (the selected rung or rungs, urgency, response window, one-line reason, path through the tree, ruled-out checks,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 209.00 Tm (neighboring-rung explanations, contact facts, recommended action text, and any advisor result. The hub writes) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 194.60 Tm (receipts and audit entries and pushes snapshots over Server-Sent Events \(SSE\) to the React UI.) Tj ET
+0.08 0.17 0.24 rg BT /F2 15.00 Tf 1 0 0 1 56.00 161.20 Tm (5. Response ladder: exactly what each rung means) Tj ET
+0.06 0.54 0.51 rg 56 149.20 27 2 re f
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 136.20 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 136.20 Tm (R0 Watch. Log a confident non-vehicle or an identity-consistent, scheduled contact. A known contact in a critical) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 121.80 Tm (zone may get an informational notice while remaining at Watch. No person is interrupted by default.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 101.90 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 101.90 Tm (R1 Look again. Schedule another pass from the existing sensor. The default interval is 15 simulated seconds, with) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 87.50 Tm (at most two second looks. If the contact remains unidentified, shift up one rung; the loop cannot run forever.) Tj ET
+0.08 0.17 0.24 RG 0.5 w 56 43 m 558 43 l S
+0.38 0.44 0.48 rg BT /F1 8 Tf 1 0 0 1 56 28 Tm (Quietwater | Comprehensive project report | 17 Oct 2026) Tj ET
+0.38 0.44 0.48 rg BT /F2 8 Tf 1 0 0 1 534 28 Tm (3) Tj ET
+endstream
+endobj
+11 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 10 0 R >>
+endobj
+12 0 obj
+<< /Length 7143 >>
+stream
+0.06 0.54 0.51 rg 56 751 24 3 re f
+0.38 0.44 0.48 rg BT /F2 8.00 Tf 1 0 0 1 89.00 750.00 Tm (QUIETWATER  /  COMPREHENSIVE PROJECT REPORT) Tj ET
+0.08 0.17 0.24 RG 0.6 w 56 744 m 558 744 l S
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 721.00 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 721.00 Tm (R2 Ask. Request an ID using a compatible acoustic link to the submerged vehicle or radio contact with its support) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 706.60 Tm (vessel/operator. If no compatible vehicle link exists, the recommendation seeks an operator through port traffic) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 692.20 Tm (instead of falsely recording a failed vehicle hail. The actual transmissions are mocked.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 672.30 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 672.30 Tm (R3 Slow. Advise nearby traffic, using named nearby vessels when known. The default security wording says to) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 657.90 Tm (slow to 5 knots. The advisory is represented as a decision/action in the demo; no actual VHF broadcast occurs.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 638.00 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 638.00 Tm (R4 Hold. Recommend pausing one operation, or present an area option when the circumstances justify a broader) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 623.60 Tm (pause. A person chooses and places the hold request. The terminal response is mocked and has success/failure) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 609.20 Tm (states.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 589.30 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 589.30 Tm (R5 Hand off. Build a full package and draft a notice to the local recipient. A person opens, reviews, optionally) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 574.90 Tm (edits, and explicitly confirms the send. The outbox is simulated; it does not contact an agency.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 555.00 Tm (Rungs can be combined. An unknown high-consequence contact and a military-grade contact normally produce R4 plus) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 540.60 Tm (R5. The highest rung determines whether the decision needs a person. The configured human_required_from defaults) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 526.20 Tm (to R4 and can be moved lower for stricter human review, but schema validation does not allow it above R4. This) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 511.80 Tm (invariant protects the human gate even when a twist changes other rules.) Tj ET
+0.08 0.17 0.24 rg BT /F2 15.00 Tf 1 0 0 1 56.00 478.40 Tm (6. The implemented decision tree) Tj ET
+0.06 0.54 0.51 rg 56 466.40 27 2 re f
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 453.40 Tm (The current engine uses S0-S5, not the N1-N7 tree described in an earlier planning handoff. S0 first asks whether the) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 439.00 Tm (contact is confidently fish or debris. The non-vehicle confidence threshold is 0.75 by default; a confident result goes) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 424.60 Tm (to R0. Lower-confidence cases continue.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 401.20 Tm (S1 checks identity. A vehicle must be registered, on schedule, and in its authorized zone to go directly to S3. Registry) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 386.80 Tm (entries specify an ID, operator, vehicle type, size, sonar signature, authorized zones, and time windows. Schedule) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 372.40 Tm (checks include overnight windows. If any element is missing, S2 considers contacting it.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 349.00 Tm (S2 handles the hail. A successful reply returns to S3. A missing, intermittent, mismatched, or pending reply proceeds) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 334.60 Tm (to behavior analysis, but the pending reply gets time before non-urgent escalation above R2. A contact marked) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 320.20 Tm (hail_route: unavailable never gets a fabricated hail timestamp; its checklist says that no compatible link exists and) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 305.80 Tm (that a reply was not expected. The supported scripted contact routes are acoustic, surface, and unavailable.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 282.40 Tm (S3 checks consistency against registration or class data. Size beyond the configured tolerance, unexpected sonar) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 268.00 Tm (signature, or speed beyond the class margin can make the evidence inconsistent. A consistent contact earns R0, with) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 253.60 Tm (an informational notice if it is inside a critical zone. Inconsistent evidence proceeds to behavior/consequence or) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 239.20 Tm (remains in the unknown branch.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 215.80 Tm (S4 tests hard triggers. An improvised-device classification over its threshold, explicit hostile flag, or a sufficiently) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 201.40 Tm (fast contact heading toward an active asset produces urgent R5. The approach test uses a 300 m radius, a 30-degree) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 187.00 Tm (cone toward the asset, and a minimum speed of 0.8 m/s by default. Hard triggers bypass the ordinary waiting logic.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 172.60 Tm (Evasion is considered at S5 and also produces urgent R5. Evasion is estimated from turning or a speed jump after a) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 158.20 Tm (hail, with a scripted evasion flag for scenarios.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 134.80 Tm (S5 combines class evidence with consequence. A confidently classified research or commercial vehicle goes back) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 120.40 Tm (through consistency; this is not automatic trust if other facts disagree. A confident military classification yields R4) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 106.00 Tm (plus R5. An unknown low-consequence contact gets R1 and then a capped escalation. An unknown) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 91.60 Tm (medium-consequence contact gets R2 if no traffic is nearby, or R3 if traffic needs warning. An unknown) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 77.20 Tm (high-consequence contact gets R4 plus R5. When a hail is pending, the ordinary branch is capped at R2 until the) Tj ET
+0.08 0.17 0.24 RG 0.5 w 56 43 m 558 43 l S
+0.38 0.44 0.48 rg BT /F1 8 Tf 1 0 0 1 56 28 Tm (Quietwater | Comprehensive project report | 17 Oct 2026) Tj ET
+0.38 0.44 0.48 rg BT /F2 8 Tf 1 0 0 1 534 28 Tm (4) Tj ET
+endstream
+endobj
+13 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 12 0 R >>
+endobj
+14 0 obj
+<< /Length 6788 >>
+stream
+0.06 0.54 0.51 rg 56 751 24 3 re f
+0.38 0.44 0.48 rg BT /F2 8.00 Tf 1 0 0 1 89.00 750.00 Tm (QUIETWATER  /  COMPREHENSIVE PROJECT REPORT) Tj ET
+0.08 0.17 0.24 RG 0.6 w 56 744 m 558 744 l S
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 721.00 Tm (ten-second timeout, unless S4 has a hard trigger. An urgent R5 can latch so a later quieter snapshot does not) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 706.60 Tm (immediately erase the urgent handoff.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 683.20 Tm (The code records why the chosen rung is proportionate. "Confidence alone never escalates" means a confidently) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 668.80 Tm (detected but unidentified contact far from assets does not automatically summon an officer. The relationship between) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 654.40 Tm (identity and consequence does the work: uncertainty becomes more important when an asset, operation, diver area, or) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 640.00 Tm (plausible approach path raises the stakes.) Tj ET
+0.08 0.17 0.24 rg BT /F2 15.00 Tf 1 0 0 1 56.00 606.60 Tm (7. Consequence, motion, and identity evidence) Tj ET
+0.06 0.54 0.51 rg 56 594.60 27 2 re f
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 581.60 Tm (The default consequence bands are configurable by asset kind. High/medium distances are 200/450 m for fuel docks,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 567.20 Tm (120/350 m for ships, 60/200 m for cables, and 150/400 m for dive areas. The generic fallback is 120/350 m. Only active) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 552.80 Tm (assets are considered. Geometries include rectangles, circles, and lines with width. The software computes the) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 538.40 Tm (closest distance to each shape, picks the most consequential active asset, and retains the nearest asset for) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 524.00 Tm (explanation.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 500.60 Tm (Closest point of approach \(CPA\) is a look-ahead, not a trained forecast. At the current speed and heading, the engine) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 486.20 Tm (projects a straight-line path for 120 seconds in five-second increments and checks proximity along it. It may raise) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 471.80 Tm (the consequence level, capped at medium under the default configuration. This allows a vehicle still distant from a) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 457.40 Tm (cable or berth to be treated more carefully if it is heading toward it. The trend stage reads recent trail history over a) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 443.00 Tm (30-second window and labels closing, leaving, loitering, steady, or new. A contact can change consequence as it) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 428.60 Tm (moves, and the engine re-evaluates it on subsequent ticks.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 405.20 Tm (Identity uses the active jurisdiction profile's registry. Local profiles can replace the base entries. A registry match) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 390.80 Tm (alone is insufficient: schedule and authorized-zone conditions must also be met. The communication state is separate) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 376.40 Tm (from identity. AIS can help with a surface vessel's identity, but it is not a radio conversation with a submerged) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 362.00 Tm (vehicle. This distinction is represented in the demo contact route and in the wording of the recommended Ask action.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 338.60 Tm (The limitations matter. CPA assumes a straight line even when a simulated vehicle later follows waypoints. Evasion) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 324.20 Tm (is a heuristic and can misread a sharp turn around land. A time or zone check can be wrong if local data is stale. The) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 309.80 Tm (current program has local example registries, not a live allied/external registry integration. It has no physical sensor) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 295.40 Tm (confidence calibration against real harbor data.) Tj ET
+0.08 0.17 0.24 rg BT /F2 15.00 Tf 1 0 0 1 56.00 262.00 Tm (8. The narrow advisor and the cost of AI) Tj ET
+0.06 0.54 0.51 rg 56 250.00 27 2 re f
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 237.00 Tm (Quietwater's rules engine is the decision source of truth. An advisor layer only sees ambiguous contacts: unknowns,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 222.60 Tm (certain low-confidence vehicles, or anomalies such as an implausibly large "fish." It is excluded from hard-trigger) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 208.20 Tm (outcomes and urgent cases. The advisor can request a second look or raise the rung by at most the configured) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 193.80 Tm (max_raise \(one by default\); it cannot lower a rung. Advice and clamp results appear in receipts.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 170.40 Tm (The default advisor is deterministic and offline. Its score is a weighted sum of compounding signals: low confidence,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 156.00 Tm (silence or mismatch after a hail, closing on an asset in the projected path, loitering, implausible size/speed, class) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 141.60 Tm (inconsistency, and medium consequence. The default raise threshold is 0.6; a lower threshold may request another) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 127.20 Tm (look. Mere low confidence has a limited weight and does not by itself dictate a costly handoff. The advisor is invoked) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 112.80 Tm (only when the ambiguity gate admits a contact, which is the system's main compute-cost control.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 89.40 Tm (An optional LLM adapter exists behind configuration and is off by default. It asks for strict structured output,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 75.00 Tm (validates its fields, caps its effect, uses a timeout, and caches responses by contact snapshot and configuration hash.) Tj ET
+0.08 0.17 0.24 RG 0.5 w 56 43 m 558 43 l S
+0.38 0.44 0.48 rg BT /F1 8 Tf 1 0 0 1 56 28 Tm (Quietwater | Comprehensive project report | 17 Oct 2026) Tj ET
+0.38 0.44 0.48 rg BT /F2 8 Tf 1 0 0 1 534 28 Tm (5) Tj ET
+endstream
+endobj
+15 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 14 0 R >>
+endobj
+16 0 obj
+<< /Length 7128 >>
+stream
+0.06 0.54 0.51 rg 56 751 24 3 re f
+0.38 0.44 0.48 rg BT /F2 8.00 Tf 1 0 0 1 89.00 750.00 Tm (QUIETWATER  /  COMPREHENSIVE PROJECT REPORT) Tj ET
+0.08 0.17 0.24 RG 0.6 w 56 744 m 558 744 l S
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 721.00 Tm (If the model fails, the rule-based advisor answers; if both fail, the system raises one rung rather than quietly) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 706.60 Tm (accepting uncertainty. The optional transport uses a configured environment variable for its API key and does not) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 692.20 Tm (place a key in the repository. Current backend notes say an earlier live LLM trial slowed ticks and raised more) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 677.80 Tm (contacts than the offline advisor, changing the demo story. It is not appropriate to present that optional model as the) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 663.40 Tm (normal path or as a measured saving. The measured flood used zero cloud AI calls.) Tj ET
+0.08 0.17 0.24 rg BT /F2 15.00 Tf 1 0 0 1 56.00 630.00 Tm (9. Simulator: what is generated and what is measured) Tj ET
+0.06 0.54 0.51 rg 56 618.00 27 2 re f
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 605.00 Tm (The simulator advances contacts across a two-dimensional harbor drawing. It models positions, heading, speed, size,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 590.60 Tm (sonar signature, motion style, hail response and delay, transponder/ID, hostility and evasion flags, waypoints, events,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 576.20 Tm (spawning and departure, and trails. Motion styles include straight movement, drift with a configured current,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 561.80 Tm (wandering, loitering, and waypoint-following. It checks water boundaries and piers. The classifier uses a scripted) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 547.40 Tm (confidence track or deterministic seeded noise. A second look can raise classification confidence or reveal a scripted) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 533.00 Tm (change. The sonar feed is simulated; no real sonar or image recognition is involved.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 509.60 Tm (The project includes a Morning watch story, an all-archetypes scenario, a 200-contact flood, a lost-vehicle recovery) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 495.20 Tm (scenario, a contact-paths scenario that contrasts surface contact with no compatible link, and seeded random) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 480.80 Tm (security and recovery scenarios. Archetypes include bottle, kelp, fish, known research sub, survey and inspection) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 466.40 Tm (ROVs, unknown distant and near assets, stray research vehicle, evasive contact, improvised signature, equipment,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 452.00 Tm (and military UUV. Scripted events can change a contact's answer or identity as the scenario progresses.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 428.60 Tm (Random generation deliberately varies two separate aspects: a watch-sector radius from 350 to 1,300 m in 50 m) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 414.20 Tm (steps, and a weighted traffic level. Clear water contains 0-2 contacts, quiet 3-8, working harbor 9-30, busy 31-80,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 399.80 Tm (and peak surge 81-200. The configured weights are 2, 4, 5, 3, and 1, respectively; they are demo probabilities rather) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 385.40 Tm (than measured traffic frequencies. A seed determines the same contact set, clock, and geometry for replay. It) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 371.00 Tm (randomizes identity variants, location inside reachable water, speed, heading, size, confidence trajectory, hail) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 356.60 Tm (response, event timing, and some motion. Placement regions are chosen to make low-, medium-, and) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 342.20 Tm (high-consequence contacts likely under the default rules. If the randomly chosen count is very small, it cannot contain) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 327.80 Tm (every tier. Changes to asset positions or thresholds may also change those tiers even when the seed is unchanged.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 304.40 Tm (The watch area shown in the model is water inside the chosen radius and the demonstration map, not the entire area) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 290.00 Tm (of a real port. The software estimates its square kilometers by sampling 50 m grid cells that lie in water and in range.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 275.60 Tm (A larger port would need multiple sectors or different geometry. A seed makes a replay comparable before and after a) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 261.20 Tm (rule twist because random generation reads scenario configuration and the seed, not the live decision thresholds. Live) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 246.80 Tm (ticks and headless preview use somewhat different time steps, so they are comparable decision replays rather than) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 232.40 Tm (pixel-identical animations.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 209.00 Tm (The default scripted flood is intentionally a stress demonstration: many contacts are ordinary marine life or debris,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 194.60 Tm (with a small number of contacts that deserve a human. It tests whether the attention queue grows far more slowly) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 180.20 Tm (than the sensor feed. The summary counts contacts that *ever* needed a human separately from those still pending at) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 165.80 Tm (a given moment. Those measures should not be confused.) Tj ET
+0.08 0.17 0.24 rg BT /F2 15.00 Tf 1 0 0 1 56.00 132.40 Tm (10. Handoff workflow and authority boundary) Tj ET
+0.06 0.54 0.51 rg 56 120.40 27 2 re f
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 107.40 Tm (An R4/R5 decision creates a handoff item rather than silently executing the recommended action. The item's state) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 93.00 Tm (machine includes pending, expired, watching, hold requesting, hold active, hold failed, notice review, notice sent,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 78.60 Tm (dismissed, resolved, lifted, and stood down. The backend enumerates legal operator moves and legal system moves;) Tj ET
+0.08 0.17 0.24 RG 0.5 w 56 43 m 558 43 l S
+0.38 0.44 0.48 rg BT /F1 8 Tf 1 0 0 1 56 28 Tm (Quietwater | Comprehensive project report | 17 Oct 2026) Tj ET
+0.38 0.44 0.48 rg BT /F2 8 Tf 1 0 0 1 534 28 Tm (6) Tj ET
+endstream
+endobj
+17 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 16 0 R >>
+endobj
+18 0 obj
+<< /Length 7200 >>
+stream
+0.06 0.54 0.51 rg 56 751 24 3 re f
+0.38 0.44 0.48 rg BT /F2 8.00 Tf 1 0 0 1 89.00 750.00 Tm (QUIETWATER  /  COMPREHENSIVE PROJECT REPORT) Tj ET
+0.08 0.17 0.24 RG 0.6 w 56 744 m 558 744 l S
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 721.00 Tm (invalid transitions return an error instead of mutating state. A later severity increase can re-open attention even after) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 706.60 Tm (a contact was dismissed or watched. An overdue item pages a backup officer on screen only; it does not send an) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 692.20 Tm (external alert.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 668.80 Tm (For R4, the screen presents "this operation only" and "this entire area." The operation choice pauses only the named) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 654.40 Tm (activity at the focus asset. The area choice covers every active operation inside the proposed radius. The software) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 640.00 Tm (recommends area when two or more operations are in range, the contact is urgent, or a high-consequence contact is) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 625.60 Tm (closing; otherwise it recommends one operation. This is advice, not autonomous authority. The operator explicitly) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 611.20 Tm (chooses the scope. The mock terminal can confirm a hold after about a second or fail it. An active hold has a timer;) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 596.80 Tm (when time is up, it remains active until a person lifts it or extends it. The system does not quietly resume operations.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 573.40 Tm (For R5, the draft includes recipient, sender, subject, contact description, estimated position, nearby asset, reason,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 559.00 Tm (ruled-out list, automated steps already taken, and recommendation. The security recipient depends on the active) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 544.60 Tm (jurisdiction; recovery mode sends to the research lab operations desk. Opening the draft is separate from sending it.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 530.20 Tm (The operator may edit or cancel review; send requires an explicit confirmation. The current outbox records a simulated) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 515.80 Tm (send. A hold request does not send the notice, and sending a notice does not itself place a hold. These are separate) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 501.40 Tm (approvals with separate receipts.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 478.00 Tm (Every handoff transition adds an audit entry and a receipt with time, actor string, item, prior and new status, and rule) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 463.60 Tm (version/configuration hash. The profile also names the intended hold/handoff approver and security liaison in) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 449.20 Tm (recommendation and notice text. There is no authenticated identity or role enforcement yet: the current operator name) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 434.80 Tm (is supplied by the client. The state machine enforces the human action step, but an operational deployment would) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 420.40 Tm (require login, role checks, and signed approvals. Local rules must determine who is authorized to order a hold or) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 406.00 Tm (transmit a notice.) Tj ET
+0.08 0.17 0.24 rg BT /F2 15.00 Tf 1 0 0 1 56.00 372.60 Tm (11. The interface and design rationale) Tj ET
+0.06 0.54 0.51 rg 56 360.60 27 2 re f
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 347.60 Tm (The frontend is a single-page React/TypeScript application with plain CSS, Vite, and a custom canvas radar. The) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 333.20 Tm (screen is built around the watch officer's workflow rather than an engineering console. It uses a full-screen harbor) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 318.80 Tm (sonar view, pulsing sweep, trails, asset zones, and contacts colored by consequence: gray for lower concern, yellow) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 304.40 Tm (for medium, red for higher concern. A hover popup gives the label, confidence, distance, bearing, speed, heading, rung,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 290.00 Tm (and a one-line reason. A click on a human-required contact opens its handoff; a click on a quiet one opens its receipt.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 275.60 Tm (An acted-on red contact becomes muted and brightens again if it worsens.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 252.20 Tm (The Alert Budget sits near the top and answers the anti-flood question immediately: how many contacts were seen,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 237.80 Tm (how many were handled quietly, and how many need the officer now. The underlying budget also tracks how many) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 223.40 Tm (ever needed a person, active contacts, holds, sent notices, dismissed/expired/resolved items, per-rung counts, and a) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 209.00 Tm (weighted attention load. Default weights are R0=0, R1=0, R2=0, R3=1, R4=2, and R5=3, with a nominal capacity of 6.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 194.60 Tm (This is a communication model of interruptions, not a certified measure of cognitive workload. The old "bang") Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 180.20 Tm (comparison is the count of all seen contacts, illustrating the cost of treating every hit as an alarm.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 156.80 Tm (The handoff sheet is the visual centerpiece. It puts the contact and urgency first, then the one-line reason and clear) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 142.40 Tm (next action. It shows what would happen if a hold is approved, offers the narrow and area scopes, keeps the external) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 128.00 Tm (notice in a separate review step, and displays a response countdown. The "Details" area provides label and) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 113.60 Tm (confidence, size, speed and heading, nearby asset, position, ruled-out checklist, and history. "Keep watching") Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 99.20 Tm (snoozes the item for a configurable two-minute simulated interval; dismiss has a ten-second undo window and does) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 84.80 Tm (not stop tracking. Urgent new items can open the sheet automatically.) Tj ET
+0.08 0.17 0.24 RG 0.5 w 56 43 m 558 43 l S
+0.38 0.44 0.48 rg BT /F1 8 Tf 1 0 0 1 56 28 Tm (Quietwater | Comprehensive project report | 17 Oct 2026) Tj ET
+0.38 0.44 0.48 rg BT /F2 8 Tf 1 0 0 1 534 28 Tm (7) Tj ET
+endstream
+endobj
+19 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 18 0 R >>
+endobj
+20 0 obj
+<< /Length 7074 >>
+stream
+0.06 0.54 0.51 rg 56 751 24 3 re f
+0.38 0.44 0.48 rg BT /F2 8.00 Tf 1 0 0 1 89.00 750.00 Tm (QUIETWATER  /  COMPREHENSIVE PROJECT REPORT) Tj ET
+0.08 0.17 0.24 RG 0.6 w 56 744 m 558 744 l S
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 721.00 Tm (Decision receipts support accountability and explainability. The operator can filter all, automated, or human-required) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 706.60 Tm (entries, search by contact or reason, and expand "Why not one rung higher or lower?" to see the path, checklist,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 692.20 Tm (consequence, and alternative-rung reasoning. Audit export is available in JSON and CSV. A Watching panel collects) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 677.80 Tm (snoozed contacts. A Dual-use toggle changes security to research-vehicle recovery; the security checks still apply to) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 663.40 Tm (threats in recovery mode.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 640.00 Tm (The bottom controls provide pause/resume, replay, flood, receipts, twist access, and speed controls. Keyboard) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 625.60 Tm (shortcuts include Space for pause, R for replay, F for flood, T for Twist Console, and Escape to close a sheet. The) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 611.20 Tm (scenario generator button produces a seeded new situation. The Watch efficiency panel is collapsible and sits in a) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 596.80 Tm (corner to keep cost and staffing measures accessible without dominating the radar. Its wording deliberately separates) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 582.40 Tm ("value freed" from literal money saved.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 559.00 Tm (The visual approach favors immediate recognition: high contrast, large touch targets, short summaries, consistent risk) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 544.60 Tm (colors, and detail only when expanded. The product is not a command-and-control weapon screen. Its screens stop at) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 530.20 Tm (human review and simulated communications. There is no neutralize, intercept, or physical-stop control.) Tj ET
+0.08 0.17 0.24 rg BT /F2 15.00 Tf 1 0 0 1 56.00 496.80 Tm (12. Live twists and deterministic comparison) Tj ET
+0.06 0.54 0.51 rg 56 484.80 27 2 re f
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 471.80 Tm (The Twist Console exposes editable thresholds, rung mappings, zones, schedules, presets, and YAML. A user can) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 457.40 Tm (preview a change before applying it: the backend runs the same seeded scenario under the old and proposed rules,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 443.00 Tm (then compares contact-by-contact peak outcomes, rung changes, paths, first time a human was requested, and totals) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 428.60 Tm (for quiet versus human-needed contacts. The UI shows both the changed rule fields and the decision effects. A) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 414.20 Tm (successful apply persists to config/rules.yaml, hot-reloads, and re-evaluates active contacts. Twist history is saved) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 399.80 Tm (with before/after information and supports revert.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 376.40 Tm (The standard demo twist is to activate Fuel Dock B and mark its zone critical while Morning watch is running. The) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 362.00 Tm (new asset changes consequence for a nearby contact; a previous advisory can become Hold plus Hand off. This shows) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 347.60 Tm (the product's central adaptation argument: the harbor's facts and policy change, while the decision code stays the) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 333.20 Tm (same. An invalid YAML edit is rejected and the last valid rules remain active. The server polls file modification time) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 318.80 Tm (during its tick, so changes usually appear quickly, but the mechanism is not a robust production file watcher.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 295.40 Tm (Jurisdiction selection is also configuration-driven. The included examples are Los Angeles, Singapore, and Rotterdam) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 281.00 Tm (\(keyed eu\). Profiles set registry source and optionally a profile registry, notice recipient, surface and acoustic contact) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 266.60 Tm (guidance, port operations/security channels, language, approval-role labels, and response windows. The same ladder) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 252.20 Tm (can therefore be replayed against different local data. This is a portability demonstration, not proof that one port's) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 237.80 Tm (radio plan, security duties, or legal approval process automatically applies elsewhere. The map remains the Los) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 223.40 Tm (Angeles demonstration geometry even when a Singapore or Rotterdam profile is selected. Profile entries and) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 209.00 Tm (recipients require local signoff. A Port Facility Security Officer is a distinct role under a local security plan; the ladder) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 194.60 Tm (itself is a product design, not a requirement claimed to come from the ISPS Code.) Tj ET
+0.08 0.17 0.24 rg BT /F2 15.00 Tf 1 0 0 1 56.00 161.20 Tm (13. Quiet Tuesday: the second customer) Tj ET
+0.06 0.54 0.51 rg 56 149.20 27 2 re f
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 136.20 Tm (Recovery mode addresses a research organization's missing vehicle. The configured example is USC Wrigley Marine) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 121.80 Tm (Lab's REMUS-02. A possible match may be identified from transponder, sonar signature, size and class, and) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 107.40 Tm (confidence. The system uses capped re-scans for uncertain matches, then pings or recommends a recovery handoff) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 93.00 Tm (when the vehicle is confirmed. It estimates drift heading and speed, projected position over ten minutes, and) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 78.60 Tm (approximate entry into a critical zone. It can recommend notifying traffic and, where there is an immediate operational) Tj ET
+0.08 0.17 0.24 RG 0.5 w 56 43 m 558 43 l S
+0.38 0.44 0.48 rg BT /F1 8 Tf 1 0 0 1 56 28 Tm (Quietwater | Comprehensive project report | 17 Oct 2026) Tj ET
+0.38 0.44 0.48 rg BT /F2 8 Tf 1 0 0 1 534 28 Tm (8) Tj ET
+endstream
+endobj
+21 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 20 0 R >>
+endobj
+22 0 obj
+<< /Length 7491 >>
+stream
+0.06 0.54 0.51 rg 56 751 24 3 re f
+0.38 0.44 0.48 rg BT /F2 8.00 Tf 1 0 0 1 89.00 750.00 Tm (QUIETWATER  /  COMPREHENSIVE PROJECT REPORT) Tj ET
+0.08 0.17 0.24 RG 0.6 w 56 744 m 558 744 l S
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 721.00 Tm (hazard, a hold. The handoff package goes to the lab's operations desk instead of a security recipient.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 697.60 Tm (The second customer matters commercially and ethically. A harbor does not encounter a hostile AUV every day, but) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 683.20 Tm (labs and survey teams can lose equipment during ordinary work. The same sensor feed and rules machinery can) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 668.80 Tm (reduce search time and protect traffic while recovering a legitimate vehicle. However, a profile-specific registry) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 654.40 Tm (currently replaces the base registry; under Singapore or Rotterdam, the configured USC lost vehicle may not be) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 640.00 Tm (present. That recovery story therefore works as configured in the Los Angeles profile, and each new port needs its) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 625.60 Tm (own recovery target and registry entries.) Tj ET
+0.08 0.17 0.24 rg BT /F2 15.00 Tf 1 0 0 1 56.00 592.20 Tm (14. Optimization model: objectives, inputs, and formulas) Tj ET
+0.06 0.54 0.51 rg 56 580.20 27 2 re f
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 567.20 Tm (The optimization layer is a scenario-based estimate of three scarce things: officer attention, operations paused, and) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 552.80 Tm (paid cloud computation. It aims to spend the expensive resource last. The rule engine and offline advisor handle) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 538.40 Tm (ordinary contacts before a person is called; a second sonar look is capped; and the optional network model remains off) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 524.00 Tm (unless explicitly enabled. The model is visible in the Watch efficiency panel. It is not an independently trained) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 509.60 Tm (optimizer, a validated staffing forecast, or an accounting system. It reads actual decisions from the simulated session) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 495.20 Tm (and combines them with configurable assumptions.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 471.80 Tm (Inputs come from the current run and rules.yaml: watch radius, water area, total seen contacts, first time each) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 457.40 Tm (contact needed a human, peak rung and response window, active assets and their geometry, current number of) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 443.00 Tm (officers, modeled review minutes for a hold or handoff, target utilization, standard and candidate area-hold radii,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 428.60 Tm (safety buffer, hold duration, officer hourly rate, paused-operation hourly rate, and cost per optional LLM call. Current) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 414.20 Tm (defaults are one officer, a 60-minute watch horizon, 70% target utilization, 4 minutes to review a hold, 3 minutes to) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 399.80 Tm (review a handoff, 2 minutes of manual review per quiet contact, $60 per officer-hour, $500 per paused-operation-hour,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 385.40 Tm ($0.02 per LLM call, a 400 m standard area-hold radius, candidate radii of 150/250/400 m, and a 25 m buffer. These are) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 371.00 Tm (demo assumptions, not measured harbor prices or labor contracts.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 347.60 Tm (The contact-count relationship is direct: handled quietly = contacts seen - contacts that ever required a human. The) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 333.20 Tm (panel's "officer time freed" is handled quietly x assumed manual minutes per contact. Its dollar capacity value is freed) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 318.80 Tm (minutes x assumed hourly officer rate / 60. This value means the on-duty officer can spend that time on other work. It) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 304.40 Tm (is not a claim that the port pays fewer wages during the shift. In particular, the tool should not be presented as having) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 290.00 Tm (automatically eliminated a position.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 266.60 Tm (The staffing calculation treats each first human request as a task with an arrival time, response deadline, and) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 252.20 Tm (modeled service duration. It starts with a workload lower bound: ceil\(total review minutes / \(watch horizon x target) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 237.80 Tm (utilization\)\), never below one. It then tries increasing numbers of operators and schedules tasks by arrival and) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 223.40 Tm (deadline using the earliest available operator. The first count that finishes every modeled review by its deadline is) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 209.00 Tm (reported as "officers needed." If none within the searched range works, the panel says review takes too long. This is) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 194.60 Tm (a simple deterministic planning approximation. It does not model breaks, simultaneous radio duties, individual skill,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 180.20 Tm (shift overlap, uncertain review duration, or queuing outside the selected scenario. A response-window failure can) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 165.80 Tm (produce a recommendation for more than one officer even when total review minutes are small.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 142.40 Tm (The hold-radius calculation begins with all active assets already in a high-consequence band of the contact, plus the) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 128.00 Tm (focus asset even if it is farther away. It takes the greatest distance among those assets and adds the configured) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 113.60 Tm (safety buffer. It picks the smallest candidate radius meeting that minimum; if all candidates are too small, it rounds) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 99.20 Tm (the minimum upward to a 50 m increment. The same hold-options logic then lists operations that fall inside the radius) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 84.80 Tm (and recommends either one operation or the area according to the evidence. A person still selects and approves the) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 70.40 Tm (actual scope. The baseline comparison uses the standard 400 m area radius. The model multiplies the number of) Tj ET
+0.08 0.17 0.24 RG 0.5 w 56 43 m 558 43 l S
+0.38 0.44 0.48 rg BT /F1 8 Tf 1 0 0 1 56 28 Tm (Quietwater | Comprehensive project report | 17 Oct 2026) Tj ET
+0.38 0.44 0.48 rg BT /F2 8 Tf 1 0 0 1 534 28 Tm (9) Tj ET
+endstream
+endobj
+23 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 22 0 R >>
+endobj
+24 0 obj
+<< /Length 7423 >>
+stream
+0.06 0.54 0.51 rg 56 751 24 3 re f
+0.38 0.44 0.48 rg BT /F2 8.00 Tf 1 0 0 1 89.00 750.00 Tm (QUIETWATER  /  COMPREHENSIVE PROJECT REPORT) Tj ET
+0.08 0.17 0.24 RG 0.6 w 56 744 m 558 744 l S
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 721.00 Tm (operations in the recommended option by the configured hold duration to estimate paused operation-minutes in each) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 706.60 Tm (case.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 683.20 Tm (Costs are computed as follows. Estimated watch cost = modeled staffing cost + modeled paused-operation cost +) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 668.80 Tm (optional cloud-AI cost. Staffing cost uses the recommended staff count if a feasible one was found, otherwise the) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 654.40 Tm (configured current count, multiplied by hourly rate and watch-horizon fraction. Pause cost uses operation-minutes) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 640.00 Tm (multiplied by the paused-operation hourly rate. Cloud cost is LLM calls x configured per-call price; it is zero by) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 625.60 Tm (default because the offline advisor is selected. Avoided pause cost is the positive difference between baseline and) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 611.20 Tm (modeled pause costs. The panel's "automation value freed" adds officer capacity value to avoided pause cost. Its) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 596.80 Tm (manual-review benchmark is estimated cost plus that value, and its percentage is value divided by that benchmark.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 582.40 Tm (These are comparative demo quantities, not an audited return-on-investment statement.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 559.00 Tm (To compare differently sized sectors, the panel divides both estimated cost and value freed by the sampled water area) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 544.60 Tm (in square kilometers. This denominator is important: a $20 modeled benefit over a small cove and a $20 benefit over a) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 530.20 Tm (large watch sector do not represent the same density of support. The watch radius and water area are both shown.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 515.80 Tm (The model does not claim that officer effort scales linearly with area; it uses area as a comparison lens while contact) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 501.40 Tm (mix and response deadlines drive staffing.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 478.00 Tm (Important caveats are built into the formula. The pause saving can legitimately be $0 when the optimized and standard) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 463.60 Tm (scopes both recommend the same single operation, or when there is no R4 hold. Dollar savings vary with assumed) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 449.20 Tm (manual review time and prices. The panel's single "recommended hold radius" is the minimum among modeled holds;) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 434.80 Tm (the full range is also in backend metrics. A hypothetical value of freed attention should not be added to actual cash) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 420.40 Tm (savings without a real operating study. The model has no validated false-positive or missed-risk cost, and does not) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 406.00 Tm (optimize every legal or safety constraint a port would use.) Tj ET
+0.08 0.17 0.24 rg BT /F2 15.00 Tf 1 0 0 1 56.00 372.60 Tm (15. Measured demonstration runs) Tj ET
+0.06 0.54 0.51 rg 56 360.60 27 2 re f
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 347.60 Tm (These measurements were generated on 17 October 2026 by loading the current local configuration into the Hub,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 333.20 Tm (advancing each scenario one simulated second at a time, and reading its budget and optimization metrics. The) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 318.80 Tm (environment and implementation affect wall time; figures are useful as a reproducible demo check, not a guarantee for) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 304.40 Tm (live sensors. No optional LLM was enabled.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 281.00 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 281.00 Tm (Morning watch \(300 simulated seconds\): 12 contacts seen; 10 handled quietly; 2 ever needed a person; 2 pending at) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 266.60 Tm (measurement; 0 cloud AI calls. Final active rung counts were 8 R0, 1 R2, 1 R3, and 2 R5. The watch radius was) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 252.20 Tm (1,000 m, with 1.91 square kilometers of sampled water. Under the two-minute manual-review assumption, 20) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 237.80 Tm (officer minutes and $20 of capacity value were modeled as freed. The reported estimated watch cost was $620.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 223.40 Tm (Headless wall time was 0.48 s; mean measured decision time 0.12 ms.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 203.50 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 203.50 Tm (Flood \(240 simulated seconds\): 200 contacts seen; 198 handled quietly and 2 ever needed a person; 2 pending; 0) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 189.10 Tm (cloud AI calls. Final active rung counts were 159 R0, 39 R2, and 2 R5. At the 1,000 m radius and 1.91 square) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 174.70 Tm (kilometers of water, the model counted 396 minutes and $396 of officer-capacity value under its manual-review) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 160.30 Tm (assumption. It reported $620 estimated watch cost and two modeled officers needed to meet the response) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 145.90 Tm (windows. Headless wall time was 4.42 s; mean measured decision time 0.09 ms.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 126.00 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 126.00 Tm (Seeded random harbor, seed 42 \(120 simulated seconds\): 27 contacts seen; 22 handled quietly; 5 ever needed a) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 111.60 Tm (person; 0 cloud AI calls. The generated radius was 900 m and sampled water area 1.82 square kilometers. The) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 97.20 Tm (model counted 44 freed minutes and $44 of capacity value, with an estimated watch cost of $2,300 and a) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 82.80 Tm (five-officer response-window recommendation under its assumptions. Wall time was 0.42 s; mean measured) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 68.40 Tm (decision time 0.11 ms. This is a useful reminder that different mixes can create sharply different human demand,) Tj ET
+0.08 0.17 0.24 RG 0.5 w 56 43 m 558 43 l S
+0.38 0.44 0.48 rg BT /F1 8 Tf 1 0 0 1 56 28 Tm (Quietwater | Comprehensive project report | 17 Oct 2026) Tj ET
+0.38 0.44 0.48 rg BT /F2 8 Tf 1 0 0 1 534 28 Tm (10) Tj ET
+endstream
+endobj
+25 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 24 0 R >>
+endobj
+26 0 obj
+<< /Length 7082 >>
+stream
+0.06 0.54 0.51 rg 56 751 24 3 re f
+0.38 0.44 0.48 rg BT /F2 8.00 Tf 1 0 0 1 89.00 750.00 Tm (QUIETWATER  /  COMPREHENSIVE PROJECT REPORT) Tj ET
+0.08 0.17 0.24 RG 0.6 w 56 744 m 558 744 l S
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 721.00 Tm (even at a smaller radius.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 701.10 Tm (These counts describe simulated traffic and default rules. The 200-contact flood was designed to demonstrate) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 686.70 Tm (anti-flooding and should not be treated as a measured real-world alert rate. "Need a person" counts any contact that) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 672.30 Tm (crossed the human threshold during the run; "pending" counts those still waiting when measured. The final rung) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 657.90 Tm (distribution is only a snapshot of active contacts and does not tell the whole path each contact took. The optimization) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 643.50 Tm (display is a model layered over these outcomes, not evidence that a real port saved the quoted dollars.) Tj ET
+0.08 0.17 0.24 rg BT /F2 15.00 Tf 1 0 0 1 56.00 610.10 Tm (16. Software architecture, storage, and interfaces) Tj ET
+0.06 0.54 0.51 rg 56 598.10 27 2 re f
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 585.10 Tm (The backend uses Python 3.11+, FastAPI, Pydantic, Uvicorn, and ruamel.yaml. The frontend uses React 18,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 570.70 Tm (TypeScript, Vite, custom canvas radar rendering, and plain CSS. Tests use pytest and HTTPX; Ruff checks Python) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 556.30 Tm (code. Make and Docker compose provide startup paths. make dev starts auto-reloading API and Vite development) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 541.90 Tm (servers; make build creates the frontend production bundle and byte-compiles the backend; make test runs backend) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 527.50 Tm (tests, lint, and TypeScript checking; make start builds and serves UI plus API together on port 8000; docker compose) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 513.10 Tm (up builds and runs the packaged version. Development defaults are API port 8000 and UI port 5173. Python 3.11+, Node) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 498.70 Tm (20+, and Make are required for local development. No API key is needed for the default offline path.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 475.30 Tm (The hub owns the live Session, handoff items, receipts, audit log, mock outbox, rule store, twist history, and SSE) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 460.90 Tm (subscribers. The browser fetches initial state/configuration and then receives snapshots via /api/stream. Operator) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 446.50 Tm (actions go back over ordinary HTTP. The stream sends a hello snapshot on connection, subsequent updates, and) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 432.10 Tm (keepalive messages. In production the backend can serve the built SPA. YAML is the editable rule source. Some twist) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 417.70 Tm (history is persisted to a JSON file; most live state remains in memory.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 394.30 Tm (The API includes read endpoints for health, configuration, current state, rules, receipts, handoff states, and audit) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 379.90 Tm (export; streaming at /api/stream; simulation control and scenario selection; security/recovery mode switch; handoff) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 365.50 Tm (action; and twist preset, history, preview, apply, and revert endpoints. Development mode also exposes a) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 351.10 Tm (mock-hold-failure switch to demonstrate a refused hold. Invalid handoff moves are rejected. A receipt carries a rule) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 336.70 Tm (version and configuration hash so reviewers can associate a decision with the rules that produced it. JSON and CSV) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 322.30 Tm (export are available, but the in-memory audit buffer is bounded.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 298.90 Tm (The configuration files have distinct jobs: config/rules.yaml holds the validated decision and optimization policy;) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 284.50 Tm (config/harbor.yaml holds drawing geometry and origin; config/scenarios.yaml holds archetypes, randomization slots,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 270.10 Tm (scripted scenarios, and mock-classifier data; config/twist_presets.yaml holds ready-made live changes. The frontend) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 255.70 Tm (files in frontend/src/components implement the cards and sheets, while frontend/src/radar handles canvas behavior.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 241.30 Tm (The backend's engine.py is the decision logic, facts.py derives context, advisor.py handles narrow advice,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 226.90 Tm (optimization.py calculates cost and staffing estimates, handoff.py defines legal item transitions and hold options,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 212.50 Tm (hub.py connects decisions to UI state, and twists.py manages comparable replays.) Tj ET
+0.08 0.17 0.24 rg BT /F2 15.00 Tf 1 0 0 1 56.00 179.10 Tm (17. Validation and reproducibility) Tj ET
+0.06 0.54 0.51 rg 56 167.10 27 2 re f
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 154.10 Tm (The project has unit and integration tests for the engine's branches, second-look cap, human floor, pending-hail cap,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 139.70 Tm (urgent latching, recovery behavior, advisor validation and fallback, scenario determinism, random generated tiers, API) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 125.30 Tm (handoff transitions, export, hot reload, twist comparison, and cost model behavior. A full make test completed in this) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 110.90 Tm (local environment with 176 passing tests, Ruff clean, and TypeScript type checking clean. A subsequently added) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 96.50 Tm (targeted test for the new contact-path scenario also passed. make build completed successfully. One deprecation) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 82.10 Tm (warning came from the test client's AnyIO/Starlette dependency, not a Quietwater assertion failure. The report's own) Tj ET
+0.08 0.17 0.24 RG 0.5 w 56 43 m 558 43 l S
+0.38 0.44 0.48 rg BT /F1 8 Tf 1 0 0 1 56 28 Tm (Quietwater | Comprehensive project report | 17 Oct 2026) Tj ET
+0.38 0.44 0.48 rg BT /F2 8 Tf 1 0 0 1 534 28 Tm (11) Tj ET
+endstream
+endobj
+27 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 26 0 R >>
+endobj
+28 0 obj
+<< /Length 7082 >>
+stream
+0.06 0.54 0.51 rg 56 751 24 3 re f
+0.38 0.44 0.48 rg BT /F2 8.00 Tf 1 0 0 1 89.00 750.00 Tm (QUIETWATER  /  COMPREHENSIVE PROJECT REPORT) Tj ET
+0.08 0.17 0.24 RG 0.6 w 56 744 m 558 744 l S
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 721.00 Tm (measurements were obtained from headless runs described above rather than copied from a pitch claim.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 697.60 Tm (The important design invariants are explicitly tested: a contact's confidence alone does not force an alert; an) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 683.20 Tm (unanswered hail gets a timeout; R4/R5 are never automated; the second-look loop is bounded; a notice is not sent) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 668.80 Tm (before human review and confirmation; an invalid transition changes nothing; a twist compares the same seed against) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 654.40 Tm (old and new rules; and a missing compatible communication link does not fabricate a failed hail. The tests) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 640.00 Tm (demonstrate software behavior under configured examples. They do not validate sonar performance, port radio) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 625.60 Tm (procedure, legal authority, cybersecurity, human factors, or real economic impact.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 602.20 Tm (For a live demo, the reliable path is: load Morning watch; show quiet contacts and a handoff; inspect one decision) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 587.80 Tm (receipt; run the flood to show 200 in and two human-needed; apply a Fuel Dock B twist and show a changed decision;) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 573.40 Tm (then switch to vehicle recovery. The demonstration script includes a backup video recommendation. The report) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 559.00 Tm (deliberately avoids repeating older static slide numbers as if they applied to every seed or rule configuration.) Tj ET
+0.08 0.17 0.24 rg BT /F2 15.00 Tf 1 0 0 1 56.00 525.60 Tm (18. Global transfer: what is portable and what is local) Tj ET
+0.06 0.54 0.51 rg 56 513.60 27 2 re f
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 500.60 Tm (The portable core is the reasoning pattern: classify, verify, ask when possible, consider consequence and motion, then) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 486.20 Tm (choose the least disruptive step that still addresses the evidence. A port in another country can preserve that ladder) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 471.80 Tm (while supplying its own registry, authorized windows and zones, communication protocols, notice recipient, language,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 457.40 Tm (response windows, and approval duties. The project illustrates this with Los Angeles, Singapore, and Rotterdam) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 443.00 Tm (configuration profiles and a before/after replay path. The communication distinction is central: a submerged AUV may) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 428.60 Tm (require a compatible acoustic link; a surface support vessel/operator can be called on an appropriate VHF channel; AIS) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 414.20 Tm (is an identity source, not a hail channel. No compatible link is recorded as such, not as refusal.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 390.80 Tm (This is a configuration architecture, not a turnkey international deployment. The included port profiles are examples) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 376.40 Tm (requiring review by local port and security authorities. The harbor geometry, assets, and randomization placement) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 362.00 Tm (remain the Los Angeles demonstration map. Local registries are sample data. Recipient and role strings do not) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 347.60 Tm (authenticate a person or connect to a government system. VHF working channels and language may depend on sector) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 333.20 Tm (and purpose. Before a pilot in any new port, the operator would need a port-approved data profile, mapping, contact) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 318.80 Tm (protocol, staffing plan, legal approvals, and user testing. The International Ship and Port Facility Security framework) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 304.40 Tm (gives a broad security context; it does not prescribe Quietwater's six rungs.) Tj ET
+0.08 0.17 0.24 rg BT /F2 15.00 Tf 1 0 0 1 56.00 271.00 Tm (19. Responsible use and failure boundaries) Tj ET
+0.06 0.54 0.51 rg 56 259.00 27 2 re f
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 246.00 Tm (The technology could be misused to monitor legitimate vessels, divers, or research teams, or to give an automated) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 231.60 Tm (label more authority than it deserves. The current safeguards are to focus the demo on unscheduled autonomous) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 217.20 Tm (contacts, keep receipts and ruled-out checks, require a person above the automated rungs, separate a hold from an) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 202.80 Tm (external notice, and stop at a handoff rather than offering physical interference. The rule-based path can work without) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 188.40 Tm (cloud calls. A communication failure is represented as uncertainty rather than guilt, and a compatible link that never) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 174.00 Tm (existed is not treated as an ignored hail.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 150.60 Tm (These safeguards are software choices, not a complete operational safety case. A real deployment would need an) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 136.20 Tm (approved mission scope, a retention and access policy, sensor validation, false-alarm and miss-rate studies, human) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 121.80 Tm (factors testing, a role-authenticated approval chain, failover behavior, secure interfaces, and procedures for) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 107.40 Tm (correcting registry errors. Even apparently gentle actions such as a traffic advisory or a lane hold can have safety and) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 93.00 Tm (economic consequences. The operator, port authority, and relevant public agencies would retain responsibility for) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 78.60 Tm (those decisions.) Tj ET
+0.08 0.17 0.24 RG 0.5 w 56 43 m 558 43 l S
+0.38 0.44 0.48 rg BT /F1 8 Tf 1 0 0 1 56 28 Tm (Quietwater | Comprehensive project report | 17 Oct 2026) Tj ET
+0.38 0.44 0.48 rg BT /F2 8 Tf 1 0 0 1 534 28 Tm (12) Tj ET
+endstream
+endobj
+29 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 28 0 R >>
+endobj
+30 0 obj
+<< /Length 7457 >>
+stream
+0.06 0.54 0.51 rg 56 751 24 3 re f
+0.38 0.44 0.48 rg BT /F2 8.00 Tf 1 0 0 1 89.00 750.00 Tm (QUIETWATER  /  COMPREHENSIVE PROJECT REPORT) Tj ET
+0.08 0.17 0.24 RG 0.6 w 56 744 m 558 744 l S
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 721.00 Tm (The current system never physically halts a vehicle. The terminal hold request, radio/acoustic hails, advisories,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 706.60 Tm (recovery dispatch, and external notice send are mocks. The "notice sent" state means a simulated outbox record, not) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 692.20 Tm (actual transmission. The absence of live sensor input is intentional for the hackathon but must be resolved for a pilot.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 677.80 Tm (Model confidence values are scripted or synthetic; they are not calibrated probabilities for a real sonar system.) Tj ET
+0.08 0.17 0.24 rg BT /F2 15.00 Tf 1 0 0 1 56.00 644.40 Tm (20. Known weak spots and implementation gaps) Tj ET
+0.06 0.54 0.51 rg 56 632.40 27 2 re f
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 619.40 Tm (The most important gap is between the demo and an operational harbor. The local handoff PDF describes an extended) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 605.00 Tm (N1-N7 proposal with an allied/external registry fallback, parallel sensitive-zone warnings, diver recall, and special) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 590.60 Tm (approval for broadcasts naming object type or intent. The checked-out engine implements S0-S5 and does not) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 576.20 Tm (implement all of those extended nodes as written. It has configurable local/profile registries, a zone critical flag,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 561.80 Tm (consequence bands for divers, and general traffic advisory behavior, but it does not perform a live allied registry) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 547.40 Tm (lookup with timeout, run an independent parallel zone-warning service, or execute an automated diver recall. Those) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 533.00 Tm (proposal elements should not be claimed in a demo of the current code.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 509.60 Tm (Other material limitations, drawn from the current backend notes and code, are:) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 486.20 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 486.20 Tm (No durable operational record. Most receipts, handoff items, outbox state, and audit entries live in memory and are) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 471.80 Tm (lost on restart. Twist history and YAML persist. The audit export deque is bounded and older entries fall off.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 451.90 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 451.90 Tm (No user authentication. The client supplies an operator name. The state machine forces an operator action, but it) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 437.50 Tm (cannot verify the person's role or authority. This is particularly important for the jurisdiction approval fields.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 417.60 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 417.60 Tm (Simulated links. No real sonar, acoustic modem, VHF radio, AIS exchange, Coast Guard interface, port terminal) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 403.20 Tm (hold system, or recovery dispatch has been integrated. A profile string describes a route; it does not execute one.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 383.30 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 383.30 Tm (LLM latency. Optional uncached model calls can block the simulation tick and change the number and timing of) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 368.90 Tm (alerts. The offline default is the credible demo path.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 349.00 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 349.00 Tm (Simplified motion and consequence. CPA projects straight ahead; trails and evasion are heuristic. Dynamic traffic,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 334.60 Tm (currents, turns, and crowded infrastructure would need stronger models and evaluation.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 314.70 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 314.70 Tm (Simplified queue model. Staffing uses fixed modeled review durations and deadlines. It cannot replace a workload) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 300.30 Tm (study or account for concurrent watch duties and local staffing rules.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 280.40 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 280.40 Tm (Simplified economics. Rates and manual-review baselines are assumptions. "Capacity value" is not realized cash) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 266.00 Tm (unless operations are changed and measured.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 246.10 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 246.10 Tm (Global profiles remain illustrative. Sample recipients/channels and registry entries need local confirmation; the) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 231.70 Tm (map and randomization regions do not change with the selected jurisdiction. A profile-specific registry may hide) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 217.30 Tm (the default recovery vehicle.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 197.40 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 197.40 Tm (Hot reload and preview are demo-grade. File polling can miss very fast changes; concurrent editor and UI writes) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 183.00 Tm (can race; replay may use a different time step from live animation; history storage grows; and the schema does) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 168.60 Tm (not fully enforce a monotone ladder.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 148.70 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 148.70 Tm (Streaming and scale need hardening. Each tick sends a full SSE snapshot, potentially tens of kilobytes for a) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 134.30 Tm (200-contact scene. Slow clients drop old messages. There is no event-ID resume, backend worker separation, or) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 119.90 Tm (production observability.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 100.00 Tm (These are not reasons to discard the prototype. They are the boundary between a reliable hackathon demonstration) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 85.60 Tm (and a fielded decision-support system. The first production investment should target trustworthy inputs, durable) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 71.20 Tm (records, verified roles, safer integration, and measured outcomes before adding more AI.) Tj ET
+0.08 0.17 0.24 RG 0.5 w 56 43 m 558 43 l S
+0.38 0.44 0.48 rg BT /F1 8 Tf 1 0 0 1 56 28 Tm (Quietwater | Comprehensive project report | 17 Oct 2026) Tj ET
+0.38 0.44 0.48 rg BT /F2 8 Tf 1 0 0 1 534 28 Tm (13) Tj ET
+endstream
+endobj
+31 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 30 0 R >>
+endobj
+32 0 obj
+<< /Length 6840 >>
+stream
+0.06 0.54 0.51 rg 56 751 24 3 re f
+0.38 0.44 0.48 rg BT /F2 8.00 Tf 1 0 0 1 89.00 750.00 Tm (QUIETWATER  /  COMPREHENSIVE PROJECT REPORT) Tj ET
+0.08 0.17 0.24 RG 0.6 w 56 744 m 558 744 l S
+0.08 0.17 0.24 rg BT /F2 15.00 Tf 1 0 0 1 56.00 711.00 Tm (21. Prioritized roadmap toward a pilot) Tj ET
+0.06 0.54 0.51 rg 56 699.00 27 2 re f
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 686.00 Tm (First: validate the problem with a port partner. Obtain representative, permissioned sensor/contact records and a local) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 671.60 Tm (security/recovery plan. Define which contacts are in scope, what counts as a false alarm or missed hazard, and who) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 657.20 Tm (has authority to approve each rung. Confirm the actual radio/acoustic paths and external notice recipients. Collect) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 642.80 Tm (baseline officer workload and pause costs rather than relying on demo assumptions.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 619.40 Tm (Second: harden the evidence and audit layer. Integrate a real classifier through the existing interface; calibrate) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 605.00 Tm (confidence, evaluate drift in murky/noisy conditions, and show known performance by contact class. Add a durable) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 590.60 Tm (append-only audit store, authenticated roles, signed approval events, and tamper-aware configuration versions. Keep) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 576.20 Tm (the rule engine replayable against historical contact snapshots.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 552.80 Tm (Third: put a narrow, observable pilot in a harbor. Start in advisory/shadow mode with no real hold or external send) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 538.40 Tm (integration. Compare recommended rungs with watch-officer judgments. Measure contacts in, quiet outcomes, human) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 524.00 Tm (interruptions, missed hazards, false escalations, review minutes, time to decision, cloud calls, operator trust, and cost) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 509.60 Tm (per watch sector. A real pilot should explain why the alert budget and staffing model are--or are not--accurate.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 486.20 Tm (Fourth: integrate actions only with approved controls. If the pilot earns trust, connect approved radio, registry, and) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 471.80 Tm (terminal systems through operator-initiated, logged interfaces. Keep the notice send a human action. Add rollback,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 457.40 Tm (failover, incident review, and periodic port-profile validation. Any optional LLM should remain an audited, bounded,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 443.00 Tm (off-tick advisor, not the primary gate.) Tj ET
+0.08 0.17 0.24 rg BT /F2 15.00 Tf 1 0 0 1 56.00 409.60 Tm (22. Venture and funding path) Tj ET
+0.06 0.54 0.51 rg 56 397.60 27 2 re f
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 384.60 Tm (The primary prospective U.S. federal funding pathway is a relevant future DHS Science & Technology SBIR topic.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 370.20 Tm (Quietwater would pitch a decision layer above detection, with research milestones for trustworthy classification) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 355.80 Tm (inputs, proportional routing, human approval, explainability, and measured performance under many simultaneous) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 341.40 Tm (contacts. DHS has previously explored autonomous vessel tracking for ports and waterways, which is evidence of) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 327.00 Tm (mission interest, not a currently open Quietwater-specific call. An applicable Navy SBIR topic might be an alternative) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 312.60 Tm (if it asks for harbor decision support rather than physical delay, denial, or interception. A Defense Innovation Unit) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 298.20 Tm (Commercial Solutions Opening could support a later prototype if an open solicitation matches the product and a) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 283.80 Tm (government partner sponsors it.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 260.40 Tm (Customer-side funding is different from startup funding. Port authorities and facility operators may seek FEMA Port) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 246.00 Tm (Security Grant Program awards to buy eligible security capabilities. The FY2026 opportunity listed $95 million in) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 231.60 Tm (estimated program funding and closed July 24, 2026. That round is closed; a future round, eligibility, matching) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 217.20 Tm (obligations, and permissible project costs would have to be checked at the time. The venture cannot assume a grant) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 202.80 Tm (award or claim that a port will buy the tool. The commercially credible path is to pair a documented port need and pilot) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 188.40 Tm (partner with a matching solicitation, then produce performance evidence that a buyer can defend.) Tj ET
+0.08 0.17 0.24 rg BT /F2 15.00 Tf 1 0 0 1 56.00 155.00 Tm (23. How to run, inspect, and reproduce the report) Tj ET
+0.06 0.54 0.51 rg 56 143.00 27 2 re f
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 130.00 Tm (From the project root, install Python 3.11 or newer, Node 20 or newer, and Make. Run make dev for the API at) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 115.60 Tm (http://127.0.0.1:8000 and Vite UI at http://127.0.0.1:5173. Use make dev UI_PORT=5174 if the UI port is occupied. make) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 101.20 Tm (build produces the static bundle; make start serves the production UI and API together on port 8000; make test runs) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 86.80 Tm (backend tests, Ruff, and TypeScript checking; docker compose up is the container path. The default advisor needs no) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 72.40 Tm (secret or cloud account. The README contains the complete command reference.) Tj ET
+0.08 0.17 0.24 RG 0.5 w 56 43 m 558 43 l S
+0.38 0.44 0.48 rg BT /F1 8 Tf 1 0 0 1 56 28 Tm (Quietwater | Comprehensive project report | 17 Oct 2026) Tj ET
+0.38 0.44 0.48 rg BT /F2 8 Tf 1 0 0 1 534 28 Tm (14) Tj ET
+endstream
+endobj
+33 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 32 0 R >>
+endobj
+34 0 obj
+<< /Length 6777 >>
+stream
+0.06 0.54 0.51 rg 56 751 24 3 re f
+0.38 0.44 0.48 rg BT /F2 8.00 Tf 1 0 0 1 89.00 750.00 Tm (QUIETWATER  /  COMPREHENSIVE PROJECT REPORT) Tj ET
+0.08 0.17 0.24 RG 0.6 w 56 744 m 558 744 l S
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 721.00 Tm (To inspect the behavior, start Morning watch and open an ordinary contact's receipt. Advance until a contact earns a) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 706.60 Tm (handoff, then compare one-operation and area hold scopes; review the draft notice as a separate step. Replay from) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 692.20 Tm (the same seed. Activate Fuel Dock B in the Twist Console or YAML and preview the resulting contact-by-contact) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 677.80 Tm (diff. Run Flood and check the observed 200/198/2/0 result under default rules. Switch to recovery mode to see the) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 663.40 Tm (same decision framework applied to a lost research vehicle. Select Contact paths to inspect the difference between a) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 649.00 Tm (surface operator route and a vehicle with no compatible hail link.) Tj ET
+0.08 0.17 0.24 rg BT /F2 15.00 Tf 1 0 0 1 56.00 615.60 Tm (24. Terms and interpretation) Tj ET
+0.06 0.54 0.51 rg 56 603.60 27 2 re f
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 590.60 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 590.60 Tm (AUV/UUV: Autonomous or unmanned underwater vehicle; the demo uses both common terms in security and) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 576.20 Tm (research settings.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 556.30 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 556.30 Tm (Contact: A tracked sonar return with an ID, current state, trail, classification, and supporting evidence; it is not) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 541.90 Tm (proof of a hostile vehicle.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 522.00 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 522.00 Tm (Rung: One level of the response ladder. A decision may contain more than one rung, such as Hold plus Hand off.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 502.10 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 502.10 Tm (Consequence: Low, medium, or high impact potential based on active nearby assets and straight-line closest) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 487.70 Tm (approach, not a prediction of intent.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 467.80 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 467.80 Tm (CPA: Closest point of approach along a projected path over a configured horizon.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 447.90 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 447.90 Tm (Hail: An attempted communication using a compatible vehicle acoustic link or its surface operator's radio route;) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 433.50 Tm (actual transmission is mocked.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 413.60 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 413.60 Tm (Receipt: The logged explanation for a decision or handoff transition, including rule version and why a neighboring) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 399.20 Tm (rung was not chosen.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 379.30 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 379.30 Tm (Alert Budget: Counts quiet handling, pending human items, and weighted attention load; it is an anti-flooding) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 364.90 Tm (design metric.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 345.00 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 345.00 Tm (Capacity value: Assumed officer minutes freed by automation expressed at an hourly rate; it is not necessarily) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 330.60 Tm (cash savings.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 310.70 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 310.70 Tm (Twist: A configuration change replayed against the same scenario to show how outcomes move without a code) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 296.30 Tm (rewrite.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 276.40 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 276.40 Tm (Profile: A jurisdiction-specific bundle of local registry and communication/approval text. Example profiles require) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 262.00 Tm (local validation.) Tj ET
+0.08 0.17 0.24 rg BT /F2 15.00 Tf 1 0 0 1 56.00 232.10 Tm (25. Source inventory and external references) Tj ET
+0.06 0.54 0.51 rg 56 220.10 27 2 re f
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 207.10 Tm (The inspected local sources were README.md, DEMO_SCRIPT.md, BACKEND_NOTES.md, AUDIT_REPORT.md,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 192.70 Tm (PIPELINE_AUDIT.md, TECH_STACK.md, config/rules.yaml, config/scenarios.yaml, config/harbor.yaml,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 178.30 Tm (config/twist_presets.yaml, backend application and test modules, frontend components/styles/types, and the earlier) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 163.90 Tm (Quietwater_Handoff.pdf dated 17 October 2026. The report resolves discrepancies in favor of current executable code) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 149.50 Tm (and states uncertainties rather than turning planned work into implemented work. The headless measurements in) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 135.10 Tm (Section 15 were run from the local working tree for this report.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 111.70 Tm (Relevant official program/context sources: U.S. Small Business Administration SBIR overview) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 97.30 Tm (\(https://www.sbir.gov/about\); DHS's earlier autonomous-vessel-tracking outreach) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 82.90 Tm (\(https://www.dhs.gov/sites/default/files/publications/dhs_sandt_insights_outreach_sbir_july6_2021.pdf\); Defense) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 68.50 Tm (Innovation Unit commercial pathway \(https://www.diu.mil/work-with-us\); FY2026 Port Security Grant Program notice) Tj ET
+0.08 0.17 0.24 RG 0.5 w 56 43 m 558 43 l S
+0.38 0.44 0.48 rg BT /F1 8 Tf 1 0 0 1 56 28 Tm (Quietwater | Comprehensive project report | 17 Oct 2026) Tj ET
+0.38 0.44 0.48 rg BT /F2 8 Tf 1 0 0 1 534 28 Tm (15) Tj ET
+endstream
+endobj
+35 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 34 0 R >>
+endobj
+36 0 obj
+<< /Length 6898 >>
+stream
+0.06 0.54 0.51 rg 56 751 24 3 re f
+0.38 0.44 0.48 rg BT /F2 8.00 Tf 1 0 0 1 89.00 750.00 Tm (QUIETWATER  /  COMPREHENSIVE PROJECT REPORT) Tj ET
+0.08 0.17 0.24 RG 0.6 w 56 744 m 558 744 l S
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 721.00 Tm (\(https://www.grants.gov/search-results-detail/362824\); IMO ISPS overview) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 706.60 Tm (\(https://www.imo.org/en/ourwork/security/pages/solas-xi-2%20isps%20code.aspx\) and AIS overview) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 692.20 Tm (\(https://www.imo.org/en/ourwork/safety/pages/ais.aspx\); Singapore Maritime and Port Authority channel information) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 677.80 Tm (\(https://www.mpa.gov.sg/port-marine-ops/arrivals-and-departures/vessels-arriving-in-singapore\); and Port of) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 663.40 Tm (Rotterdam VHF guidance) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 649.00 Tm (\(https://www.portofrotterdam.com/en/contact-harbourmaster/vts-services-and-vhf-communication-procedure\).) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 634.60 Tm (These sources frame the examples; none certify this prototype for operational use.) Tj ET
+0.08 0.17 0.24 rg BT /F2 15.00 Tf 1 0 0 1 56.00 601.20 Tm (Appendix A. Default decision and timing reference) Tj ET
+0.06 0.54 0.51 rg 56 589.20 27 2 re f
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 576.20 Tm (These values are defaults in the inspected rules.yaml; a Twist Console edit or another profile can replace them.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 552.80 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 552.80 Tm (Classification confidence: research/commercial/military class branch at 0.70; confident non-vehicle threshold) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 538.40 Tm (0.75; improvised-device hard-trigger threshold 0.60.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 518.50 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 518.50 Tm (General consequence distance: high within 120 m, medium within 350 m. Asset-specific distances: fuel dock) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 504.10 Tm (200/450 m; ship 120/350 m; cable 60/200 m; dive area 150/400 m.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 484.20 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 484.20 Tm (CPA look-ahead: 120 s, checked every 5 s, with raising capped at medium by default.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 464.30 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 464.30 Tm (Approach hard trigger: within 300 m, heading within 30 degrees toward an asset, speed at least 0.8 m/s.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 444.40 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 444.40 Tm (Evasion heuristic: over a 20 s window after hail, at least 120 degrees of total turning or speed at least 1.8 times) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 430.00 Tm (the reference speed.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 410.10 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 410.10 Tm (Hail timeout: 10 s. Low-consequence second looks: at most two, 15 s apart, then one rung higher.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 390.20 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 390.20 Tm (Trend: 30 s window; closing/leaving threshold 0.05 m/s; loitering threshold 75 degrees of turning or speed below) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 375.80 Tm (0.03 m/s.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 355.90 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 355.90 Tm (Identity consistency: size tolerance 0.5 m and speed margin 1.2 times the class maximum.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 336.00 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 336.00 Tm (Nearby traffic search radius: 400 m. Default urgent response window 300 s, hold-plus-handoff window 1,800 s,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 321.60 Tm (and ordinary human window 900 s; local profiles override these.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 301.70 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 301.70 Tm (Attention budget: capacity 6; weights R0/R1/R2=0, R3=1, R4=2, R5=3. Keep-watching recheck after 120 s.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 281.80 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 281.80 Tm (Hold request: nominal 1,800 s duration, 10 s dismiss undo, 1 s mocked terminal response, standard area radius 400) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 267.40 Tm (m, candidate radii 150/250/400 m, buffer 25 m.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 247.50 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 247.50 Tm (Recovery: configured lost ID USC-REMUS-02, confirmation confidence 0.75, 600 s drift horizon, 3,600 s human) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 233.10 Tm (window.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 213.20 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 213.20 Tm (Offline advisor: enabled with rule backend, maximum one-rung raise, raise score 0.6, second-look score 0.35,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 198.80 Tm (overall timeout 3 s. The optional LLM backend is not selected by default.) Tj ET
+0.08 0.17 0.24 rg BT /F2 15.00 Tf 1 0 0 1 56.00 168.90 Tm (Appendix B. Default outcome-to-rung map) Tj ET
+0.06 0.54 0.51 rg 56 156.90 27 2 re f
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 143.90 Tm (The tree does not simply assign rungs by color. Under default rules, confident fish/debris and identity-consistent) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 129.50 Tm (contacts use R0. A known contact in a critical zone stays at R0 with an informational notice. A hard threat or evasion) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 115.10 Tm (uses urgent R5. Military-grade uses R4+R5. Unknown low uses R1 until its capped loop escalates. Unknown medium) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 100.70 Tm (uses R2 when traffic is absent, R3 when nearby traffic should be warned. Unknown high uses R4+R5. A pending hail) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 86.30 Tm (generally caps the non-urgent route at R2 while it has time to answer. These mappings live in YAML and can be) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 71.90 Tm (previewed or changed, subject to the human-approval floor.) Tj ET
+0.08 0.17 0.24 RG 0.5 w 56 43 m 558 43 l S
+0.38 0.44 0.48 rg BT /F1 8 Tf 1 0 0 1 56 28 Tm (Quietwater | Comprehensive project report | 17 Oct 2026) Tj ET
+0.38 0.44 0.48 rg BT /F2 8 Tf 1 0 0 1 534 28 Tm (16) Tj ET
+endstream
+endobj
+37 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 36 0 R >>
+endobj
+38 0 obj
+<< /Length 6719 >>
+stream
+0.06 0.54 0.51 rg 56 751 24 3 re f
+0.38 0.44 0.48 rg BT /F2 8.00 Tf 1 0 0 1 89.00 750.00 Tm (QUIETWATER  /  COMPREHENSIVE PROJECT REPORT) Tj ET
+0.08 0.17 0.24 RG 0.6 w 56 744 m 558 744 l S
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 721.00 Tm (In recovery mode the names and goals differ: R0 Log, R1 Re-scan, R2 Ping, R3 Notify traffic, R4 Hold lane, and R5) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 706.60 Tm (Recover. A possible lost vehicle starts with capped re-scans; after confirmation, consequence and traffic determine) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 692.20 Tm (whether notice, hold, and recovery handoff are combined. Security hard triggers retain priority even when the screen) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 677.80 Tm (is in recovery mode.) Tj ET
+0.08 0.17 0.24 rg BT /F2 15.00 Tf 1 0 0 1 56.00 644.40 Tm (Appendix C. API and file reference) Tj ET
+0.06 0.54 0.51 rg 56 632.40 27 2 re f
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 619.40 Tm (For a developer or reviewer tracing a live demonstration, the important API routes are:) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 596.00 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 596.00 Tm (GET /api/health, /api/config, /api/state, /api/rules: service, scenario, and rule visibility.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 576.10 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 576.10 Tm (GET /api/stream: live SSE snapshots and keepalives.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 556.20 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 556.20 Tm (POST /api/sim/control: play, pause, restart, or adjust speed; POST /api/sim/scenario: choose a scripted or seeded) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 541.80 Tm (random scenario; POST /api/mode: security/recovery switch.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 521.90 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 521.90 Tm (POST /api/handoff/{item_id}: an operator action, including approve, review, edit, confirm send, dismiss, undo,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 507.50 Tm (watch, escalate, lift, resolve, or extend; GET /api/handoff/states: legal workflow states and moves.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 487.60 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 487.60 Tm (GET /api/receipts and GET /api/audit/export?format=json|csv: explanations and audit download.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 467.70 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 467.70 Tm (GET /api/twist/presets, GET /api/twist/history, POST /api/twist/preview, POST /api/twist/apply, and POST) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 453.30 Tm (/api/twist/revert/{entry_id}: change and compare policy.) Tj ET
+0.06 0.54 0.51 rg BT /F2 9.75 Tf 1 0 0 1 56.00 433.40 Tm (-) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 433.40 Tm (POST /api/dev/mock-hold: available only when development mode is enabled to simulate a terminal refusing a) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 72.00 419.00 Tm (hold.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 399.10 Tm (The highest-value source files are backend/app/engine.py for S0-S5, facts.py for derived evidence, rules.py for) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 384.70 Tm (validated configuration and hot reload, advisor.py for bounded ambiguous-case advice, optimization.py for the) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 370.30 Tm (economic model, handoff.py and hub.py for human workflow and audit, randomizer.py and simulator.py for scenarios,) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 355.90 Tm (twists.py for comparisons, and main.py for API routes. In the frontend, App.tsx coordinates state, Radar.tsx and radar/) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 341.50 Tm (draw the harbor, and the components named HandoffSheet, BudgetCard, OptimizationPanel, ReceiptsSheet, and) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 327.10 Tm (TwistConsole implement the principal interface. The current README and backend notes should be read alongside the) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 312.70 Tm (source when preparing an actual pilot proposal.) Tj ET
+0.08 0.17 0.24 rg BT /F2 15.00 Tf 1 0 0 1 56.00 279.30 Tm (Appendix D. Product choices and their reasons) Tj ET
+0.06 0.54 0.51 rg 56 267.30 27 2 re f
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 254.30 Tm (Why a ladder instead of a danger score? A numeric score does not tell the officer what may safely happen next. The) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 239.90 Tm (ladder converts evidence into progressively more consequential actions, with an explicit boundary between automated) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 225.50 Tm (steps and human authority. It also makes the "gentlest response" testable: the receipt can explain why one rung lower) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 211.10 Tm (would be insufficient and one rung higher would be excessive.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 187.70 Tm (Why model consequence as well as classification? A contact's label does not determine its effect on a harbor. The) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 173.30 Tm (same unknown object far from operations is different from an unknown object beside a fuel transfer or diver area.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 158.90 Tm (Distance, projected motion, and operations in progress make the decision situational. Classification confidence is) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 144.50 Tm (treated as evidence, not as a substitute for consequence or intent.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 121.10 Tm (Why a bounded second look? More sensor evidence is cheap compared with stopping work or paging a person, but an) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 106.70 Tm (unbounded loop would quietly defer a decision forever. Two looks with a time limit make "look again" a real rung) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 92.30 Tm (rather than a hiding place for uncertainty.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 68.90 Tm (Why put AI behind rules? A network model adds latency, cost, and output uncertainty. The deterministic rules cover) Tj ET
+0.08 0.17 0.24 RG 0.5 w 56 43 m 558 43 l S
+0.38 0.44 0.48 rg BT /F1 8 Tf 1 0 0 1 56 28 Tm (Quietwater | Comprehensive project report | 17 Oct 2026) Tj ET
+0.38 0.44 0.48 rg BT /F2 8 Tf 1 0 0 1 534 28 Tm (17) Tj ET
+endstream
+endobj
+39 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 38 0 R >>
+endobj
+40 0 obj
+<< /Length 2490 >>
+stream
+0.06 0.54 0.51 rg 56 751 24 3 re f
+0.38 0.44 0.48 rg BT /F2 8.00 Tf 1 0 0 1 89.00 750.00 Tm (QUIETWATER  /  COMPREHENSIVE PROJECT REPORT) Tj ET
+0.08 0.17 0.24 RG 0.6 w 56 744 m 558 744 l S
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 721.00 Tm (routine cases and hard safety boundaries. Ambiguous contacts can receive extra review, but advice may only raise the) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 706.60 Tm (tier or ask for more observation. The default offline advisor keeps the demo and ordinary operations independent of a) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 692.20 Tm (cloud connection.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 668.80 Tm (Why keep hold and notice separate? Pausing a berth and notifying an external agency are different actions with) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 654.40 Tm (different authority and consequences. One approval should not silently imply the other. The interface and audit state) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 640.00 Tm (machine make each step visible and reviewable.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 616.60 Tm (Why show a cost model even though it is not validated? The challenge asks for scale, not simply a pretty map. The) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 602.20 Tm (panel turns officer attention, pause footprint, and cloud calls into explicit assumptions a port can question. It gives a) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 587.80 Tm (path to validation while showing how automation could protect capacity. Its labels and this report repeatedly) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 573.40 Tm (distinguish modeled capacity from realized savings.) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 550.00 Tm (Why build a recovery mode? The same capability is more valuable if it solves an everyday problem. Finding a lab's) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 535.60 Tm (missing vehicle uses the same contact evidence and communication routes but changes the goal and recipient. It) Tj ET
+0.08 0.17 0.24 rg BT /F1 9.75 Tf 1 0 0 1 56.00 521.20 Tm (makes "dual use" operationally concrete without adding a physical intervention capability.) Tj ET
+0.08 0.17 0.24 RG 0.5 w 56 43 m 558 43 l S
+0.38 0.44 0.48 rg BT /F1 8 Tf 1 0 0 1 56 28 Tm (Quietwater | Comprehensive project report | 17 Oct 2026) Tj ET
+0.38 0.44 0.48 rg BT /F2 8 Tf 1 0 0 1 534 28 Tm (18) Tj ET
+endstream
+endobj
+41 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 40 0 R >>
+endobj
+42 0 obj
+<< /Title (Quietwater Comprehensive Project Report) /Author (Quietwater project report) >>
+endobj
+xref
+0 43
+0000000000 65535 f 
+0000000015 00000 n 
+0000000064 00000 n 
+0000000240 00000 n 
+0000000337 00000 n 
+0000000439 00000 n 
+0000000534 00000 n 
+0000001562 00000 n 
+0000001708 00000 n 
+0000008552 00000 n 
+0000008698 00000 n 
+0000015774 00000 n 
+0000015922 00000 n 
+0000023117 00000 n 
+0000023265 00000 n 
+0000030105 00000 n 
+0000030253 00000 n 
+0000037433 00000 n 
+0000037581 00000 n 
+0000044833 00000 n 
+0000044981 00000 n 
+0000052107 00000 n 
+0000052255 00000 n 
+0000059798 00000 n 
+0000059946 00000 n 
+0000067421 00000 n 
+0000067569 00000 n 
+0000074703 00000 n 
+0000074851 00000 n 
+0000081985 00000 n 
+0000082133 00000 n 
+0000089642 00000 n 
+0000089790 00000 n 
+0000096682 00000 n 
+0000096830 00000 n 
+0000103659 00000 n 
+0000103807 00000 n 
+0000110757 00000 n 
+0000110905 00000 n 
+0000117676 00000 n 
+0000117824 00000 n 
+0000120366 00000 n 
+0000120514 00000 n 
+trailer
+<< /Size 43 /Root 1 0 R /Info 42 0 R >>
+startxref
+120621
+%%EOF

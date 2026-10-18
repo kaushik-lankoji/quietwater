@@ -102,6 +102,13 @@ archetypes:
     label_track: [{t: 0, label: military_uuv, conf: 0.81}]
 
 randomizer:
+  coverage_radius_m: [350, 1300]
+  traffic:
+    - {name: Clear water, weight: 2, contacts: [0, 2]}
+    - {name: Quiet, weight: 4, contacts: [3, 8]}
+    - {name: Working harbor, weight: 5, contacts: [9, 30]}
+    - {name: Busy, weight: 3, contacts: [31, 80]}
+    - {name: Peak surge, weight: 1, contacts: [81, 200]}
   regions:
     open_water: [[300, 220, 1560, 960]]
     research_box: [[330, 950, 380, 160]]
@@ -265,6 +272,16 @@ scenarios:
           - {look: 0, label: biologic, conf: 0.62}
           - {look: 1, label: biologic, conf: 0.81}
 
+  contact_paths:
+    title: Contact paths
+    description: A surface operator can answer by radio; a submerged vehicle with no compatible link cannot be hailed.
+    mode: security
+    seed: 23
+    duration_s: 180
+    contacts:
+      - {id: LINK-1, archetype: unknown_far, start: [1600, 1110], heading: 270, hail_route: unavailable}
+      - {id: LINK-2, archetype: unknown, start: [1180, 400], motion: loiter, speed_mps: 0.2, hail_route: surface}
+
   all_archetypes:
     title: Every archetype
     description: One of each - bottle, fish, research sub, unknown far, near a ship, near the fuel dock, evasive, improvised device, military.
@@ -364,7 +381,6 @@ scenarios:
     randomize:
       kind: security
       prefix: R
-      count: [8, 15]
       clock_starts: ["07:30", "09:00", "10:20", "11:45", "14:10", "16:30"]
 
   random_recovery:
@@ -376,5 +392,4 @@ scenarios:
     randomize:
       kind: recovery
       prefix: Q
-      count: [8, 15]
       clock_starts: ["07:40", "08:20", "09:30", "10:50", "11:40"]

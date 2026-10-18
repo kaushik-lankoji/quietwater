@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+from time import perf_counter
 from typing import Any
 
 from ruamel.yaml import YAML
@@ -10,7 +11,7 @@ from .advisor import AdvisorCache, AdvisorLayer, review
 from .classifier import Classifier, Observation, build_classifier
 from .engine import Decision, Memory, decide
 from .facts import clock_at, derive_facts
-from .randomizer import randomize
+from .randomizer import randomize, water_area_km2
 from .rules import Rules
 from .simulator import SimContact, Simulator
 
@@ -62,6 +63,9 @@ class Session:
         self.world = world
         self.scenario_name = scenario
         self.scenario = world.build(scenario, seed)
+        if "water_area_km2" not in self.scenario:
+            self.scenario = {**self.scenario, "water_area_km2": water_area_km2(
+                world.harbor, self.scenario.get("coverage_radius_m", 1000))}
         self.mode = mode
         self.sim = Simulator(self.scenario, world.catalog, world.harbor, seed)
         self.seed = self.sim.seed
@@ -73,6 +77,9 @@ class Session:
         self.first_human_t: dict[str, float] = {}
         self.seen: list[str] = []
         self.departed: set[str] = set()
+        self.llm_calls = 0
+        self.decision_ms_total = 0.0
+        self.decision_count = 0
 
     @property
     def t(self) -> float:
@@ -92,6 +99,8 @@ class Session:
             self.advisor = AdvisorLayer.from_rules(rules, self.advisor_cache)
 
     def evaluate(self, c: SimContact) -> Decision:
+        started = perf_counter()
+        llm_before = self.advisor.llm_calls
         rules = self.rules
         mem = self.memory.setdefault(c.id, Memory())
         t = self.sim.t
@@ -102,9 +111,13 @@ class Session:
             contact_id=c.id, t=t, clock=self.clock, position=(c.x, c.y), heading=c.heading,
             speed_mps=c.speed, size_m=c.size_m, signature=c.signature, transponder=c.transponder,
             classification=self.classifier.classify(obs), hail=c.hail_status(t, rules.hail.timeout_s),
-            hailed_t=c.hailed_t, hostile=c.hostile, scripted_evasive=c.evasive_flag, trail=c.trail,
+            hailed_t=c.hailed_t, hail_route=c.hail_route, hostile=c.hostile,
+            scripted_evasive=c.evasive_flag, trail=c.trail,
             rules=rules)
         d = review(facts, mem, rules, self.mode, decide(facts, mem, rules, self.mode), self.advisor)
+        self.llm_calls += self.advisor.llm_calls - llm_before
+        self.decision_ms_total += (perf_counter() - started) * 1000
+        self.decision_count += 1
         if mem.hailed_t is not None and c.hailed_t is None:
             c.hailed_t = mem.hailed_t
         return d

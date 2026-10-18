@@ -33,6 +33,29 @@ def run(rules, f, mem=None, mode="security"):
     return decide(f, mem or Memory(), rules, mode)
 
 
+def test_contact_routes_distinguish_no_link_from_ignored_hail(rules):
+    unavailable = make_facts(rules, hail="unavailable", hail_route="unavailable", hail_age_s=None)
+    memory = Memory()
+    decision = run(rules, unavailable, memory)
+    assert memory.hailed_t is None
+    assert decision.hail == "unavailable"
+    assert "no compatible vehicle link" in decision.why_lower.lower()
+    assert "not answered the hail" not in decision.reason.lower()
+    assert next(c for c in decision.checks if c["key"] == "hail")["ruled_out"] is None
+
+    surface = run(rules, make_facts(rules, hail="none", hail_route="surface", consequence="medium"))
+    assert rules.profile.surface_channel in surface.recommendation
+    assert "support vessel or operator" in surface.recommendation
+
+
+def test_human_approval_roles_follow_jurisdiction_profile(rules):
+    high = run(rules, make_facts(rules, consequence="high", nearest_asset=asset(20)))
+    assert high.requires_human
+    assert high.approval_role == rules.profile.handoff_approver
+    assert rules.profile.hold_approver in high.recommendation
+    assert rules.profile.handoff_approver in high.recommendation
+
+
 def test_s0_confident_non_vehicle_is_logged(rules):
     d = run(rules, make_facts(rules, label="biologic", confidence=above(rules, "non_vehicle_confidence")))
     assert d.path == ["S0"]

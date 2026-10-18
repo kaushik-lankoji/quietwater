@@ -20,6 +20,7 @@ from . import handoff as hs
 from .advisor import AdvisorCache
 from .engine import Decision
 from .geometry import format_latlon
+from .optimization import hold_radius, metrics
 from .rules import RulesStore, apply_ops, field_diff, load_yaml_text, parse_rules, plain
 from .session import Session, World
 from .twists import TwistHistory, preview
@@ -246,7 +247,10 @@ class Hub:
             lines += ["", f"At {d['clock']} sonar contact {d['contact_id']}: {d['label_text']} "
                           f"({round(d['confidence'] * 100)}%), {d['size_m']:.1f} m, {d['speed_kn']} kn, "
                           f"heading {d['heading']}°, at {pos}{near}."]
+        liaison = rules.profile.security_liaison if rules.profile else "port facility security officer"
         lines += [
+            f"Approval: {d.get('approval_role') or 'harbor watch officer'}; "
+            f"security liaison: {liaison}.",
             f"{n.why}: {d['reason']}",
             f"{n.ruled_out}: {', '.join(d['ruled_out']).lower() or n.nothing_yet}.",
             f"{n.steps}: " + ("; ".join(f"{s['clock']} {s['rungs']}" for s in done) or n.none) + ".",
@@ -317,7 +321,8 @@ class Hub:
                 item.steps = self._steps(cid)
                 self._redraft(item)
                 if item.status in OPEN:
-                    item.hold_options = hs.hold_options(item.decision, self.store.rules)
+                    item.hold_options = hs.hold_options(item.decision, self.store.rules,
+                                                        hold_radius(item.decision, self.store.rules))
             elif item and item.status in OPEN:
                 item.decision = d.to_dict()
                 item.note = d.reason
@@ -344,7 +349,8 @@ class Hub:
             deadline_t=s.t + (d.window_s or self.store.rules.windows.default), decision=d.to_dict(),
             severity=d.severity(), steps=self._steps(d.contact_id))
         self._redraft(item)
-        item.hold_options = hs.hold_options(item.decision, self.store.rules)
+        item.hold_options = hs.hold_options(item.decision, self.store.rules,
+                                            hold_radius(item.decision, self.store.rules))
         item.history.append({"action": "create", "from": None, "to": "pending", "actor": "system",
                              "clock": s.clock, "t": round(s.t, 1)})
         self.items[item.id] = item
@@ -516,12 +522,15 @@ class Hub:
         return {
             "run": self.run_id, "t": round(s.t, 1), "clock": s.clock, "running": self.running, "speed": self.speed,
             "scenario": {"id": s.scenario_name, "title": s.scenario.get("title", s.scenario_name),
-                         "description": s.scenario.get("description", ""), "duration_s": s.duration_s, "seed": s.seed},
+                         "description": s.scenario.get("description", ""), "duration_s": s.duration_s, "seed": s.seed,
+                         "coverage_radius_m": s.scenario.get("coverage_radius_m", 1000),
+                         "traffic_level": s.scenario.get("traffic_level")},
             "mode": self.mode,
             "rules": {"version": self.store.version, "error": self.store.error},
             "contacts": self.contacts_payload(),
             "items": [i.to_dict(s.t, wall, undo_s) for i in items[:40]],
             "budget": self.budget(),
+            "optimization": metrics(s, self.store.rules, s.llm_calls, s.decision_ms_total, s.decision_count),
             "receipts": new,
         }
 

@@ -283,6 +283,46 @@ export interface ScenarioRef {
   description: string;
   duration_s: number;
   seed: number;
+  coverage_radius_m: number;
+  traffic_level?: string | null;
+}
+
+export interface OptimizationMetrics {
+  coverage_radius_m: number;
+  coverage_km2: number;
+  traffic_level: string;
+  contacts_seen: number;
+  handled_quietly: number;
+  human_interruptions: number;
+  officer_minutes: number;
+  officer_time_saved_min: number;
+  officer_capacity_value_usd: number;
+  manual_triage_min_per_contact: number;
+  current_operators: number;
+  recommended_operators: number | null;
+  response_windows_feasible: boolean;
+  utilization_pct: number;
+  watch_horizon_min: number;
+  recommended_hold_radius_m: number | null;
+  baseline_hold_radius_m: number;
+  hold_radius_range_m: [number, number] | null;
+  modeled_pause_operation_min: number;
+  baseline_pause_operation_min: number;
+  estimated_cost_usd: number;
+  baseline_cost_usd: number;
+  cost_savings_usd: number;
+  cost_savings_pct: number;
+  cost_per_km2_usd: number | null;
+  savings_per_km2_usd: number | null;
+  staffing_cost_usd: number;
+  pause_cost_usd: number;
+  ai_cost_usd: number;
+  avoided_pause_cost_usd: number;
+  operator_hourly_usd: number;
+  paused_operation_hourly_usd: number;
+  llm_calls: number;
+  mean_decision_ms: number | null;
+  decision_count: number;
 }
 
 export interface Snapshot {
@@ -297,6 +337,7 @@ export interface Snapshot {
   contacts: Contact[];
   items: HandoffItem[];
   budget: Budget;
+  optimization: OptimizationMetrics;
   receipts: Receipt[];
 }
 
@@ -426,7 +467,8 @@ export interface RulesData {
   human_required_from: Rung;
   windows_s: { urgent: number; hold_handoff: number; default: number };
   alert_budget: { capacity: number; weights: Record<Rung, number>; keep_watching_snooze_s: number };
-  handoff?: { hold_s: number; undo_s: number; mock_hold_delay_s: number; area_radius_m: number };
+  handoff?: { hold_s: number; undo_s: number; mock_hold_delay_s: number; area_radius_m: number;
+    area_radius_candidates_m?: number[]; area_safety_buffer_m?: number };
   zones: Zone[];
   assets: Asset[];
   traffic: Vessel[];

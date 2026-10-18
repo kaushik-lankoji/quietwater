@@ -100,6 +100,19 @@ handoff:
   undo_s: 10
   mock_hold_delay_s: 1.0
   area_radius_m: 400   # "hold this area" covers every active operation within this distance of the contact
+  area_radius_candidates_m: [150, 250, 400]
+  area_safety_buffer_m: 25
+
+optimization:
+  current_operators: 1
+  manual_triage_min_per_contact: 2
+  hold_review_min: 4
+  handoff_review_min: 3
+  target_utilization: 0.7
+  watch_horizon_min: 60
+  operator_hourly_usd: 60
+  paused_operation_hourly_usd: 500
+  llm_call_usd: 0.02
 
 zones:
   - id: fuel_dock_area
@@ -226,10 +239,10 @@ modes:
     rungs:
       R0: {name: Watch, action: "Log it and keep watching."}
       R1: {name: Look again, action: "Second look on the next sonar pass ({look} of {max_looks})."}
-      R2: {name: Ask, action: "Hail on {hail_channel}; request ID."}
+      R2: {name: Ask, action: "{contact_instruction}"}
       R3: {name: Slow, action: "Advise {vessels} to slow to 5 kn."}
-      R4: {name: Hold, action: "Pause {operation} at {asset}."}
-      R5: {name: Hand off, action: "Hand the package to {target}. Alert is drafted; you press send."}
+      R4: {name: Hold, action: "Ask {hold_approver} to approve pausing {operation} at {asset}."}
+      R5: {name: Hand off, action: "Ask {handoff_approver} to review the package for {target}. Alert is drafted; a person presses send."}
   recovery:
     title: Quiet Tuesday
     customer: USC Wrigley Marine Lab (lost vehicle owner)
@@ -266,13 +279,23 @@ jurisdictions:
     name: Port of Los Angeles
     registry_source: Port of LA research and survey registry
     notice_recipient: USCG Sector Los Angeles-Long Beach
-    hail_channel: acoustic modem and VHF 16
+    hail_channel: VHF 16 (initial contact)
+    surface_channel: VHF 16 (initial contact; use assigned working channel afterward)
+    hold_approver: harbor watch officer
+    handoff_approver: harbor watch officer
+    security_liaison: port facility security officer (per local security plan)
     language: en
   singapore:
     name: Port of Singapore
     registry_source: MPA underwater works permits
     notice_recipient: MPA Port Operations Control Centre
-    hail_channel: acoustic modem and VHF 12 (Port Operations)
+    hail_channel: VHF 16 or 09 (MPA Port Operations Control)
+    surface_channel: VHF 16 or 09 (MPA Port Operations Control)
+    port_operations_channel: VHF 16 or 09 (MPA Port Operations Control)
+    security_channel: VHF 03 (MPA Port Security)
+    hold_approver: port watch officer (per local plan)
+    handoff_approver: port watch officer (per local plan)
+    security_liaison: port facility security officer (per local plan)
     language: en
     windows_s: {urgent: 180, hold_handoff: 1200, default: 600}
     registry:
@@ -288,7 +311,12 @@ jurisdictions:
     name: Port of Rotterdam
     registry_source: Havenbedrijf Rotterdam permit register
     notice_recipient: Kustwacht Nederland
-    hail_channel: acoustic modem and VHF 11 (Rotterdam traffic)
+    hail_channel: VHF 11 (Rotterdam traffic)
+    surface_channel: VHF 11 (Rotterdam traffic; use assigned sector channel where applicable)
+    port_operations_channel: VHF 14 (Rotterdam operational matters)
+    hold_approver: harbour master duty officer (per local plan)
+    handoff_approver: harbour master duty officer (per local plan)
+    security_liaison: port facility security officer (per local plan)
     language: nl
     windows_s: {urgent: 240, hold_handoff: 1500, default: 900}
     registry:

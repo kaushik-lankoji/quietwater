@@ -83,6 +83,7 @@ function blend(a: string, b: string, t: number): string {
 }
 
 export class RadarEngine {
+  rangeM = RANGE_M;
   private ctx: CanvasRenderingContext2D;
   private palette: Palette;
   private live = new Map<string, Live>();
@@ -147,11 +148,11 @@ export class RadarEngine {
     const next = new Map<string, Live>();
     for (const c of contacts) {
       const p = toPolar(c.x, c.y);
-      next.set(c.id, { contact: c, dx: p.dx, dy: p.dy, distance: p.distance, inRange: inRange(p) });
+      next.set(c.id, { contact: c, dx: p.dx, dy: p.dy, distance: p.distance, inRange: inRange(p, this.rangeM) });
       const echo = this.echoes.get(c.id);
       if (echo) {
         echo.contact = c;
-        if (!inRange(p) && echo.leftAt === null) echo.leftAt = performance.now();
+        if (!inRange(p, this.rangeM) && echo.leftAt === null) echo.leftAt = performance.now();
       }
     }
     this.live = next;
@@ -162,7 +163,7 @@ export class RadarEngine {
   }
 
   private get scale() {
-    return this.ringRadius / RANGE_M;
+    return this.ringRadius / this.rangeM;
   }
 
   private get maxFront() {
@@ -281,7 +282,7 @@ export class RadarEngine {
       ctx.arc(cx, cy, r, 0, Math.PI * 2);
       ctx.stroke();
       const a = -Math.PI / 4;
-      ctx.fillText(`${Math.round((RANGE_M * i) / RING_COUNT)} m`, cx + Math.cos(a) * r + 6, cy + Math.sin(a) * r - 4);
+      ctx.fillText(`${Math.round((this.rangeM * i) / RING_COUNT)} m`, cx + Math.cos(a) * r + 6, cy + Math.sin(a) * r - 4);
     }
 
     if (pulse) {

@@ -9,7 +9,7 @@ UI_PORT ?= 5173
 dev: install
 	@echo "Quietwater: UI http://127.0.0.1:$(UI_PORT)  API http://127.0.0.1:$(API_PORT)"
 	@trap 'kill 0' INT TERM EXIT; \
-	(cd backend && .venv/bin/uvicorn app.main:app --host 127.0.0.1 --port $(API_PORT) --reload --reload-dir app) & \
+	(cd backend && .venv/bin/uvicorn app.main:app --host 127.0.0.1 --port $(API_PORT) --reload --reload-dir app --timeout-graceful-shutdown 2) & \
 	(cd frontend && QUIETWATER_API=http://127.0.0.1:$(API_PORT) npm run dev -- --port $(UI_PORT) --strictPort) & \
 	wait
 

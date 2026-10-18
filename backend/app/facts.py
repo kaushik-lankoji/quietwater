@@ -48,6 +48,7 @@ class Facts:
     zone_critical: bool = False
     zone_authorized: bool = False
     hail: str = "not_hailed"
+    hail_route: str = "acoustic"
     hail_age_s: float | None = None
     consistent: bool = True
     consistency_note: str = ""
@@ -217,7 +218,7 @@ def check_consistency(rules: Rules, entry, label: str, size: float, speed: float
 def derive_facts(*, contact_id: str, t: float, clock: str, position: tuple[float, float], heading: float,
                  speed_mps: float, size_m: float, signature: str, transponder: str | None,
                  classification: Classification, hail: str, hailed_t: float | None, hostile: bool,
-                 scripted_evasive: bool, trail, rules: Rules) -> Facts:
+                 scripted_evasive: bool, trail, rules: Rules, hail_route: str = "acoustic") -> Facts:
     category = rules.classes.get(classification.label, rules.classes["unknown"])
     entry = rules.registry_entry(transponder)
     zone = resolve_zone(rules, position)
@@ -251,7 +252,7 @@ def derive_facts(*, contact_id: str, t: float, clock: str, position: tuple[float
         zone_id=zone.id if zone else None, zone_name=zone.name if zone else "open water",
         zone_critical=bool(zone and zone.critical),
         zone_authorized=bool(entry and zone and zone.id in entry.authorized_zones),
-        hail=hail, hail_age_s=(t - hailed_t) if hailed_t is not None else None,
+        hail=hail, hail_route=hail_route, hail_age_s=(t - hailed_t) if hailed_t is not None else None,
         consistent=consistent, consistency_note=consistency_note,
         consequence=consequence, nearest_asset=nearest,
         approaching=find_approach(rules, position, heading, speed_mps),

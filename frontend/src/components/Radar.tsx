@@ -17,11 +17,13 @@ export const Radar = memo(function Radar({
   selected,
   handled,
   holds,
+  rangeM,
   onSelect,
 }: {
   contacts: Contact[];
   handled: ReadonlySet<string>;
   holds: readonly { id: string; radiusM: number }[];
+  rangeM: number;
   run: number;
   selected: string | null;
   onSelect: (contact: Contact | null) => void;
@@ -67,8 +69,15 @@ export const Radar = memo(function Radar({
   }, []);
 
   useEffect(() => {
+    if (engine.current) {
+      engine.current.rangeM = rangeM;
+      engine.current.reset();
+    }
+  }, [rangeM]);
+
+  useEffect(() => {
     engine.current?.setContacts(contacts);
-  }, [contacts]);
+  }, [contacts, rangeM]);
 
   useEffect(() => {
     if (engine.current) engine.current.handled = handled;

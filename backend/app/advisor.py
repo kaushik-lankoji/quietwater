@@ -246,6 +246,7 @@ class AdvisorLayer:
         self.cfg = cfg
         self.config_hash = config_hash
         self.cache = cache or AdvisorCache()
+        self.llm_calls = 0
         self.fallback = RuleBasedAdvisor(cfg)
         if primary is not None:
             self.primary: Advisor = primary
@@ -281,6 +282,8 @@ class AdvisorLayer:
         return record
 
     def _consult(self, x: AdvisorInput) -> AdvisorRecord:
+        if self.primary.name == "llm":
+            self.llm_calls += 1
         source, error, advice = self.primary.name, None, None
         try:
             advice = self._call(self.primary, x)

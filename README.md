@@ -92,10 +92,10 @@ flowchart TD
 | --- | --- | --- | --- |
 | R0 | Watch | automatic | Logged. |
 | R1 | Look again | automatic | Second look on the next sonar pass. Capped at `loop.max_second_looks`, then up one rung. Never loops forever. |
-| R2 | Ask | automatic | Hail on the jurisdiction's channel (acoustic modem and VHF 16 in LA). |
+| R2 | Ask | automatic | Use a compatible acoustic link to hail the vehicle, or call its surface operator on the port's working radio channel. If no link exists, seek an operator through port traffic; this is recorded separately from an ignored hail. AIS can help identify a vessel but is not a hailing channel. |
 | R3 | Slow | automatic | Advisory to named nearby vessels. |
-| R4 | Hold | **person** | Recommend pausing *one* operation at the asset at risk. |
-| R5 | Hand off | **person** | Full package; Coast Guard alert pre-drafted. The operator presses send. |
+| R4 | Hold | **person** | Recommend pausing *one* operation at the asset at risk; the configured local approver decides. |
+| R5 | Hand off | **person** | Full package; the jurisdiction's notice is pre-drafted and a person decides whether to send it. |
 
 Rules the engine holds to:
 
@@ -129,7 +129,7 @@ export ANTHROPIC_API_KEY=...   # never committed; read from the environment
 
 ### Jurisdictions
 
-`jurisdiction: la` picks a profile from `jurisdictions:` in `rules.yaml`. A profile sets the registry source (and optionally its own registry), the notice recipient, the hail channel, the notice language and the response windows. LA, Singapore and an EU (Rotterdam) profile ship as examples; switching is one line or a twist (`{"path": "jurisdiction", "value": "eu"}`).
+`jurisdiction: la` picks a profile from `jurisdictions:` in `rules.yaml`. A profile sets the registry source (and optionally its own registry), notice recipient, separate acoustic and surface contact paths, port operations/security radio channels, local hold and handoff approvers, security liaison, notice language and response windows. LA, Singapore and an EU (Rotterdam) profile ship as **illustrative examples requiring local review**; switching is one line or a twist (`{"path": "jurisdiction", "value": "eu"}`). The harbor watch officer uses this demo; a Port Facility Security Officer is a separate designated security role under the port's local plan. The ladder is a product workflow, not a claim that the [ISPS Code](https://www.imo.org/en/ourwork/security/pages/solas-xi-2%20isps%20code.aspx) requires these exact rungs. Configure `hail_route: acoustic`, `surface`, or `unavailable` on a scripted contact to exercise each path; the **Contact paths** scenario shows the last two. A missing compatible link does not count as an ignored hail. [AIS is for identification](https://www.imo.org/en/ourwork/safety/pages/ais.aspx), not hailing. Sample radio references: [Singapore MPA](https://www.mpa.gov.sg/port-marine-ops/arrivals-and-departures/vessels-arriving-in-singapore) and [Port of Rotterdam](https://www.portofrotterdam.com/en/contact-harbourmaster/vts-services-and-vhf-communication-procedure). Confirm radio channels, recipients and approval authority with the port before operational use.
 
 ## Changing rules for a twist
 
@@ -150,7 +150,11 @@ Edit `config/rules.yaml` and save. The server picks it up within half a second, 
 
 Scenarios, archetypes and the mock classifier's behaviour live in `config/scenarios.yaml`. The harbor drawing is `config/harbor.yaml`.
 
-**Random scenarios.** The **+** button (bottom right) loads a fresh seeded scenario: 8–15 contacts mixing debris, marine life, a known research vehicle, unknowns far out, near a ship and near the fuel dock, and sometimes an evasive contact. Position, speed, heading, size, confidence, hail response, registration and harbor clock (and so schedule status) are all randomized. In dual-use mode it generates a lost-vehicle search instead: the lost REMUS-02, drifting equipment, and look-alikes. Every scenario has at least one low, one medium and one high-risk contact. The seed shows under the Alert Budget, and Replay (R) reproduces that exact run, so Twist Console diffs stay like for like. The mix, regions and ranges are the `randomizer:` block in `config/scenarios.yaml`.
+**Random scenarios.** The **+** button (bottom centre) loads a fresh seeded scenario. Each seed chooses a 350–1,300 m watch-sector radius and, independently, a traffic level from clear water (0–2 contacts) to a peak surge (81–200). Contacts and waypoints stay within water inside the watch circle. The mix includes debris, marine life, registered vehicles, unknowns near assets, and sometimes an evasive contact. Position, speed, heading, size, confidence, hail response, registration and harbor clock are randomized. Recovery mode uses the same traffic levels; the lost vehicle appears when its search area falls within the sector. The seed shows under the Alert Budget, and Replay (R) reproduces that exact run. The ranges and weights are in `config/scenarios.yaml`. The sector range fits this demo map; larger ports use multiple sectors. Published footprints range from the Port of LA's [87-acre Cabrillo Way Marina](https://portoflosangeles.org/references/news_021219_cabrillo_way_award) to its [3,200 water acres](https://portoflosangeles.org/business/statistics/facts-and-figures?ftag=MSF0951a18), so one fixed harbor radius would be misleading.
+
+**Cost estimates.** The lower-right Watch efficiency panel totals two benefits: officer capacity freed by automatically handling contacts, and paused-operation cost avoided by narrower holds. The configurable manual-review benchmark defaults to two minutes per quietly handled contact; that time is valued at the configured officer hourly rate. It is an opportunity-cost estimate, not payroll removed from an existing shift. Savings and remaining watch cost are also shown per square kilometer of water covered. The operating-cost estimate still combines officers on watch, paused-operation time, and cloud AI calls; it does not subtract freed capacity from wages paid. The default $60/officer-hour, $500/paused-operation-hour, and $0.02/AI-call are demo assumptions in `config/rules.yaml`, not measured harbor rates. No cloud AI calls are made by default.
+
+**Cost & scale.** Open the collapsible panel at the bottom right to see the current scenario's watch footprint, quiet contacts, officer requests, modeled review minutes, staffing recommendation, area-hold footprint, LLM call count, and measured mean decision time. Staffing is the smallest number of operators that can complete the observed requests within their response windows while staying under the configured utilization target. Hold optimization chooses the smallest configured radius that covers the active high-consequence assets and the focus asset, plus a safety buffer; the operator still approves the hold. Potential pause savings are shown in operation-minutes against the 400 m baseline, not dollars. These are scenario estimates, not a validated harbor staffing forecast. Review times, utilization, candidate hold radii and buffer are in `config/rules.yaml`.
 
 ## Second customer
 

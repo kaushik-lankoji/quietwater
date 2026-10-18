@@ -157,9 +157,18 @@ def test_same_seed_new_config_preview_is_repeatable(rules, world):
     assert a == b
 
 
+def test_contact_paths_scenario_only_hails_reachable_contacts(rules, world):
+    session = Session(rules, world, "contact_paths")
+    session.step(1)
+    assert session.current["LINK-1"].hail == "unavailable"
+    assert session.sim.active["LINK-1"].hailed_t is None
+    assert session.current["LINK-2"].hail_route == "surface"
+    assert session.sim.active["LINK-2"].hailed_t is not None
+
+
 @pytest.mark.parametrize("profile,recipient,channel,lang", [
     ("la", "USCG Sector Los Angeles-Long Beach", "VHF 16", "en"),
-    ("singapore", "MPA Port Operations Control Centre", "VHF 12", "en"),
+    ("singapore", "MPA Port Operations Control Centre", "VHF 16 or 09", "en"),
     ("eu", "Kustwacht Nederland", "VHF 11", "nl"),
 ])
 def test_jurisdiction_profiles_switch_by_config_only(client, profile, recipient, channel, lang):
@@ -173,7 +182,10 @@ def test_jurisdiction_profiles_switch_by_config_only(client, profile, recipient,
     client.post("/api/sim/scenario", json={"name": "all_archetypes"})
     advance(hub, 90)
     asks = [r for r in hub.receipts if "R2" in r["decision"]["rungs"] and r["decision"]["track"] == "security"]
-    assert asks and channel in asks[0]["decision"]["recommendation"]
+    assert asks and "acoustic" in asks[0]["decision"]["recommendation"]
+    assert channel in rules.profile.surface_channel
+    assert rules.profile.hold_approver and rules.profile.handoff_approver
+    assert rules.profile.security_liaison
     item = next(i for i in hub.items.values() if i.draft)
     assert item.draft["to"] == recipient and item.draft["language"] == lang
     assert item.draft["body"].startswith(("AAN: " if lang == "nl" else "TO: ") + recipient)

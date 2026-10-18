@@ -163,6 +163,26 @@ class HandoffCfg(Strict):
     undo_s: float = Field(default=10, ge=0)
     mock_hold_delay_s: float = Field(default=1.0, ge=0)
     area_radius_m: float = Field(default=400, gt=0)
+    area_radius_candidates_m: list[float] = Field(default_factory=lambda: [150, 250, 400], min_length=1)
+    area_safety_buffer_m: float = Field(default=25, ge=0)
+
+    @model_validator(mode="after")
+    def valid_radii(self) -> HandoffCfg:
+        if any(r <= 0 for r in self.area_radius_candidates_m):
+            raise ValueError("area hold radii must be positive")
+        return self
+
+
+class OptimizationCfg(Strict):
+    current_operators: int = Field(default=1, ge=1)
+    manual_triage_min_per_contact: float = Field(default=2, ge=0)
+    hold_review_min: float = Field(default=4, gt=0)
+    handoff_review_min: float = Field(default=3, gt=0)
+    target_utilization: float = Field(default=0.7, gt=0, le=1)
+    watch_horizon_min: float = Field(default=60, gt=0)
+    operator_hourly_usd: float = Field(default=60, ge=0)
+    paused_operation_hourly_usd: float = Field(default=500, ge=0)
+    llm_call_usd: float = Field(default=0.02, ge=0)
 
 
 class Zone(Strict):
@@ -286,6 +306,13 @@ class Jurisdiction(Strict):
     registry_source: str
     notice_recipient: str
     hail_channel: str
+    acoustic_channel: str = "compatible acoustic modem"
+    surface_channel: str = "VHF 16 for initial contact; switch to the assigned working channel"
+    port_operations_channel: str = "locally assigned port operations channel"
+    security_channel: str = "locally assigned port security channel"
+    hold_approver: str = "harbor watch officer"
+    handoff_approver: str = "harbor watch officer"
+    security_liaison: str = "port facility security officer, per the local security plan"
     language: str
     windows_s: Windows | None = None
     registry: list[RegistryEntry] | None = None
@@ -330,6 +357,7 @@ class Rules(Strict):
     windows_s: Windows
     alert_budget: AlertBudget
     handoff: HandoffCfg = HandoffCfg()
+    optimization: OptimizationCfg = OptimizationCfg()
     zones: list[Zone]
     assets: list[Asset]
     traffic: list[Vessel]
@@ -395,7 +423,7 @@ class Rules(Strict):
 
     @property
     def hail_channel(self) -> str:
-        return self.profile.hail_channel if self.profile else "acoustic modem and VHF 16"
+        return self.profile.hail_channel if self.profile else "VHF 16 (initial contact)"
 
     @property
     def notice(self) -> NoticeText:
