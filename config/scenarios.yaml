@@ -104,7 +104,7 @@ archetypes:
 randomizer:
   coverage_radius_m: [350, 1300]
   traffic:
-    - {name: Clear water, weight: 2, contacts: [0, 2]}
+    - {name: Clear water, weight: 2, contacts: [2, 3]}
     - {name: Quiet, weight: 4, contacts: [3, 8]}
     - {name: Working harbor, weight: 5, contacts: [9, 30]}
     - {name: Busy, weight: 3, contacts: [31, 80]}
@@ -192,7 +192,7 @@ randomizer:
       conf: [0.45, 0.58]
       speed: [0.7, 1.1]
       heading: [-30, 30]
-      spawn_t: [5, 60]
+      spawn_t: [3, 20]
     lost_vehicle:
       max: 1
       archetype: research_sub
@@ -223,16 +223,17 @@ randomizer:
       speed: [0.1, 0.25]
   security:
     required:
-      - [debris, marine_life]
-      - [unknown_ship_medium]
       - [unknown_fuel_dock, unknown_ship_close]
+      - [evasive]
+      - [unknown_ship_medium]
+      - [debris, marine_life]
     fill: {debris: 3, marine_life: 4, known_vehicle: 2, stray_research: 1, unknown_far: 2,
            unknown_ship_close: 0.5, unknown_ship_medium: 0.5, unknown_fuel_dock: 0.5, evasive: 1}
   recovery:
     required:
-      - [equipment, marine_life]
-      - [drifting_package]
       - [lost_vehicle]
+      - [drifting_package]
+      - [equipment, marine_life]
     fill: {equipment: 3, marine_life: 3, debris: 2, known_vehicle: 1.5, look_alike: 1}
 
 scenarios:
@@ -256,11 +257,11 @@ scenarios:
       - {id: C-106, archetype: unknown, start: [1650, 1110], heading: 270, speed_mps: 0.25}
       - id: C-107
         archetype: unknown
-        spawn_t: 15
+        spawn_t: 4
         start: [1730, 480]
         speed_mps: 0.7
         waypoints: [[1725, 360]]
-      - {id: C-108, archetype: evasive, spawn_t: 100, start: [1060, 1180], heading: 350}
+      - {id: C-108, archetype: evasive, spawn_t: 30, start: [1060, 1180], heading: 350}
       - {id: C-109, archetype: kelp, start: [420, 720]}
       - {id: C-110, archetype: survey_rov, start: [1450, 1080], heading: 250}
       - {id: C-112, archetype: unknown, start: [400, 575], motion: loiter, speed_mps: 0.15}
@@ -320,11 +321,11 @@ scenarios:
       - {id: C-105, archetype: inspection_rov, transponder: HDS-ROV-7, start: [620, 380]}
       - id: C-107
         archetype: unknown
-        spawn_t: 15
+        spawn_t: 4
         start: [1730, 480]
         speed_mps: 0.7
         waypoints: [[1725, 360]]
-      - {id: C-108, archetype: evasive, spawn_t: 60, start: [1060, 1180], heading: 350}
+      - {id: C-108, archetype: evasive, spawn_t: 25, start: [1060, 1180], heading: 350}
     generator:
       count: 196
       prefix: F

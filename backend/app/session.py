@@ -11,7 +11,7 @@ from .advisor import AdvisorCache, AdvisorLayer, review
 from .classifier import Classifier, Observation, build_classifier
 from .engine import Decision, Memory, decide
 from .facts import clock_at, derive_facts
-from .randomizer import randomize, water_area_km2
+from .randomizer import randomize, vary, water_area_km2
 from .rules import Rules
 from .simulator import SimContact, Simulator
 
@@ -40,7 +40,7 @@ class World:
     def build(self, name: str, seed: int | None = None) -> dict[str, Any]:
         template = self.scenario(name)
         if not template.get("randomize"):
-            return template
+            return template if seed is None else vary(template, seed, self.harbor)
         return randomize(template, template.get("seed", 0) if seed is None else seed, self.catalog, self.harbor)
 
     def scenario_list(self) -> list[dict[str, Any]]:

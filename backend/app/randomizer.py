@@ -8,6 +8,9 @@ from typing import Any
 
 from .simulator import is_water
 
+VARY_SHIFT_M = 50
+VARY_HEADING_DEG = 15
+
 
 def randomize(template: dict[str, Any], seed: int, catalog: dict[str, Any], harbor: dict[str, Any]) -> dict[str, Any]:
     spec = template["randomize"]
@@ -49,6 +52,40 @@ def randomize(template: dict[str, Any], seed: int, catalog: dict[str, Any], harb
                description=f"{description} {template.get('description', '')}".strip())
     if spec.get("clock_starts"):
         out["clock_start"] = rng.choice(spec["clock_starts"])
+    return out
+
+
+def vary(template: dict[str, Any], seed: int, harbor: dict[str, Any]) -> dict[str, Any]:
+    """A fresh take on a hand-written scenario. Same contacts, same story, new details.
+
+    Every contact keeps its id, archetype, transponder, labels and events, so the scenario
+    plays the same way. Only where it starts, which way it points, how fast it moves and when
+    it appears change, a little. A scripted path moves with its contact. Generated filler
+    (the flood) already follows the seed.
+    """
+    rng = random.Random(f"vary:{seed}")
+    contacts = []
+    for spec in template.get("contacts", []):
+        c = dict(spec)
+        x, y = c["start"]
+        for _ in range(20):
+            dx, dy = rng.uniform(-VARY_SHIFT_M, VARY_SHIFT_M), rng.uniform(-VARY_SHIFT_M, VARY_SHIFT_M)
+            moved = (round(x + dx), round(y + dy))
+            waypoints = [(round(wx + dx), round(wy + dy)) for wx, wy in c.get("waypoints", [])]
+            if all(is_water(harbor, p) for p in [moved, *waypoints]):
+                c["start"] = list(moved)
+                if waypoints:
+                    c["waypoints"] = [list(p) for p in waypoints]
+                break
+        if "heading" in c and "waypoints" not in c:
+            c["heading"] = round(c["heading"] + rng.uniform(-VARY_HEADING_DEG, VARY_HEADING_DEG)) % 360
+        if "speed_mps" in c:
+            c["speed_mps"] = round(c["speed_mps"] * rng.uniform(0.9, 1.1), 2)
+        if c.get("spawn_t"):
+            c["spawn_t"] = round(c["spawn_t"] * rng.uniform(0.85, 1.15), 1)
+        contacts.append(c)
+    out = {**template, "contacts": contacts, "seed": seed}
+    out["description"] = f"Seed {seed}: a fresh take. {template.get('description', '')}".strip()
     return out
 
 

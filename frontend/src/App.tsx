@@ -20,7 +20,6 @@ type SheetName = "handoff" | "receipts" | "twist";
 const OPERATOR = "Watch officer";
 const HANDLED: ItemStatus[] = ["hold_requesting", "hold_active", "notice_sent", "dismissed", "resolved", "lifted", "stood_down"];
 const FLOOD = "flood";
-const RANDOM = { security: "random_harbor", recovery: "random_recovery" } as const;
 
 const newSeed = () => crypto.getRandomValues(new Uint32Array(1))[0] % 1_000_000;
 
@@ -145,9 +144,12 @@ export default function App() {
     },
     [config, run],
   );
+  // Re-roll the scenario that is already selected. The choice of scenario never changes.
   const randomize = useCallback(() => {
-    if (snap) loadScenario(RANDOM[snap.mode]);
-  }, [snap, loadScenario]);
+    if (!snap) return;
+    setSelected(null);
+    run(() => api.scenario(snap.scenario.id, newSeed()));
+  }, [snap, run]);
 
   const onSelect = useCallback(
     (c: Contact | null) => {

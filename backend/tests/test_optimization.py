@@ -64,7 +64,13 @@ def test_smaller_hold_reports_savings_per_covered_water_area(rules):
 
 def test_automation_frees_officer_capacity_even_without_a_hold(rules):
     world = World.load(REPO / "config")
-    session = Session(rules, world, "random_harbor", "security", 17)
+    world.catalog["scenarios"]["calm"] = {
+        "title": "Calm", "mode": "security", "seed": 1, "duration_s": 120,
+        "contacts": [{"id": "Q-1", "archetype": "bottle", "start": [720, 1000]},
+                     {"id": "Q-2", "archetype": "fish", "start": [1300, 980], "heading": 200},
+                     {"id": "Q-3", "archetype": "kelp", "start": [420, 720]}],
+    }
+    session = Session(rules, world, "calm", "security", 17)
     session.run(duration_s=120, dt=5)
     result = metrics(session, rules)
     assert result["contacts_seen"] > 0

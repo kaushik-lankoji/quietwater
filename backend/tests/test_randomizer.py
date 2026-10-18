@@ -52,7 +52,7 @@ def test_contacts_are_valid(world, name, mode):
 @pytest.mark.parametrize("name,mode", RANDOM)
 def test_traffic_ranges_include_clear_and_peak_even_at_different_radii(world, name, mode):
     scenarios = [world.build(name, seed) for seed in range(100)]
-    assert any(len(s["contacts"]) <= 2 for s in scenarios)
+    assert any(len(s["contacts"]) <= 3 for s in scenarios)
     assert any(len(s["contacts"]) >= 81 for s in scenarios)
     assert len({s["coverage_radius_m"] for s in scenarios}) >= 10
     assert any(s["traffic_level"] == "Peak surge" and s["coverage_radius_m"] < 800 for s in scenarios)
@@ -101,3 +101,40 @@ def test_api_loads_seeded_random_scenario_and_replay_keeps_the_seed(root):
         assert hub.mode == "recovery"
         scenarios = {s["id"]: s for s in client.get("/api/config").json()["scenarios"]}
         assert scenarios["random_harbor"]["random"] and not scenarios["harbor_morning"]["random"]
+
+
+@pytest.mark.parametrize("name", ["harbor_morning", "lost_vehicle", "flood", "all_archetypes"])
+def test_generate_keeps_the_selected_scenario_and_only_varies_details(world, name):
+    base = world.build(name)
+    a, b = world.build(name, 101), world.build(name, 202)
+    assert world.build(name, 101) == a
+    assert a != b and a["seed"] == 101
+    for new in (a, b):
+        assert new["title"] == base["title"] and new["mode"] == base["mode"]
+        roster = lambda sc: [(c["id"], c["archetype"]) for c in sc["contacts"]]  # noqa: E731
+        assert roster(new) == roster(base)
+        assert new.get("generator") == base.get("generator")
+        for c in new["contacts"]:
+            assert is_water(world.harbor, tuple(c["start"]))
+            assert all(is_water(world.harbor, tuple(p)) for p in c.get("waypoints", []))
+
+
+def test_unseeded_scenario_is_unchanged(world):
+    assert world.build("harbor_morning") is world.scenario("harbor_morning")
+
+
+@pytest.mark.parametrize("seed", range(1, 13))
+def test_morning_watch_story_survives_a_new_seed(rules, world, seed):
+    s = Session(rules, world, "harbor_morning", "security", seed)
+    s.run()
+    assert {cid: s.peak[cid].rung for cid in ("C-107", "C-108")} == {"C-107": "R5", "C-108": "R5"}
+
+
+@pytest.mark.parametrize("seed", range(1, 41))
+def test_every_random_harbor_has_a_red_contact_early(rules, world, seed):
+    s = Session(rules, world, "random_harbor", "security", seed)
+    first = None
+    while s.sim.t < 60 and first is None:
+        if any(d.rung in ("R4", "R5") for d in s.step(1.0)):
+            first = s.sim.t
+    assert first is not None and first <= 40
