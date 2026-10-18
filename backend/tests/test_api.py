@@ -162,3 +162,19 @@ def test_sim_controls(client):
     assert client.post("/api/sim/control", json={"action": "speed", "speed": 4.2}).json()["speed"] == 5
     client.post("/api/sim/control", json={"action": "restart"})
     assert client.hub.session.t == 0
+
+
+def test_inject_pushes_red_contacts_onto_the_live_radar(tmp_path):
+    from fastapi.testclient import TestClient
+
+    from app.main import create_app
+
+    from .conftest import REPO
+    with TestClient(create_app(REPO, run_loop=False)) as client:
+        client.post("/api/sim/scenario", json={"name": "harbor_morning"})
+        client.post("/api/sim/control", json={"action": "pause"})
+        before = {c["id"] for c in client.get("/api/state").json()["contacts"]}
+        ids = client.post("/api/sim/inject", json={"kind": "red", "count": 2}).json()["ids"]
+        assert len(ids) == 2 and not set(ids) & before
+        assert {c["id"] for c in client.get("/api/state").json()["contacts"]} >= set(ids)
+        assert client.post("/api/sim/inject", json={"kind": "nope"}).status_code == 404

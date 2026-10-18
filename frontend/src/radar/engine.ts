@@ -108,6 +108,8 @@ export class RadarEngine {
   watched: ReadonlySet<string> = new Set();
   /** Active area holds: a translucent blocked-off region around the contact. */
   holds: readonly { id: string; radiusM: number }[] = [];
+  /** Contacts that should be revealed by a fresh pulse as soon as they have arrived. */
+  private awaiting: string[] = [];
   onChange: (() => void) | null = null;
 
   constructor(private canvas: HTMLCanvasElement) {
@@ -139,6 +141,20 @@ export class RadarEngine {
     this.gridDirty = true;
   }
 
+  /** Fire a pulse as soon as every one of these contacts is on the radar, instead of waiting for the next one. */
+  pulseWhenReady(ids: string[]) {
+    this.awaiting = ids;
+    this.firePending();
+  }
+
+  private firePending() {
+    if (!this.awaiting.length || !this.awaiting.every((id) => this.live.has(id))) return;
+    this.awaiting = [];
+    this.epoch = performance.now();
+    this.lastPulse = -1;
+    this.lastFront = 0;
+  }
+
   reset() {
     this.echoes.clear();
     this.epoch = performance.now();
@@ -160,6 +176,7 @@ export class RadarEngine {
       }
     }
     this.live = next;
+    this.firePending();
   }
 
   get ringRadius() {

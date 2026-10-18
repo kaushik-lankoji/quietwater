@@ -55,6 +55,19 @@ def randomize(template: dict[str, Any], seed: int, catalog: dict[str, Any], harb
     return out
 
 
+RED_SLOTS = {"security": ("unknown_fuel_dock", "unknown_ship_close", "evasive"),
+             "recovery": ("lost_vehicle", "drifting_package")}
+
+
+def make_contact(catalog: dict[str, Any], harbor: dict[str, Any], slot_name: str, cid: str,
+                 rng: random.Random, radius: int) -> dict[str, Any]:
+    """One contact from a named randomizer slot, placed in water inside the watch radius."""
+    cfg = catalog["randomizer"]
+    slot, regions = cfg["slots"][slot_name], cfg["regions"]
+    variants = list(_reachable_variants(slot, regions, harbor, radius))
+    return _contact(cid, slot, variants, regions, rng, harbor, catalog, radius)
+
+
 def vary(template: dict[str, Any], seed: int, harbor: dict[str, Any]) -> dict[str, Any]:
     """A fresh take on a hand-written scenario. Same contacts, same story, new details.
 

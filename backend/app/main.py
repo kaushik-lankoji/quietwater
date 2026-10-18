@@ -12,7 +12,7 @@ from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from . import handoff as hs
 from .hub import Hub
@@ -30,6 +30,11 @@ class ControlBody(BaseModel):
 class ScenarioBody(BaseModel):
     name: str
     seed: int | None = None
+
+
+class InjectBody(BaseModel):
+    kind: str = "red"
+    count: int = Field(1, ge=1, le=10)
 
 
 class ModeBody(BaseModel):
@@ -136,6 +141,15 @@ def create_app(root: Path = ROOT, run_loop: bool = True) -> FastAPI:
         except KeyError as exc:
             raise HTTPException(404, str(exc)) from exc
         return {"scenario": body.name, "seed": hub.session.seed, "mode": hub.mode}
+
+    @app.post("/api/sim/inject")
+    def inject(body: InjectBody) -> dict[str, Any]:
+        try:
+            return {"ids": hub.inject(body.kind, body.count)}
+        except KeyError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        except ValueError as exc:
+            raise bad(exc) from exc
 
     @app.post("/api/mode")
     def mode(body: ModeBody) -> dict[str, Any]:

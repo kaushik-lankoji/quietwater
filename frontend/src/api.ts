@@ -43,6 +43,7 @@ export const api = {
   rulesText: () => request<{ text: string; version: number }>("GET", "/api/rules"),
   control: (action: string, speed?: number) => request("POST", "/api/sim/control", { action, speed }),
   scenario: (name: string, seed?: number) => request("POST", "/api/sim/scenario", { name, seed }),
+  inject: (count = 1) => request<{ ids: string[] }>("POST", "/api/sim/inject", { kind: "red", count }),
   mode: (mode: Mode) => request("POST", "/api/mode", { mode, load_scenario: true }),
   act: (id: string, action: HandoffAction, operator: string, extra?: { note?: string; body?: string; confirm?: boolean; scope?: HoldScope }) =>
     request<HandoffItem>("POST", `/api/handoff/${id}`, { action, operator, ...extra }),

@@ -6,6 +6,7 @@ import io
 import json
 import logging
 import os
+import random
 import threading
 import time
 from collections import Counter, deque
@@ -21,6 +22,7 @@ from .advisor import AdvisorCache
 from .engine import Decision
 from .geometry import format_latlon
 from .optimization import hold_radius, metrics
+from .randomizer import RED_SLOTS, make_contact
 from .rules import RulesStore, apply_ops, field_diff, load_yaml_text, parse_rules, plain
 from .session import Session, World
 from .twists import TwistHistory, preview
@@ -145,6 +147,28 @@ class Hub:
             self.hold_requests.clear()
             self.log_audit("scenario", actor, f"Loaded scenario '{scen.get('title', name)}' (seed {self.session.seed})",
                            detail={"scenario": name, "seed": self.session.seed, "mode": self.mode})
+
+    def inject(self, kind: str = "red", count: int = 1, actor: str = "operator") -> list[str]:
+        """Push new contacts onto the live radar. "red" picks ones that head for a hand-off."""
+        sim = self.session.sim
+        radius = int(self.session.scenario.get("coverage_radius_m", 5000))
+        with self.lock:
+            slots = RED_SLOTS[self.mode] if kind == "red" else (kind,)
+            if any(n not in self.world.catalog["randomizer"]["slots"] for n in slots):
+                raise KeyError(f"unknown contact kind '{kind}'")
+            taken = {*sim.active, *(c.id for c in sim.pending)}
+            rng = random.Random(f"inject:{sim.seed}:{len(taken)}:{sim.t}")
+            ids = []
+            for _ in range(count):
+                cid = next(f"X-{n:02d}" for n in range(1, 10_000) if f"X-{n:02d}" not in taken | set(ids))
+                spec = make_contact(self.world.catalog, self.world.harbor, rng.choice(slots), cid, rng, radius)
+                ids.append(sim.inject(spec))
+            self._advance(0.0)
+            self.log_audit("scenario", actor, f"Pushed {len(ids)} {kind} contact(s) to the radar: {', '.join(ids)}",
+                           detail={"inject": ids, "kind": kind})
+            snap = self.snapshot()
+        self._broadcast("tick", snap)
+        return ids
 
     def set_mode(self, mode: str, load: bool = True, actor: str = "operator") -> None:
         with self.lock:

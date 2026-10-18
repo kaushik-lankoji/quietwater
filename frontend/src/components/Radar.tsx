@@ -18,6 +18,7 @@ export const Radar = memo(function Radar({
   handled,
   watched,
   holds,
+  pulseFor,
   rangeM,
   onSelect,
 }: {
@@ -25,6 +26,7 @@ export const Radar = memo(function Radar({
   handled: ReadonlySet<string>;
   watched: ReadonlySet<string>;
   holds: readonly { id: string; radiusM: number }[];
+  pulseFor: { ids: string[]; n: number } | null;
   rangeM: number;
   run: number;
   selected: string | null;
@@ -88,6 +90,10 @@ export const Radar = memo(function Radar({
   useEffect(() => {
     if (engine.current) engine.current.watched = watched;
   }, [watched]);
+
+  useEffect(() => {
+    if (pulseFor) engine.current?.pulseWhenReady(pulseFor.ids);
+  }, [pulseFor]);
 
   useEffect(() => {
     if (engine.current) engine.current.holds = holds;

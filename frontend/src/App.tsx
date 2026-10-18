@@ -144,6 +144,12 @@ export default function App() {
     },
     [config, run],
   );
+  // Push a new red contact onto the live radar.
+  const [pulseFor, setPulseFor] = useState<{ ids: string[]; n: number } | null>(null);
+  const addRed = useCallback(
+    () => run(async () => setPulseFor({ ids: (await api.inject(1)).ids, n: Date.now() })),
+    [run],
+  );
   // Re-roll the scenario that is already selected. The choice of scenario never changes.
   const randomize = useCallback(() => {
     if (!snap) return;
@@ -201,7 +207,7 @@ export default function App() {
 
   return (
     <div className="app">
-      <Radar contacts={snap.contacts} run={snap.run} selected={selected} handled={handled} watched={watched} holds={holds}
+      <Radar contacts={snap.contacts} run={snap.run} selected={selected} handled={handled} watched={watched} holds={holds} pulseFor={pulseFor}
         rangeM={snap.scenario.coverage_radius_m} onSelect={onSelect} />
 
       <BudgetCard
@@ -255,6 +261,10 @@ export default function App() {
       </Sheet>
 
       <ScenarioButton onClick={randomize} />
+      <button type="button" className="red-button" title="Push a new red contact onto the radar" onClick={addRed}>
+        <Icon name="plus" size={20} />
+        New red contact
+      </button>
       <OptimizationPanel metrics={snap.optimization} />
       <Toasts toasts={toasts} />
     </div>

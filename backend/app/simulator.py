@@ -151,6 +151,13 @@ class Simulator:
     def is_water(self, p: tuple[float, float]) -> bool:
         return is_water(self.harbor, p)
 
+    def inject(self, spec: dict[str, Any]) -> str:
+        """Add a contact to the running scenario. It appears on the next step."""
+        c = self._build({**spec, "spawn_t": self.t})
+        self.pending.append(c)
+        self.pending.sort(key=lambda p: p.spawn_t)
+        return c.id
+
     def step(self, dt: float) -> None:
         self.t = round(self.t + dt, 3)
         while self.pending and self.pending[0].spawn_t <= self.t:

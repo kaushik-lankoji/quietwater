@@ -533,6 +533,42 @@ kbd {
   transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
 }
 
+.red-button {
+  position: absolute;
+  z-index: 20;
+  left: var(--space-5);
+  bottom: var(--space-5);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 56px;
+  padding: 0 var(--space-5);
+  border: none;
+  border-radius: var(--radius-panel);
+  font-size: 16px;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--text-primary);
+  background: var(--surface-glass);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  box-shadow: var(--shadow);
+  transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+}
+
+.red-button .icon {
+  color: var(--risk-high);
+}
+
+.red-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 36px rgba(23, 26, 32, 0.12), var(--shadow-tight);
+}
+
+.red-button:active {
+  transform: scale(0.97);
+}
+
 .scenario-button:hover {
   transform: translate(-50%, -2px);
   box-shadow: 0 12px 36px rgba(23, 26, 32, 0.12), var(--shadow-tight);
@@ -2548,7 +2584,7 @@ input[type="range"] {
   position: absolute;
   z-index: 10;
   left: var(--space-5);
-  bottom: var(--space-5);
+  bottom: calc(var(--space-5) + 56px + var(--space-3));
   width: 248px;
   max-height: 40vh;
   display: flex;
