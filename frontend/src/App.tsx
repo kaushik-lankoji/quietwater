@@ -3,7 +3,7 @@ import { api } from "./api";
 import { Toasts, useToasts } from "./components/bits";
 import { BudgetCard } from "./components/BudgetCard";
 import { DualUseToggle } from "./components/DualUseToggle";
-import { HandoffSheetBody, isWaiting, needsAttention, QueueNav, type ActExtra } from "./components/HandoffSheet";
+import { HandoffSheetBody, isWaiting, needsAttention, type ActExtra } from "./components/HandoffSheet";
 import { Icon } from "./components/Icon";
 import { OptimizationPanel } from "./components/OptimizationPanel";
 import { Radar } from "./components/Radar";
@@ -75,6 +75,10 @@ export default function App() {
     return [...latest.values()].filter((i) => HANDLED.includes(i.status)).map((i) => i.contact_id).sort().join(",");
   }, [snap?.items]);
   const handled = useMemo<ReadonlySet<string>>(() => new Set(handledKey ? handledKey.split(",") : []), [handledKey]);
+
+  // Contacts on the watch list are drawn blue, like they are being watched.
+  const watchedKey = (snap?.items ?? []).filter((i) => i.status === "watching").map((i) => i.contact_id).sort().join(",");
+  const watched = useMemo<ReadonlySet<string>>(() => new Set(watchedKey ? watchedKey.split(",") : []), [watchedKey]);
 
   // An active area hold blocks off a region around its contact, not just the contact's dot.
   const holdsKey = (snap?.items ?? [])
@@ -195,7 +199,7 @@ export default function App() {
 
   return (
     <div className="app">
-      <Radar contacts={snap.contacts} run={snap.run} selected={selected} handled={handled} holds={holds}
+      <Radar contacts={snap.contacts} run={snap.run} selected={selected} handled={handled} watched={watched} holds={holds}
         rangeM={snap.scenario.coverage_radius_m} onSelect={onSelect} />
 
       <BudgetCard
@@ -235,7 +239,6 @@ export default function App() {
         open={sheet === "handoff"}
         flush
         title={active ? `Contact ${active.contact_id}` : "All clear"}
-        actions={<QueueNav queue={queue} active={active} onActive={setActiveItem} />}
         onClose={() => setSheet(null)}
       >
         <HandoffSheetBody active={active} rules={config.rules} onAct={act} busy={busy} quiet={snap.budget.quiet} managing={managing} onManage={setManaging} />

@@ -42,6 +42,7 @@ interface Palette {
   low: string;
   mid: string;
   high: string;
+  watch: string;
   pulse: string;
   ring: string;
   label: string;
@@ -59,6 +60,7 @@ function readPalette(): Palette {
     low: v("--risk-low"),
     mid: v("--risk-mid"),
     high: v("--risk-high"),
+    watch: v("--accent-blue"),
     pulse: v("--pulse-green"),
     ring: v("--divider"),
     label: v("--text-tertiary"),
@@ -102,6 +104,8 @@ export class RadarEngine {
   selected: string | null = null;
   /** Contacts whose hand-off the operator has dealt with: drawn as a grayed-out red. */
   handled: ReadonlySet<string> = new Set();
+  /** Contacts on the watch list: drawn blue, whatever their risk. */
+  watched: ReadonlySet<string> = new Set();
   /** Active area holds: a translucent blocked-off region around the contact. */
   holds: readonly { id: string; radiusM: number }[] = [];
   onChange: (() => void) | null = null;
@@ -332,12 +336,13 @@ export class RadarEngine {
       const a = this.alpha(e, now);
       if (a <= 0.01) continue;
       const { x, y } = this.position(e);
-      const done = e.tier === "high" && this.handled.has(e.id);
-      const color = done ? blend(p.high, p.low, 0.62) : p[e.tier];
+      const watching = this.watched.has(e.id);
+      const done = !watching && e.tier === "high" && this.handled.has(e.id);
+      const color = watching ? p.watch : done ? blend(p.high, p.low, 0.62) : p[e.tier];
       const hover = e.id === this.hovered;
       const r = e.radius * (hover ? HOVER_SCALE : 1);
 
-      if (e.tier === "high" && !done && !this.reduced) {
+      if (e.tier === "high" && !done && !watching && !this.reduced) {
         const phase = ((now - e.pingedAt) % RIPPLE_PERIOD_MS) / RIPPLE_PERIOD_MS;
         ctx.strokeStyle = withAlpha(color, 0.45 * (1 - phase) * a);
         ctx.lineWidth = 1.5;

@@ -576,25 +576,6 @@ function Card({
   );
 }
 
-export function QueueNav({ queue, active, onActive }: { queue: HandoffItem[]; active?: HandoffItem; onActive: (id: string) => void }) {
-  if (queue.length < 2) return null;
-  const idx = active ? queue.indexOf(active) : -1;
-  const step = (n: number) => onActive(queue[(Math.max(idx, 0) + n + queue.length) % queue.length].id);
-  return (
-    <div className="queue-nav">
-      <button type="button" className="icon-button small" aria-label="Previous in queue" onClick={() => step(-1)}>
-        <Icon name="chevronLeft" size={18} />
-      </button>
-      <span className="num">
-        {idx >= 0 ? idx + 1 : "–"} of {queue.length}
-      </span>
-      <button type="button" className="icon-button small" aria-label="Next in queue" onClick={() => step(1)}>
-        <Icon name="chevronRight" size={18} />
-      </button>
-    </div>
-  );
-}
-
 export function HandoffSheetBody({
   active,
   rules,

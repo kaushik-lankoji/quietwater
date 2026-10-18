@@ -313,6 +313,11 @@ kbd {
   background: var(--risk-high);
 }
 
+.risk-dot.watching,
+.risk-pill.watched .risk-dot {
+  background: var(--accent-blue);
+}
+
 .risk-pill {
   display: inline-flex;
   align-items: center;
@@ -1036,15 +1041,6 @@ select.field-input {
   display: flex;
   flex-direction: column;
   gap: var(--space-5);
-}
-
-.queue-nav {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--space-2);
-  font-size: 13px;
-  color: var(--text-secondary);
 }
 
 .handoff {
@@ -2012,11 +2008,6 @@ input[type="range"] {
 }
 
 /* ---------- Hand-off states ---------- */
-
-.sheet-head .queue-nav {
-  align-self: center;
-  flex: none;
-}
 
 .contact-title {
   font: 600 24px/1.2 var(--font-display);
